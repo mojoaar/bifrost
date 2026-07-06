@@ -701,11 +701,7 @@ describe("config loader", () => {
 });
 ```
 
-- [ ] **Step 5: Run tests**
-
-Run: `npx vitest run`
-
-Expected: Test passes, config loads with default values
+- [ ] **Step 5: Create test file (do not run yet — vitest installed in Task 8)**
 
 - [ ] **Step 6: Create bifrost.config.ts with default values at project root (placeholder)**
 

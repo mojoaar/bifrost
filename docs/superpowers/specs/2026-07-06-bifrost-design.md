@@ -411,21 +411,7 @@ Environment=PORT=3000
 WantedBy=multi-user.target
 ```
 
-**Reverse proxy** (nginx example):
 
-```nginx
-server {
-    listen 443 ssl;
-    server_name blog.example.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
 
 ---
 
