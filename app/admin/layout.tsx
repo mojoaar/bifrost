@@ -46,6 +46,12 @@ export default function AdminLayout({
             Settings
           </Link>
           <Link
+            href="/admin/users"
+            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
+          >
+            Users
+          </Link>
+          <Link
             href="/admin/git"
             className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
           >
