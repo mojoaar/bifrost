@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Live markdown preview via server-side rendering endpoint.
 - Admin post creation and editing pages.
 
+## [0.5.0] — 2026-07-06
+
+### Added
+- Plugin system with 5 lifecycle hooks (onContentParse, onContentRender, onContentPublish, onServerStart, adminWidget).
+- Plugin registry with filesystem-based loader.
+- AI provider abstraction supporting OpenCode Zen, OpenCode Go, and DeepSeek.
+- Streaming AI chat API (SSE) with actions: continue, improve, grammar, outline, title, summarize.
+- AI assistant panel in the admin post editor with insert/replace/discard controls.
+- OpenAPI 3.1 specification generation.
+- Swagger UI API explorer at /api/docs.
+
 ## [0.4.0] — 2026-07-06
 
 ### Added
