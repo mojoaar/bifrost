@@ -41,13 +41,11 @@ function getInitialMode(): ThemeMode {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const [mode, setModeState] = useState<ThemeMode>(getInitialMode);
 
   useEffect(() => {
-    const initial = getInitialMode();
-    setModeState(initial);
-    document.documentElement.setAttribute("data-theme", initial);
-  }, []);
+    document.documentElement.setAttribute("data-theme", mode);
+  }, [mode]);
 
   const toggle = useCallback(() => {
     setModeState((prev) => {

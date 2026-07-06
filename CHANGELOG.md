@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Live markdown preview via server-side rendering endpoint.
 - Admin post creation and editing pages.
 
+## [0.4.0] — 2026-07-06
+
+### Added
+- Theme registry with types, loader, and validation.
+- Default theme with light/dark CSS variables, layout, post template, and list template.
+- ThemeProvider context and useTheme hook (localStorage + prefers-color-scheme).
+- Light/dark mode toggle in default theme header.
+- Public blog homepage showing published posts.
+- Single post route at /[slug] with server-rendered metadata.
+- Tag-filtered post list at /tag/[tag].
+- RSS 2.0 feed at /rss.xml.
+
 ## [0.2.0] - 2026-07-06
 
 ### Added
