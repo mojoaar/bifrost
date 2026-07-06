@@ -5,7 +5,28 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] — 2026-07-06
+
+### Added
+- Setup wizard at /setup for first-run admin user and site config.
+- Media library admin page with drag-and-drop upload.
+- User management admin page (list users with roles).
+- Settings admin page (site info, theme, git remote).
+- Dockerfile for production deployment.
+- Full REST API with OpenAPI 3.1 spec and Swagger UI.
+- Admin dashboard with CodeMirror 6 split-pane editor.
+- Public blog with theme system and light/dark mode.
+- Plugin system with 5 lifecycle hooks.
+- AI writing assistant (OpenCode Zen/Go, DeepSeek).
+- MCP server (stdio + HTTP/SSE) with 12 tools and 6 resources.
+- Built-in Git versioning for content directory.
+- JWT authentication with role-based access control.
+- Markdown content engine with GFM and syntax highlighting.
+
+### Shipping
+- 75+ tests, typecheck clean, linted.
+- Docker and systemd deployment configs.
+- Version controlled content with auto-commit.
 
 ## [0.6.0] — 2026-07-06
 
