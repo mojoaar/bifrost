@@ -9,6 +9,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema/media";
 import { generateId } from "@/lib/id";
@@ -76,4 +77,21 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
     sizeBytes: file.size,
     createdAt: now,
   };
+}
+
+export async function getAllMedia(): Promise<MediaRecord[]> {
+  return db.select().from(media).all() as MediaRecord[];
+}
+
+export async function deleteMedia(id: string): Promise<boolean> {
+  const record = db.select().from(media).where(eq(media.id, id)).get() as MediaRecord | undefined;
+
+  if (!record) return false;
+
+  const fsPath = path.resolve("content", record.path);
+  await fs.unlink(fsPath).catch(() => {});
+
+  db.delete(media).where(eq(media.id, id)).run();
+
+  return true;
 }
