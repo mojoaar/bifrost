@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import AIAssistant from "@/lib/editor/AIAssistant";
 
 const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
 const Preview = dynamic(() => import("@/lib/editor/Preview"), { ssr: false });
@@ -129,6 +130,11 @@ export default function EditPostPage() {
         >
           {saving ? "Saving..." : "Save"}
         </button>
+        <AIAssistant
+          content={content}
+          onInsert={(text) => setContent((prev) => prev + text)}
+          onReplace={(text) => setContent(text)}
+        />
       </div>
 
       {error && <p className="text-sm text-red-400">{error}</p>}
