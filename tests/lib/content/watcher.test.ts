@@ -7,8 +7,8 @@
  * See the LICENSE file for details.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { ingestAll } from "@/lib/content/watcher";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
+import { ingestAll, startWatcher, stopWatcher } from "@/lib/content/watcher";
 import fs from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
@@ -34,8 +34,18 @@ describe("content watcher ingestion", () => {
       })
       .onConflictDoNothing()
       .run();
+  });
 
+  beforeEach(async () => {
     await fs.mkdir(TEST_DIR, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(TEST_DIR, { recursive: true, force: true });
+    db.delete(posts).where(eq(posts.slug, "test-post")).run();
+  });
+
+  it("ingests a markdown file into the database", async () => {
     await fs.writeFile(
       TEST_FILE,
       `---
@@ -46,14 +56,6 @@ date: 2026-06-01
 
 This post validates the ingestion pipeline.`
     );
-  });
-
-  afterAll(async () => {
-    await fs.rm(TEST_DIR, { recursive: true, force: true });
-    db.delete(posts).where(eq(posts.slug, "test-post")).run();
-  });
-
-  it("ingests a markdown file into the database", async () => {
     await ingestAll();
     const post = db
       .select()
@@ -67,6 +69,14 @@ This post validates the ingestion pipeline.`
   });
 
   it("updates existing post on re-ingest", async () => {
+    await fs.writeFile(
+      TEST_FILE,
+      `---
+title: Original Title
+---
+# Original`
+    );
+    await ingestAll();
     await fs.writeFile(
       TEST_FILE,
       `---
@@ -99,5 +109,21 @@ draft: true
       .where(eq(posts.slug, "test-post"))
       .get();
     expect(post!.status).toBe("draft");
+  });
+});
+
+describe("content watcher lifecycle", () => {
+  afterAll(async () => {
+    await stopWatcher();
+  });
+
+  it("startWatcher does not throw when called twice", () => {
+    expect(() => startWatcher()).not.toThrow();
+    expect(() => startWatcher()).not.toThrow();
+  });
+
+  it("stopWatcher does not throw when called", async () => {
+    startWatcher();
+    await expect(stopWatcher()).resolves.not.toThrow();
   });
 });
