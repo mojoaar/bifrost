@@ -85,7 +85,11 @@ export function createResourceDefinitions(): ResourceDef[] {
         const rows = db.select().from(settings).all();
         const obj: Record<string, unknown> = {};
         for (const row of rows) {
-          obj[row.key] = JSON.parse(row.value);
+          try {
+            obj[row.key] = JSON.parse(row.value);
+          } catch {
+            obj[row.key] = row.value;
+          }
         }
         return {
           contents: [{ uri: "bifrost://settings", mimeType: "application/json", text: JSON.stringify(obj, null, 2) }],

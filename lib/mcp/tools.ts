@@ -15,10 +15,10 @@ import { media } from "@/lib/db/schema/media";
 import { settings } from "@/lib/db/schema/settings";
 import { renderMarkdown } from "@/lib/md/parser";
 import { postCreateSchema } from "@/lib/validation/posts";
-import { eq, like, sql } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 import { buildMessages } from "@/lib/ai/actions";
 import { generateId } from "@/lib/id";
-import { writePostToFilesystem } from "@/lib/content/sync";
+import { writePostToFilesystem, deletePostFromFilesystem } from "@/lib/content/sync";
 
 interface ToolDef {
   name: string;
@@ -62,6 +62,28 @@ export function createToolDefinitions(): McpTool[] {
         const limit = Math.min(50, (args.limit as number) ?? 20);
         const statusFilter =
           typeof args.status === "string" ? eq(posts.status, args.status as "draft" | "published") : undefined;
+
+        if (typeof args.tag === "string") {
+          const tag = db.select({ id: tags.id }).from(tags).where(eq(tags.slug, args.tag as string)).get();
+          if (!tag) return { content: [{ type: "text", text: safeJson([]) }] };
+          const postSlugs = db
+            .select({ postSlug: postTags.postSlug })
+            .from(postTags)
+            .where(eq(postTags.tagId, tag.id))
+            .all();
+          const slugList = postSlugs.map((r) => r.postSlug);
+          if (slugList.length === 0) return { content: [{ type: "text", text: safeJson([]) }] };
+          const conditions = slugList.map((s) => eq(posts.slug, s));
+          if (statusFilter) conditions.push(statusFilter);
+          const rows = db
+            .select()
+            .from(posts)
+            .where(conditions.length === 1 ? conditions[0] : or(...conditions))
+            .limit(limit)
+            .all();
+          return { content: [{ type: "text", text: safeJson(rows) }] };
+        }
+
         const query = db.select().from(posts).limit(limit);
         if (statusFilter) query.where(statusFilter);
         const rows = query.all();
@@ -192,7 +214,7 @@ export function createToolDefinitions(): McpTool[] {
         const title = (args.title as string) ?? existing.title;
         const content = (args.content as string) ?? existing.contentMd;
         const status = (args.status as "draft" | "published") ?? existing.status;
-        const frontmatter = (args.frontmatter as Record<string, unknown>) ?? {};
+        const frontmatter = (args.frontmatter as Record<string, unknown>) ?? JSON.parse(existing.frontmatter);
 
         const { html, excerpt } = await renderMarkdown(content);
 
@@ -234,7 +256,6 @@ export function createToolDefinitions(): McpTool[] {
         db.delete(postTags).where(eq(postTags.postSlug, args.slug as string)).run();
         db.delete(posts).where(eq(posts.slug, args.slug as string)).run();
 
-        const { deletePostFromFilesystem } = await import("@/lib/content/sync");
         await deletePostFromFilesystem(args.slug as string);
 
         return { content: [{ type: "text", text: "Deleted" }] };
@@ -299,7 +320,11 @@ export function createToolDefinitions(): McpTool[] {
         const rows = db.select().from(settings).all();
         const obj: Record<string, unknown> = {};
         for (const row of rows) {
-          obj[row.key] = JSON.parse(row.value);
+          try {
+            obj[row.key] = JSON.parse(row.value);
+          } catch {
+            obj[row.key] = row.value;
+          }
         }
         return { content: [{ type: "text", text: safeJson(obj) }] };
       },
@@ -341,9 +366,9 @@ export function createToolDefinitions(): McpTool[] {
           .select()
           .from(posts)
           .where(
-            eq(
-              sql`${like(posts.title, `%${query}%`)} OR ${like(posts.contentMd, `%${query}%`)}`,
-              undefined
+            or(
+              like(posts.title, `%${query}%`),
+              like(posts.contentMd, `%${query}%`)
             )
           )
           .limit(20)
