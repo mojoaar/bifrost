@@ -38,7 +38,6 @@ export function loadConfig(): BifrostConfig {
   if (cachedConfig) return cachedConfig;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const userConfig = require("../../bifrost.config").default;
     cachedConfig = deepMerge(
       defaults as unknown as Record<string, unknown>,
