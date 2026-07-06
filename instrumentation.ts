@@ -7,8 +7,10 @@
  * See the LICENSE file for details.
  */
 
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {};
-
-export default nextConfig;
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { ingestAll, startWatcher } = await import("@/lib/content/watcher");
+    await ingestAll();
+    startWatcher();
+  }
+}
