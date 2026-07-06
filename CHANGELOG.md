@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-06
+
+### Added
+
+- JWT authentication with access (15min) and refresh (7d httpOnly cookie) tokens.
+- Password hashing with bcrypt (12 salt rounds).
+- Auth API routes: POST /api/v1/auth/login, POST /api/v1/auth/refresh.
+- Next.js middleware protecting /admin/* and write API routes.
+- Admin layout with sidebar navigation.
+- Admin login page with email/password form.
+- Admin posts list page with status badges.
+- CodeMirror 6 split-pane editor with one-dark theme.
+- Live markdown preview via server-side rendering endpoint.
+- Admin post creation and editing pages.
+
 ## [0.2.0] - 2026-07-06
 
 ### Added
