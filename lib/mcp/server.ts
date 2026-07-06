@@ -7,6 +7,7 @@
  * See the LICENSE file for details.
  */
 
+import { readFileSync } from "fs";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -18,7 +19,8 @@ import {
 import { createToolDefinitions } from "./tools";
 import { createResourceDefinitions } from "./resources";
 
-const SERVER_INFO = { name: "bifrost", version: "0.6.0" } as const;
+const VERSION = readFileSync("VERSION", "utf-8").trim();
+const SERVER_INFO = { name: "bifrost", version: VERSION } as const;
 const SERVER_CAPS = { capabilities: { tools: {}, resources: {} } } as const;
 
 function registerHandlers(server: Server): void {
@@ -55,7 +57,7 @@ function registerHandlers(server: Server): void {
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const resources = createResourceDefinitions();
     const uri = request.params.uri;
-    const resource = resources.find((r) => uri.startsWith(r.uriPattern.replace("{slug}", "")));
+    const resource = [...resources].reverse().find((r) => uri.startsWith(r.uriPattern.replace("{slug}", "")));
     if (!resource) {
       throw new Error(`Unknown resource: ${uri}`);
     }
