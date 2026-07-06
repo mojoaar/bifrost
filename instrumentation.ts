@@ -9,8 +9,22 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { loadPluginsFromDirectory, runHook } = await import(
+      "@/lib/plugins/registry"
+    );
+
+    await loadPluginsFromDirectory("./plugins");
+
     const { ingestAll, startWatcher } = await import("@/lib/content/watcher");
     await ingestAll();
     startWatcher();
+
+    try {
+      const { db } = await import("@/lib/db");
+      const { loadConfig } = await import("@/lib/config/loader");
+      await runHook("onServerStart", { db, loadConfig });
+    } catch {
+      // hooks are optional
+    }
   }
 }

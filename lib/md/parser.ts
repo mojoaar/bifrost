@@ -15,6 +15,7 @@ import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import rehypeSanitize from "rehype-sanitize";
 import type { ParsedMarkdown } from "./types";
+import { runHook } from "@/lib/plugins/registry";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
@@ -54,14 +55,25 @@ export async function renderMarkdown(
   markdown: string
 ): Promise<{ html: string; excerpt: string }> {
   const result = await processor.process(markdown);
-  const html = String(result);
+  let html = String(result);
+
+  try {
+    const { db } = await import("@/lib/db");
+    const { loadConfig } = await import("@/lib/config/loader");
+    const rendered = await runHook("onContentRender", html, { db, loadConfig });
+    if (rendered.length > 0) {
+      html = rendered[rendered.length - 1]!;
+    }
+  } catch {
+    // hooks are optional; continue without them if db isn't available
+  }
 
   const plainText = html
     .replace(/<[^>]+>/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
-  const excerpt = plainText.length > 200 ? plainText.slice(0, 200) + "…" : plainText;
+  const excerpt = plainText.length > 200 ? plainText.slice(0, 200) + "\u2026" : plainText;
 
   return { html, excerpt };
 }
@@ -70,10 +82,18 @@ export async function parseMarkdown(content: string): Promise<ParsedMarkdown> {
   const { frontmatter, body } = parseFrontmatter(content);
   const { html, excerpt } = await renderMarkdown(body);
 
-  return {
-    frontmatter,
-    body,
-    html,
-    excerpt,
-  };
+  const parsed: ParsedMarkdown = { frontmatter, body, html, excerpt };
+
+  try {
+    const { db } = await import("@/lib/db");
+    const { loadConfig } = await import("@/lib/config/loader");
+    const modified = await runHook("onContentParse", parsed, { db, loadConfig });
+    if (modified.length > 0) {
+      return modified[modified.length - 1]!;
+    }
+  } catch {
+    // hooks are optional
+  }
+
+  return parsed;
 }

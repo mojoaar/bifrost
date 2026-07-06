@@ -13,6 +13,7 @@ import path from "path";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { parseMarkdown } from "@/lib/md/parser";
+import { runHook } from "@/lib/plugins/registry";
 import { eq } from "drizzle-orm";
 
 const CONTENT_POSTS_DIR = path.resolve("content/posts");
@@ -79,6 +80,15 @@ async function processFile(filePath: string): Promise<void> {
           updatedAt: now,
         })
         .run();
+    }
+
+    if (status === "published") {
+      try {
+        const { loadConfig } = await import("@/lib/config/loader");
+        await runHook("onContentPublish", slug, { db, loadConfig });
+      } catch {
+        // hooks are optional
+      }
     }
   } catch (err) {
     console.error(`Error processing ${filePath}:`, err);
