@@ -1,0 +1,12 @@
+:root[data-theme="dark"] {
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border-color: #27272a;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --code-bg: #18181b;
+  --code-border: #27272a;
+}
