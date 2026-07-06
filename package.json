@@ -29,7 +29,8 @@
     "@types/react-dom": "^19.2.0",
     "drizzle-kit": "^0.31.10",
     "tailwindcss": "^4.3.2",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.10"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true
