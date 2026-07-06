@@ -51,6 +51,13 @@ describe("renderMarkdown", () => {
     const { html } = await renderMarkdown('<script>alert("xss")</script>');
     expect(html).not.toContain("<script>");
   });
+
+  it("truncates long excerpt to 200 characters with ellipsis", async () => {
+    const long = "A".repeat(300);
+    const { excerpt } = await renderMarkdown(long);
+    expect(excerpt.length).toBe(201); // 200 + "…"
+    expect(excerpt.endsWith("…")).toBe(true);
+  });
 });
 
 describe("parseMarkdown", () => {
