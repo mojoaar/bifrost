@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "./token";
+import { verifyAccessToken, verifyRefreshToken } from "./token";
 
 const PROTECTED_API_METHODS = new Set(["POST", "PUT", "DELETE", "PATCH"]);
 
@@ -19,21 +19,59 @@ function isProtectedApiRoute(pathname: string, method: string): boolean {
   return WRITE_API_PATTERNS.some((p) => p.test(pathname));
 }
 
+async function getTokenPayload(
+  request: NextRequest
+): Promise<{ sub: string; role: string } | null> {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+
+  if (bearerToken) {
+    const payload = await verifyAccessToken(bearerToken);
+    if (payload) return payload;
+    // token was provided but invalid — don't fall back to cookie
+    return null;
+  }
+
+  const refreshCookie = request.cookies.get("bifrost_refresh")?.value;
+  if (refreshCookie) {
+    const payload = await verifyRefreshToken(refreshCookie);
+    if (payload) return payload;
+  }
+
+  return null;
+}
+
+async function getTokenPayloadForApi(
+  request: NextRequest
+): Promise<{ sub: string; role: string } | { type: "no-token" } | { type: "invalid-token" }> {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+
+  if (bearerToken) {
+    const payload = await verifyAccessToken(bearerToken);
+    if (payload) return payload;
+    return { type: "invalid-token" };
+  }
+
+  const refreshCookie = request.cookies.get("bifrost_refresh")?.value;
+  if (refreshCookie) {
+    const payload = await verifyRefreshToken(refreshCookie);
+    if (payload) return payload;
+  }
+
+  return { type: "no-token" };
+}
+
 export async function authMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : null;
-
   if (pathname.startsWith("/admin")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    const payload = await verifyAccessToken(token);
+    const payload = await getTokenPayload(request);
     if (!payload) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -45,24 +83,21 @@ export async function authMiddleware(request: NextRequest) {
   }
 
   if (isProtectedApiRoute(pathname, method)) {
-    if (!token) {
+    const result = await getTokenPayloadForApi(request);
+    if (!("sub" in result)) {
+      const message =
+        result.type === "invalid-token"
+          ? "Invalid or expired token"
+          : "Authentication required";
       return NextResponse.json(
-        { data: null, error: { message: "Authentication required" }, meta: null },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        { data: null, error: { message: "Invalid or expired token" }, meta: null },
+        { data: null, error: { message }, meta: null },
         { status: 401 }
       );
     }
 
     const response = NextResponse.next();
-    response.headers.set("x-user-id", payload.sub);
-    response.headers.set("x-user-role", payload.role);
+    response.headers.set("x-user-id", result.sub);
+    response.headers.set("x-user-role", result.role);
     return response;
   }
 

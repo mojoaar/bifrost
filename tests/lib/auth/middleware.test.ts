@@ -10,20 +10,31 @@
 import { describe, it, expect } from "vitest";
 import { NextRequest } from "next/server";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { createAccessToken } from "@/lib/auth/token";
+import { createAccessToken, createRefreshToken } from "@/lib/auth/token";
 
 function buildRequest(
   pathname: string,
-  options?: { method?: string; token?: string }
+  options?: { method?: string; token?: string; cookie?: string }
 ): NextRequest {
   const url = `http://localhost:3000${pathname}`;
-  const headers: HeadersInit = options?.token
+  const headers: Record<string, string> = options?.token
     ? { authorization: `Bearer ${options.token}` }
     : {};
-  return new NextRequest(url, {
+  const req = new NextRequest(url, {
     method: options?.method ?? "GET",
     headers,
   });
+  if (options?.cookie) {
+    Object.defineProperty(req, "cookies", {
+      value: {
+        get: (name: string) =>
+          name === "bifrost_refresh" ? { value: options.cookie } : undefined,
+      },
+      writable: true,
+      configurable: true,
+    });
+  }
+  return req;
 }
 
 describe("isProtectedApiRoute (via authMiddleware)", () => {
@@ -184,6 +195,44 @@ describe("invalid/expired token", () => {
     const req = new NextRequest(url, { method: "POST", headers });
     const res = await authMiddleware(req);
     expect(res.status).toBe(401);
+  });
+});
+
+describe("refresh cookie auth", () => {
+  it("passes through admin route with valid refresh cookie", async () => {
+    const token = await createRefreshToken({ sub: "user-1", role: "author" });
+    const req = buildRequest("/admin/dashboard", { cookie: token });
+    const res = await authMiddleware(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-user-id")).toBe("user-1");
+    expect(res.headers.get("x-user-role")).toBe("author");
+  });
+
+  it("redirects for admin route with expired refresh cookie", async () => {
+    const { SignJWT } = await import("jose");
+    const secret = new TextEncoder().encode(
+      "bifrost-dev-refresh-secret-change-me"
+    );
+    const expired = await new SignJWT({ sub: "x", role: "admin" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("0s")
+      .sign(secret);
+
+    const req = buildRequest("/admin/dashboard", { cookie: expired });
+    const res = await authMiddleware(req);
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login");
+  });
+
+  it("passes through API route with valid refresh cookie", async () => {
+    const token = await createRefreshToken({ sub: "user-1", role: "admin" });
+    const req = buildRequest("/api/v1/posts", {
+      method: "POST",
+      cookie: token,
+    });
+    const res = await authMiddleware(req);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-user-id")).toBe("user-1");
   });
 });
 
