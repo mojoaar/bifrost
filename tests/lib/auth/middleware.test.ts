@@ -79,27 +79,27 @@ describe("isProtectedApiRoute (via authMiddleware)", () => {
 });
 
 describe("admin redirects", () => {
-  it("GET /admin/dashboard without token redirects to /admin/login", async () => {
+  it("GET /admin/dashboard without token redirects to /login", async () => {
     const req = buildRequest("/admin/dashboard");
     const res = await authMiddleware(req);
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe(
-      "http://localhost:3000/admin/login"
+      "http://localhost:3000/login"
     );
   });
 
-  it("GET /admin/login without token returns 200 (pass-through)", async () => {
-    const req = buildRequest("/admin/login");
+  it("GET /login without token returns 200 (pass-through)", async () => {
+    const req = buildRequest("/login");
     const res = await authMiddleware(req);
     expect(res.status).toBe(200);
   });
 
-  it("GET /admin/posts without token redirects to /admin/login", async () => {
+  it("GET /admin/posts without token redirects to /login", async () => {
     const req = buildRequest("/admin/posts");
     const res = await authMiddleware(req);
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe(
-      "http://localhost:3000/admin/login"
+      "http://localhost:3000/login"
     );
   });
 });
@@ -174,7 +174,7 @@ describe("invalid/expired token", () => {
     const res = await authMiddleware(req);
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe(
-      "http://localhost:3000/admin/login"
+      "http://localhost:3000/login"
     );
   });
 

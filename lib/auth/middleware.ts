@@ -29,17 +29,13 @@ export async function authMiddleware(request: NextRequest) {
     : null;
 
   if (pathname.startsWith("/admin")) {
-    if (pathname === "/admin/login") {
-      return NextResponse.next();
-    }
-
     if (!token) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     const payload = await verifyAccessToken(token);
     if (!payload) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     const response = NextResponse.next();
