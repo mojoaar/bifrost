@@ -73,16 +73,26 @@ export async function loadPluginsFromDirectory(
     if (!entry.isDirectory()) continue;
 
     const indexPath = path.join(dir, entry.name, "index.ts");
+    let exists = false;
     try {
       await fs.access(indexPath);
+      exists = true;
     } catch {
-      continue;
+      // file doesn't exist
     }
 
+    if (!exists) continue;
+
     try {
-      const mod = await import(indexPath);
-      if (mod.default && mod.default.hooks) {
-        registerPlugin(mod.default as BifrostPlugin);
+      const dynamicImport = new Function("p", "return import(p)") as (
+        p: string
+      ) => Promise<unknown>;
+      const mod = await dynamicImport(indexPath);
+      if ((mod as Record<string, unknown>).default) {
+        const plugin = (mod as Record<string, unknown>).default;
+        if ((plugin as Record<string, unknown>).hooks) {
+          registerPlugin(plugin as BifrostPlugin);
+        }
       }
     } catch (err) {
       console.error(`Failed to load plugin "${entry.name}":`, err);
