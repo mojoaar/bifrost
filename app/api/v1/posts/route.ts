@@ -103,6 +103,13 @@ export async function POST(request: NextRequest) {
         db.insert(postTags).values({ postSlug: slug, tagId }).run();
       }
     }
+
+    try {
+      const { commitPost } = await import("@/lib/git/repo");
+      await commitPost(slug, title);
+    } catch {
+      // best-effort
+    }
   } catch (err) {
     return apiError("Failed to create post", 500, String(err));
   }

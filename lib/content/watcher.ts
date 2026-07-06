@@ -82,6 +82,13 @@ async function processFile(filePath: string): Promise<void> {
         .run();
     }
 
+    try {
+      const { commitPost } = await import("@/lib/git/repo");
+      await commitPost(slug, title);
+    } catch {
+      // best-effort
+    }
+
     if (status === "published") {
       try {
         const { loadConfig } = await import("@/lib/config/loader");

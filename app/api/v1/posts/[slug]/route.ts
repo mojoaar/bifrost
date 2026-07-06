@@ -112,6 +112,13 @@ export async function PUT(
     }
   }
 
+  try {
+    const { commitPost } = await import("@/lib/git/repo");
+    await commitPost(slug, update.title ?? existing.title);
+  } catch {
+    // best-effort
+  }
+
   const post = db.select().from(posts).where(eq(posts.slug, slug)).get();
 
   return apiSuccess(post);
