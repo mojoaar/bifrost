@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-06
+
+### Added
+- MCP server with stdio and HTTP/SSE transports.
+- 12 MCP tools: list_posts, get_post, create_post, update_post, delete_post, list_media, upload_media, get_settings, update_settings, search_posts, list_tags, ai_assist.
+- 6 MCP resources: bifrost://posts, bifrost://posts/{slug}, bifrost://posts/{slug}/html, bifrost://posts/{slug}/frontmatter, bifrost://media, bifrost://settings.
+- Git integration: init, auto-commit, history, diff, push, pull.
+- Git API routes: GET /api/v1/git/history, GET /api/v1/git/diff, POST /api/v1/git/push, POST /api/v1/git/pull.
+- Git admin pages: commit timeline and diff viewer.
+- Auto-commit wired into content watcher and post API.
+
 ## [0.3.0] - 2026-07-06
 
 ### Added
