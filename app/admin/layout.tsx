@@ -45,6 +45,12 @@ export default function AdminLayout({
           >
             Settings
           </Link>
+          <Link
+            href="/admin/git"
+            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
+          >
+            Git
+          </Link>
         </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>
