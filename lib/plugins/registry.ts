@@ -8,9 +8,6 @@
  */
 
 import type { BifrostPlugin, PluginHooks } from "./types";
-import type { Dirent } from "fs";
-import fs from "fs/promises";
-import path from "path";
 
 const plugins: BifrostPlugin[] = [];
 
@@ -62,9 +59,15 @@ export function getPlugins(): BifrostPlugin[] {
 export async function loadPluginsFromDirectory(
   dir: string
 ): Promise<void> {
-  let entries: Dirent[];
+  const { default: fs } = await import("fs/promises");
+  const { default: path } = await import("path");
+
+  let entries: { isDirectory(): boolean; name: string }[];
   try {
-    entries = await fs.readdir(dir, { withFileTypes: true });
+    entries = (await fs.readdir(dir, { withFileTypes: true })) as unknown as {
+      isDirectory(): boolean;
+      name: string;
+    }[];
   } catch {
     return;
   }
