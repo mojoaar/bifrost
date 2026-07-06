@@ -11,7 +11,19 @@ import fs from "fs";
 import path from "path";
 import type { LoadedTheme, ThemeManifest, ThemeComponents } from "./types";
 
+import DefaultLayout from "../../themes/default/layout";
+import DefaultPost from "../../themes/default/post";
+import DefaultList from "../../themes/default/list";
+
 const THEMES_DIR = path.resolve("themes");
+
+const STATIC_THEMES: Record<string, ThemeComponents> = {
+  default: {
+    layout: DefaultLayout,
+    post: DefaultPost,
+    list: DefaultList,
+  },
+};
 
 export async function loadTheme(name: string): Promise<LoadedTheme> {
   const themePath = path.join(THEMES_DIR, name);
@@ -29,21 +41,7 @@ export async function loadTheme(name: string): Promise<LoadedTheme> {
     fs.readFileSync(manifestPath, "utf-8")
   ) as ThemeManifest;
 
-  const components: ThemeComponents = {};
-
-  const layoutPath = path.join(themePath, "layout.tsx");
-  const postPath = path.join(themePath, "post.tsx");
-  const listPath = path.join(themePath, "list.tsx");
-
-  if (fs.existsSync(layoutPath)) {
-    components.layout = (await import(layoutPath)).default;
-  }
-  if (fs.existsSync(postPath)) {
-    components.post = (await import(postPath)).default;
-  }
-  if (fs.existsSync(listPath)) {
-    components.list = (await import(listPath)).default;
-  }
+  const components = STATIC_THEMES[name] ?? {};
 
   return { manifest, components, path: themePath };
 }

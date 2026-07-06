@@ -9,6 +9,8 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/themes/default/styles/light.css";
+import "@/themes/default/styles/dark.css";
 
 export const metadata: Metadata = {
   title: "Bifröst",
