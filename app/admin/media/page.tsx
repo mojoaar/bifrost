@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 interface MediaItem {
   id: string;
@@ -29,29 +29,9 @@ export default function MediaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const mounted = useRef(false);
+  const initialFetchDone = useRef(false);
 
-  useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
-
-    (async () => {
-      const token = localStorage.getItem("bifrost_token");
-      try {
-        const res = await fetch("/api/v1/media", {
-          headers: token ? { authorization: `Bearer ${token}` } : {},
-        });
-        const body = await res.json();
-        if (res.ok) setItems(body.data ?? []);
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  async function fetchMedia() {
+  const fetchMedia = useCallback(async () => {
     const token = localStorage.getItem("bifrost_token");
     try {
       const res = await fetch("/api/v1/media", {
@@ -61,34 +41,36 @@ export default function MediaPage() {
       if (res.ok) setItems(body.data ?? []);
     } catch {
       // silent
+    } finally {
+      setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (initialFetchDone.current) return;
+    initialFetchDone.current = true;
+    fetchMedia();
+  }, [fetchMedia]);
 
   async function uploadFile(file: File) {
     setUploading(true);
     setError("");
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      const token = localStorage.getItem("bifrost_token");
-      try {
-        const res = await fetch("/api/v1/media/upload", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            ...(token ? { authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ filename: file.name, mimeType: file.type, base64Content: base64 }),
-        });
-        if (res.ok) fetchMedia();
-        else setError("Upload failed");
-      } catch {
-        setError("Network error");
-      } finally {
-        setUploading(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = localStorage.getItem("bifrost_token");
+    try {
+      const res = await fetch("/api/v1/media/upload", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (res.ok) fetchMedia();
+      else setError("Upload failed");
+    } catch {
+      setError("Network error");
+    } finally {
+      setUploading(false);
+    }
   }
 
   function handleDrop(e: React.DragEvent) {
