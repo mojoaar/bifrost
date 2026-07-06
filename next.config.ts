@@ -10,9 +10,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // Enable after initial scaffold
-  },
+  experimental: {},
 };
 
 export default nextConfig;
