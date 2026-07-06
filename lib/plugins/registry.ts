@@ -7,54 +7,10 @@
  * See the LICENSE file for details.
  */
 
-import type { BifrostPlugin, PluginHooks } from "./types";
+import { registerPlugin } from "./index";
+import type { BifrostPlugin } from "./types";
 
-const plugins: BifrostPlugin[] = [];
-
-export function registerPlugin(plugin: BifrostPlugin): void {
-  if (plugins.some((p) => p.name === plugin.name)) {
-    throw new Error(`Plugin "${plugin.name}" is already registered`);
-  }
-  plugins.push(plugin);
-}
-
-export function listPlugins(): BifrostPlugin[] {
-  return [...plugins];
-}
-
-type HookArgs<K extends keyof PluginHooks> = Parameters<
-  NonNullable<PluginHooks[K]>
->;
-
-type HookReturn<K extends keyof PluginHooks> = NonNullable<
-  Awaited<ReturnType<NonNullable<PluginHooks[K]>>>
->;
-
-export async function runHook<K extends keyof PluginHooks>(
-  hookName: K,
-  ...args: HookArgs<K>
-): Promise<HookReturn<K>[]> {
-  const results: HookReturn<K>[] = [];
-
-  for (const plugin of plugins) {
-    const hook = plugin.hooks[hookName] as
-      | undefined
-      | ((...a: unknown[]) => unknown);
-
-    if (!hook) continue;
-
-    const result = await hook(...args);
-    if (result !== undefined) {
-      results.push(result as HookReturn<K>);
-    }
-  }
-
-  return results;
-}
-
-export function getPlugins(): BifrostPlugin[] {
-  return plugins;
-}
+export { registerPlugin, listPlugins, runHook, getPlugins } from "./index";
 
 export async function loadPluginsFromDirectory(
   dir: string

@@ -7,7 +7,7 @@
  * See the LICENSE file for details.
  */
 
-import fs from "fs/promises";
+import { fs } from "@/lib/fs";
 import path from "path";
 import YAML from "yaml";
 

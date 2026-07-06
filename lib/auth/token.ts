@@ -41,7 +41,10 @@ export async function verifyAccessToken(
 ): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, ACCESS_SECRET);
-    return { sub: payload.sub as string, role: payload.role as string };
+    if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+      return null;
+    }
+    return { sub: payload.sub, role: payload.role };
   } catch {
     return null;
   }
@@ -52,7 +55,10 @@ export async function verifyRefreshToken(
 ): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, REFRESH_SECRET);
-    return { sub: payload.sub as string, role: payload.role as string };
+    if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+      return null;
+    }
+    return { sub: payload.sub, role: payload.role };
   } catch {
     return null;
   }

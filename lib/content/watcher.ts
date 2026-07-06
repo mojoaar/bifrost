@@ -8,7 +8,7 @@
  */
 
 import chokidar, { type FSWatcher } from "chokidar";
-import fs from "fs/promises";
+import { fs } from "@/lib/fs";
 import path from "path";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";

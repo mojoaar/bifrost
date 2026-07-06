@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import { ingestAll, startWatcher, stopWatcher } from "@/lib/content/watcher";
-import fs from "fs/promises";
+import { fs } from "@/lib/fs";
 import path from "path";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";

@@ -9,7 +9,7 @@
 
 import { describe, it, expect, afterAll } from "vitest";
 import { writePostToFilesystem, deletePostFromFilesystem } from "@/lib/content/sync";
-import fs from "fs/promises";
+import { fs } from "@/lib/fs";
 import path from "path";
 describe("filesystem sync", () => {
   afterAll(async () => {

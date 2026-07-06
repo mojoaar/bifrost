@@ -35,10 +35,11 @@ describe("verifyAccessToken", () => {
 
   it("returns null for expired token", async () => {
     const { SignJWT } = await import("jose");
+    const testSecret = new TextEncoder().encode("bifrost-dev-access-secret-change-me");
     const expired = await new SignJWT({ sub: "x", role: "author" })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("0s")
-      .sign(new TextEncoder().encode("00000000000000000000000000000000"));
+      .sign(testSecret);
 
     const result = await verifyAccessToken(expired);
     expect(result).toBeNull();

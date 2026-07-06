@@ -22,7 +22,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function load() {
-      const { listPlugins } = await import("@/lib/plugins/registry");
+      const { listPlugins } = await import("@/lib/plugins");
       const plugins = listPlugins();
       const found: AdminWidget[] = [];
       for (const p of plugins) {
