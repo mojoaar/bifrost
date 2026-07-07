@@ -11,9 +11,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Search } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/themes/theme-context";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { CommandPaletteProvider, useCommandPalette } from "@/components/CommandPaletteProvider";
+import { CommandPalette } from "@/components/CommandPalette";
 
 interface NavItem {
   href: string;
@@ -100,6 +102,7 @@ function Sidebar() {
 function TopBar() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
+  const { open: openPalette } = useCommandPalette();
   return (
     <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-border bg-bg-0/80 px-6 backdrop-blur">
       <div className="flex items-center">
@@ -112,12 +115,26 @@ function TopBar() {
         ))}
       </div>
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={openPalette}
+          className="font-mono text-xs"
+          aria-label="Open command palette"
+        >
+          <Search size={12} />
+          <span>search</span>
+          <kbd className="ml-1 hidden rounded border border-border bg-bg-0 px-1 font-mono text-[10px] text-text-3 sm:inline">
+            ⌘K
+          </kbd>
+        </Button>
         <ThemeToggle />
         <Button
           variant="ghost"
-          onClick={() => {
-            localStorage.removeItem("bifrost_token");
-            window.location.href = "/login";
+          size="sm"
+          onClick={async () => {
+            const { logout } = await import("@/lib/auth/logout");
+            await logout();
           }}
           className="font-mono text-xs"
         >
@@ -129,17 +146,18 @@ function TopBar() {
 }
 
 function AdminShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const initialMode: "light" | "dark" = pathname?.startsWith("/admin") ? "dark" : "dark";
   return (
-    <ThemeProvider initialMode={initialMode}>
-      <div className="flex min-h-screen bg-bg-0 text-text-1">
-        <Sidebar />
-        <div className="flex min-h-screen flex-1 flex-col">
-          <TopBar />
-          <main className="flex-1 p-6">{children}</main>
+    <ThemeProvider initialMode="dark">
+      <CommandPaletteProvider>
+        <div className="flex min-h-screen bg-bg-0 text-text-1">
+          <Sidebar />
+          <div className="flex min-h-screen flex-1 flex-col">
+            <TopBar />
+            <main className="flex-1 p-6">{children}</main>
+          </div>
         </div>
-      </div>
+        <CommandPalette />
+      </CommandPaletteProvider>
     </ThemeProvider>
   );
 }
