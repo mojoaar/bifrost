@@ -184,16 +184,19 @@ export default function EditorToolbar({ getEditorView, getSelection }: Props) {
         if (isAlreadyThisHeading) {
           view.dispatch({
             changes: { from: lineStart, to: lineStart + tool.action.prefix.length, insert: "" },
+            selection: { anchor: lineEnd - tool.action.prefix.length },
           });
         } else if (isAlreadyHeading) {
           const existing = lineText.match(HEADING_RE);
           const existingLen = existing ? existing[0].length : 0;
           view.dispatch({
             changes: { from: lineStart, to: lineStart + existingLen, insert: tool.action.prefix },
+            selection: { anchor: lineEnd - existingLen + tool.action.prefix.length },
           });
         } else {
           view.dispatch({
             changes: { from: lineStart, to: lineStart, insert: tool.action.prefix },
+            selection: { anchor: lineEnd + tool.action.prefix.length },
           });
         }
         view.focus();

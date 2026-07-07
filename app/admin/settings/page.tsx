@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { Save, AlertTriangle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { authFetch } from "@/lib/auth/client";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
@@ -58,19 +59,16 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     setMessage("");
-    const token = localStorage.getItem("bifrost_token");
     try {
-      const res = await fetch("/api/v1/settings", {
+      const res = await authFetch("/api/v1/settings", {
         method: "PUT",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify(settings),
       });
       if (res.ok) {
         applyTheme(settings["appearance.theme_mode"]);
         setMessage("Saved");
+        router.refresh();
       }
     } catch {
       setMessage("Error saving");

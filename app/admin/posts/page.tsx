@@ -11,7 +11,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/ui/Table";
 import { StatusPill } from "@/themes/bifrost-terminal/components/ui/StatusPill";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
@@ -26,13 +26,31 @@ interface Post {
   updatedAt: string;
 }
 
+type SortKey = "createdAt" | "updatedAt";
+
+function SortIcon({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
+  if (!active) return <ArrowUpDown size={12} className="text-text-muted" />;
+  return dir === "asc" ? <ArrowUp size={12} className="text-accent" /> : <ArrowDown size={12} className="text-accent" />;
+}
+
 export default function PostsPage() {
   const { formatDateShort } = useDateTimeFormat();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<"all" | "draft" | "published">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const initialFetchDone = useRef(false);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  }
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -78,6 +96,12 @@ export default function PostsPage() {
 
   const filtered = filter === "all" ? posts : posts.filter((p) => p.status === filter);
 
+  const sorted = [...filtered].sort((a, b) => {
+    const va = a[sortKey];
+    const vb = b[sortKey];
+    return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
   return (
     <div>
       <div className="mb-6 flex items-end justify-between">
@@ -117,7 +141,7 @@ export default function PostsPage() {
         <Card padding="md">
           <p className="text-sm text-danger">{error}</p>
         </Card>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <Card padding="lg">
           <p className="text-center font-mono text-sm text-text-3">
             <span className="text-text-muted">$</span> no posts found
@@ -130,13 +154,13 @@ export default function PostsPage() {
               <TH>Title</TH>
               <TH>Status</TH>
               <TH>Slug</TH>
-              <TH>Created</TH>
-              <TH>Updated</TH>
+              <TH><button onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-1 hover:text-text-1">Created <SortIcon active={sortKey === "createdAt"} dir={sortDir} /></button></TH>
+              <TH><button onClick={() => toggleSort("updatedAt")} className="inline-flex items-center gap-1 hover:text-text-1">Updated <SortIcon active={sortKey === "updatedAt"} dir={sortDir} /></button></TH>
               <TH className="text-right">Actions</TH>
             </TR>
           </THead>
           <tbody>
-            {filtered.map((post) => (
+            {sorted.map((post) => (
               <TR key={post.slug}>
                 <TD>
                   <Link href={`/admin/posts/${post.slug}`} className="font-medium text-text-1 hover:text-accent">
