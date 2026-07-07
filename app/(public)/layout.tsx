@@ -13,11 +13,6 @@ import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 
-const WIDTH_MAP: Record<string, string> = {
-  narrow: "max-w-2xl",
-  wide: "max-w-4xl",
-};
-
 export default async function PublicLayout({
   children,
 }: {
@@ -32,7 +27,7 @@ export default async function PublicLayout({
       .where(eq(settings.key, "appearance.content_width"))
       .get();
     if (row) {
-      contentWidth = WIDTH_MAP[row.value] ?? "max-w-3xl";
+      contentWidth = row.value;
     }
   } catch {
     contentWidth = undefined;
