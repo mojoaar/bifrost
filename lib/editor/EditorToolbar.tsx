@@ -13,25 +13,45 @@ import { useCallback } from "react";
 import {
   Bold,
   Italic,
+  Heading1,
   Heading2,
+  Heading3,
   Link as LinkIcon,
   Image as ImageIcon,
   List,
+  ListOrdered,
   Code2,
   Quote,
+  Strikethrough,
+  Minus,
+  Table as TableIcon,
   type LucideIcon,
 } from "lucide-react";
+import type { EditorView } from "@codemirror/view";
 
 interface Props {
-  getEditorView: () => import("@codemirror/view").EditorView | null;
+  getEditorView: () => EditorView | null;
   getSelection: () => string;
 }
+
+type ToolAction =
+  | { kind: "wrap"; prefix: string; suffix: string }
+  | { kind: "linePrefix"; prefix: string }
+  | { kind: "insert"; text: string };
 
 interface Tool {
   label: string;
   shortcut: string;
   icon: LucideIcon;
-  wrap: (selection: string) => { prefix: string; suffix: string };
+  action: ToolAction;
+}
+
+function wrap(prefix: string, suffix: string) {
+  return { kind: "wrap" as const, prefix, suffix };
+}
+
+function linePrefix(prefix: string) {
+  return { kind: "linePrefix" as const, prefix };
 }
 
 const TOOLS: Tool[] = [
@@ -39,58 +59,93 @@ const TOOLS: Tool[] = [
     label: "Bold",
     shortcut: "⌘B",
     icon: Bold,
-    wrap: (s) => ({ prefix: "**" + s, suffix: "**" }),
+    action: wrap("**", "**"),
   },
   {
     label: "Italic",
     shortcut: "⌘I",
     icon: Italic,
-    wrap: (s) => ({ prefix: "_" + s, suffix: "_" }),
+    action: wrap("_", "_"),
   },
   {
-    label: "Heading",
-    shortcut: "⌘H",
+    label: "Strikethrough",
+    shortcut: "⌘⇧X",
+    icon: Strikethrough,
+    action: wrap("~~", "~~"),
+  },
+  {
+    label: "Heading 1",
+    shortcut: "⌘⌥1",
+    icon: Heading1,
+    action: linePrefix("# "),
+  },
+  {
+    label: "Heading 2",
+    shortcut: "⌘⌥2",
     icon: Heading2,
-    wrap: (s) => ({ prefix: "\n## " + s, suffix: "" }),
+    action: linePrefix("## "),
+  },
+  {
+    label: "Heading 3",
+    shortcut: "⌘⌥3",
+    icon: Heading3,
+    action: linePrefix("### "),
   },
   {
     label: "Link",
     shortcut: "⌘K",
     icon: LinkIcon,
-    wrap: (s) => ({ prefix: "[" + (s || "text") + "](", suffix: ")" }),
+    action: wrap("[", "](https://)"),
   },
   {
     label: "Image",
     shortcut: "⌘⇧I",
     icon: ImageIcon,
-    wrap: (s) => ({ prefix: "![" + (s || "alt") + "](", suffix: ")" }),
+    action: wrap("![", "](https://)"),
   },
   {
-    label: "List",
-    shortcut: "⌘⇧L",
+    label: "Unordered List",
+    shortcut: "⌘⇧U",
     icon: List,
-    wrap: (s) => {
-      const lines = s
-        .split("\n")
-        .filter(Boolean)
-        .map((l) => "- " + l)
-        .join("\n");
-      return { prefix: lines || "- ", suffix: "" };
-    },
+    action: linePrefix("- "),
+  },
+  {
+    label: "Ordered List",
+    shortcut: "⌘⇧O",
+    icon: ListOrdered,
+    action: linePrefix("1. "),
   },
   {
     label: "Code",
     shortcut: "⌘E",
     icon: Code2,
-    wrap: (s) => ({ prefix: s ? "\n```\n" + s + "\n```\n" : "\n```\n\n```\n", suffix: "" }),
+    action: { kind: "insert" as const, text: "\n```\n\n```\n" },
   },
   {
     label: "Quote",
     shortcut: "⌘>",
     icon: Quote,
-    wrap: (s) => ({ prefix: "\n> " + s, suffix: "" }),
+    action: linePrefix("> "),
+  },
+  {
+    label: "Table",
+    shortcut: "⌘⇧T",
+    icon: TableIcon,
+    action: {
+      kind: "insert" as const,
+      text:
+        "\n| Column 1 | Column 2 | Column 3 |\n| --- | --- | --- |\n| Cell | Cell | Cell |\n| Cell | Cell | Cell |\n",
+    },
+  },
+  {
+    label: "Horizontal Rule",
+    shortcut: "⌘⇧H",
+    icon: Minus,
+    action: { kind: "insert" as const, text: "\n---\n" },
   },
 ];
+
+const HEADING_RE = /^(#{1,6}\s+)/;
 
 export default function EditorToolbar({ getEditorView, getSelection }: Props) {
   const apply = useCallback(
@@ -98,26 +153,60 @@ export default function EditorToolbar({ getEditorView, getSelection }: Props) {
       const view = getEditorView();
       if (!view) return;
 
+      const { state } = view;
+      const sel = state.selection.main;
       const selection = getSelection();
-      const { prefix, suffix } = tool.wrap(selection);
+      const doc = state.doc.toString();
 
+      if (tool.action.kind === "insert") {
+        view.dispatch({
+          changes: { from: sel.from, to: sel.to, insert: tool.action.text },
+          selection:
+            tool.action.text.includes("\n```\n\n```\n")
+              ? {
+                  anchor: sel.from + tool.action.text.indexOf("\n```\n") + 5,
+                  head: sel.from + tool.action.text.lastIndexOf("\n```\n"),
+                }
+              : undefined,
+        });
+        view.focus();
+        return;
+      }
+
+      if (tool.action.kind === "linePrefix") {
+        const lineStart = doc.lastIndexOf("\n", sel.from - 1) + 1;
+        const lineEndIdx = doc.indexOf("\n", sel.from);
+        const lineEnd = lineEndIdx === -1 ? doc.length : lineEndIdx;
+        const lineText = doc.slice(lineStart, lineEnd);
+        const isAlreadyHeading = HEADING_RE.test(lineText);
+        const isAlreadyThisHeading = lineText.startsWith(tool.action.prefix);
+
+        if (isAlreadyThisHeading) {
+          view.dispatch({
+            changes: { from: lineStart, to: lineStart + tool.action.prefix.length, insert: "" },
+          });
+        } else if (isAlreadyHeading) {
+          const existing = lineText.match(HEADING_RE);
+          const existingLen = existing ? existing[0].length : 0;
+          view.dispatch({
+            changes: { from: lineStart, to: lineStart + existingLen, insert: tool.action.prefix },
+          });
+        } else {
+          view.dispatch({
+            changes: { from: lineStart, to: lineStart, insert: tool.action.prefix },
+          });
+        }
+        view.focus();
+        return;
+      }
+
+      const { prefix, suffix } = tool.action;
       view.dispatch({
-        changes: {
-          from: view.state.selection.main.from,
-          to: view.state.selection.main.to,
-          insert: prefix + suffix,
-        },
+        changes: { from: sel.from, to: sel.to, insert: prefix + suffix },
         selection: selection
-          ? {
-              anchor: view.state.selection.main.from + prefix.length,
-              head:
-                view.state.selection.main.from +
-                prefix.length +
-                selection.length,
-            }
+          ? { anchor: sel.from + prefix.length, head: sel.from + prefix.length + selection.length }
           : undefined,
       });
-
       view.focus();
     },
     [getEditorView, getSelection]
