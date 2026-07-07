@@ -5,6 +5,56 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-07-07
+
+### Added
+- Bifröst Terminal theme with full CSS token system (bg, text, border, accent, surface, code, fonts, sizes, spacing, radii, transitions).
+- Light/dark mode via `bifrost_theme` cookie (SSR-safe, no FOUC, syncs across public + admin).
+- 6 bundled monospace fonts (JetBrains Mono Variable, Fira Code Variable, IBM Plex Mono, Source Code Pro Variable, Roboto Mono, Inconsolata) with settings picker.
+- Lucide icon library across entire admin UI (sidebar nav, editor toolbar, action buttons, status indicators).
+- Command palette (Cmd+K / Ctrl+K) with fuzzy search across navigation, posts, and actions.
+- Shiki dual-theme syntax highlighting (GitHub light/dark) for markdown code blocks.
+- Content Width setting in admin Appearance (Narrow 672px / Default 768px / Wide 896px).
+- Date Format (US/EU/ISO) and Time Format (12h/24h) settings with `useDateTimeFormat()` hook.
+- Code block copy button on hover (clipboard API, checkmark feedback).
+- User CRUD in admin (create/edit/delete users from `/admin/users`).
+- Frontmatter auto-insertion on new post page (YAML header with title, date, tags).
+- Dashboard stat cards (Total Posts, Published, Drafts, Media) with tabular mono numbers.
+- Admin Posts list now shows both **Created** and **Updated** date columns.
+- Public post list groups posts by year.
+- Reading time estimate on post template (220 wpm).
+- Admin tab title reads `site.title` from settings (`<title> | ~/admin`).
+- Danger Zone: Remove demo data from settings (wipes posts, media, git history).
+- Theme picker dropdown in settings (select from installed themes).
+- Display Name field in setup wizard (falls back to email username).
+- Access token auto-refresh via `authFetch()` (detects 401, refreshes, retries).
+- Footer GitHub attribution link.
+- API Explorer link in admin sidebar.
+- Themes admin page with card grid layout.
+
+### Changed
+- Access token expiry: 15 minutes → 1 hour.
+- Theme toggle requires single click (was 2-click bug from stale React state).
+- Public post list orders by `createdAt` (was `updatedAt`, which jumped on edit).
+- Markdown editor toolbar: 8 tools → 14 tools (added H1, H3, strikethrough, ordered list, table, horizontal rule).
+- Admin UI uses shared primitives everywhere (Button variants, Field/Input/Select, Table/THead/TR/TH/TD, Card, StatusPill, CodeBlock, Path).
+- Admin sidebar shows active page indicator (accent dot) and `$ bifröst` wordmark.
+- Admin TopBar shows `~/admin/posts/new` breadcrumb-style path.
+- Content watcher skips DB write when rendered HTML hasn't changed (avoids spurious `updatedAt` bumps on server restart).
+- Preview iframe inherits parent theme and live-syncs `data-theme` on toggle via MutationObserver.
+- `app/admin/layout.tsx` split into server component (cookie read, metadata) + client shell (`AdminShell`).
+
+### Fixed
+- Hydration mismatch on public post page from client-side `localStorage` `isAdmin` check (now server-rendered via cookie).
+- Post card click target: entire card surface now navigates (z-stacking + `pointer-events-none` on inner content).
+- Editor panel couldn't scroll on long posts (`min-h-0 overflow-auto` on editor wrapper).
+- Preview iframe always showed light background (now wraps in full HTML doc with both theme token blocks).
+- Button size mismatches: Create + AI Assist in editor toolbar now share `size="sm"`.
+- `renderMarkdown()` now strips YAML frontmatter before processing (matches `parseMarkdown()`).
+- Settings save didn't apply theme mode until page refresh (now syncs `data-theme` + cookie instantly).
+- Root layout `<title>` was static "Bifröst" instead of reading `site.title` from DB.
+- Swagger UI "90s look" replaced with self-hosted, properly themed dark mode.
+
 ## [1.0.0] — 2026-07-06
 
 ### Added
