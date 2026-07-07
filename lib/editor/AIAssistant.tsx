@@ -10,6 +10,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import {
+  Sparkles,
+  Wand2,
+  Replace,
+  TextCursorInput,
+  Trash2,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { Select } from "@/themes/bifrost-terminal/components/ui/Input";
 
 interface Action {
   id: string;
@@ -35,15 +46,18 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
   const [providers, setProviders] = useState<Model[]>([]);
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const outputRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       try {
         const res = await fetch("/api/v1/ai/models");
         if (!res.ok) return;
         const body = await res.json();
+        if (cancelled) return;
         setActions(body.data?.actions ?? []);
         setProviders(body.data?.providers ?? []);
         if (body.data?.providers?.length > 0) {
@@ -54,6 +68,7 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
       }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -66,6 +81,7 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
     if (!content || loading) return;
 
     setOutput("");
+    setError("");
     setLoading(true);
 
     try {
@@ -85,22 +101,27 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
       });
 
       if (!res.ok) {
-        setOutput("Error: " + res.statusText);
+        setError(`Error: ${res.status} ${res.statusText}`);
         return;
       }
 
       const reader = res.body?.getReader();
-      if (!reader) return;
+      if (!reader) {
+        setError("No response stream");
+        return;
+      }
 
       const decoder = new TextDecoder();
       let fullOutput = "";
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const text = decoder.decode(value, { stream: true });
-        const lines = text.split("\n");
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -117,14 +138,27 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
               fullOutput += parsed.token;
             }
           } catch {
-            // skip
+            // skip unparseable chunks
           }
         }
 
         setOutput(fullOutput);
       }
+
+      if (buffer.trim().startsWith("data: ")) {
+        const data = buffer.trim().slice(6);
+        if (data && data !== "[DONE]") {
+          try {
+            const parsed = JSON.parse(data) as { token?: string };
+            if (parsed.token) fullOutput += parsed.token;
+            setOutput(fullOutput);
+          } catch {
+            // skip
+          }
+        }
+      }
     } catch (err) {
-      setOutput("Error: " + (err instanceof Error ? err.message : "Unknown"));
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -132,39 +166,40 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
 
   return (
     <div className="relative">
-      <button
+      <Button
+        type="button"
+        variant={open ? "primary" : "ghost"}
+        size="sm"
         onClick={() => setOpen(!open)}
-        className="rounded bg-zinc-800 px-3 py-1 text-xs text-zinc-400 hover:bg-zinc-700"
+        aria-expanded={open}
+        aria-label="AI assist"
       >
-        {open ? "Close AI" : "AI Assist"}
-      </button>
+        <Sparkles size={14} />
+        <span>{open ? "Close AI" : "AI Assist"}</span>
+      </Button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-10 w-80 rounded border border-zinc-700 bg-zinc-900 p-4 shadow-lg">
-          <div className="mb-3 flex items-center gap-2">
-            <select
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs"
-            >
+        <div className="absolute right-0 top-10 z-20 w-96 rounded-md border border-border bg-bg-1 p-4 shadow-lg">
+          <div className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-text-3">
+            <Sparkles size={12} className="text-accent" />
+            <span>AI Assistant</span>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <Select value={action} onChange={(e) => setAction(e.target.value)}>
               {actions.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.label}
                 </option>
               ))}
-            </select>
-
-            <select
-              value={provider}
-              onChange={(e) => setProvider(e.target.value)}
-              className="w-32 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs"
-            >
+            </Select>
+            <Select value={provider} onChange={(e) => setProvider(e.target.value)}>
               {providers.map((p) => (
                 <option key={p.provider} value={p.provider}>
                   {p.provider}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {action === "custom" && (
@@ -172,47 +207,51 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
               placeholder="Custom instruction..."
-              className="mb-3 w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs"
               rows={2}
+              className="mb-3 w-full rounded-md border border-border bg-bg-0 px-3 py-2 text-sm text-text-1 placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             />
           )}
 
-          <button
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
             onClick={handleRun}
-            disabled={loading}
-            className="mb-3 w-full rounded bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
+            disabled={loading || !content}
+            className="mb-3 w-full"
           >
-            {loading ? "Running..." : "Run"}
-          </button>
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+            <span>{loading ? "Running…" : "Run"}</span>
+          </Button>
+
+          {error && (
+            <div className="mb-3 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+              <AlertCircle size={12} className="mt-0.5 shrink-0" />
+              <span className="break-words">{error}</span>
+            </div>
+          )}
 
           {output && (
             <div className="space-y-2">
               <pre
                 ref={outputRef}
-                className="max-h-48 overflow-y-auto rounded border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-300 whitespace-pre-wrap"
+                className="max-h-48 overflow-y-auto rounded-md border border-border bg-bg-0 p-3 font-mono text-xs text-text-1 whitespace-pre-wrap scrollbar-themed"
               >
                 {output}
               </pre>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onInsert(output)}
-                  className="rounded bg-zinc-800 px-3 py-1 text-xs text-zinc-400 hover:bg-zinc-700"
-                >
-                  Insert at cursor
-                </button>
-                <button
-                  onClick={() => onReplace(output)}
-                  className="rounded bg-zinc-800 px-3 py-1 text-xs text-zinc-400 hover:bg-zinc-700"
-                >
-                  Replace all
-                </button>
-                <button
-                  onClick={() => setOutput("")}
-                  className="rounded bg-zinc-800 px-3 py-1 text-xs text-zinc-400 hover:bg-zinc-700"
-                >
-                  Discard
-                </button>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => onInsert(output)}>
+                  <TextCursorInput size={12} />
+                  <span>Insert</span>
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => onReplace(output)}>
+                  <Replace size={12} />
+                  <span>Replace</span>
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setOutput("")}>
+                  <Trash2 size={12} />
+                  <span>Discard</span>
+                </Button>
               </div>
             </div>
           )}
