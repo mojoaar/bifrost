@@ -27,7 +27,7 @@ function slugFromFilePath(filePath: string): string {
   return path.basename(relative, ".md");
 }
 
-async function processFile(filePath: string): Promise<void> {
+async function processFile(filePath: string, skipGit = false): Promise<void> {
   if (!filePath.endsWith(".md")) return;
 
   try {
@@ -49,6 +49,8 @@ async function processFile(filePath: string): Promise<void> {
       .where(eq(posts.slug, slug))
       .get();
 
+    let action: "create" | "update" | null = null;
+
     if (existing) {
       const row = db.select({ html: posts.contentHtml }).from(posts).where(eq(posts.slug, slug)).get();
       if (row?.html !== parsed.html) {
@@ -66,6 +68,7 @@ async function processFile(filePath: string): Promise<void> {
           })
           .where(eq(posts.slug, slug))
           .run();
+        action = "update";
       }
     } else {
       db.insert(posts)
@@ -83,13 +86,16 @@ async function processFile(filePath: string): Promise<void> {
           updatedAt: now,
         })
         .run();
+      action = "create";
     }
 
-    try {
-      const { commitPost } = await import("@/lib/git/repo");
-      await commitPost(slug, title);
-    } catch {
-      // best-effort
+    if (action && !skipGit) {
+      try {
+        const { commitPost } = await import("@/lib/git/repo");
+        await commitPost(slug, title, action);
+      } catch {
+        // best-effort
+      }
     }
 
     if (status === "published") {
@@ -117,15 +123,16 @@ export function startWatcher(): void {
 
   watcher = chokidar.watch(path.join(CONTENT_POSTS_DIR, "**", "*.md"), {
     ignoreInitial: true,
+    ignored: ["**/.git/**"],
     awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
   });
 
-  watcher.on("add", processFile);
-  watcher.on("change", processFile);
+  watcher.on("add", (filePath: string) => processFile(filePath));
+  watcher.on("change", (filePath: string) => processFile(filePath));
   watcher.on("unlink", deleteFromDb);
 }
 
-export async function ingestAll(): Promise<void> {
+export async function ingestAll(skipGit = false): Promise<void> {
   try {
     const entries = await fs.readdir(CONTENT_POSTS_DIR, {
       recursive: true,
@@ -134,7 +141,7 @@ export async function ingestAll(): Promise<void> {
     for (const entry of entries) {
       if (entry.isFile() && entry.name.endsWith(".md")) {
         const filePath = path.join(entry.parentPath || CONTENT_POSTS_DIR, entry.name);
-        await processFile(filePath);
+        await processFile(filePath, skipGit);
       }
     }
   } catch {

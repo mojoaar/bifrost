@@ -16,7 +16,7 @@ export async function register() {
     await loadPluginsFromDirectory("./plugins");
 
     const { ingestAll, startWatcher } = await import("@/lib/content/watcher");
-    await ingestAll();
+    await ingestAll(true);
     startWatcher();
 
     try {

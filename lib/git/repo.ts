@@ -54,7 +54,8 @@ export async function initContentRepo(): Promise<void> {
 
 export async function commitPost(
   slug: string,
-  title: string
+  title: string,
+  action: "create" | "update" = "update"
 ): Promise<string | null> {
   const config = loadGitConfig();
   if (!config.enabled) return null;
@@ -78,8 +79,8 @@ export async function commitPost(
   if (!hasChanges) return null;
 
   const message = config.autoCommit
-    ? `Update post: ${title}`
-    : `Manual save: ${title}`;
+    ? `${action}: ${title}`
+    : `Manual ${action}: ${title}`;
 
   const sha = await git.commit({
     fs,

@@ -114,7 +114,7 @@ export async function PUT(
 
   try {
     const { commitPost } = await import("@/lib/git/repo");
-    await commitPost(slug, update.title ?? existing.title);
+    await commitPost(slug, update.title ?? existing.title, "update");
   } catch {
     // best-effort
   }

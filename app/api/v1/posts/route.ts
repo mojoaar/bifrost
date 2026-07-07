@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const { commitPost } = await import("@/lib/git/repo");
-      await commitPost(slug, title);
+      await commitPost(slug, title, "create");
     } catch {
       // best-effort
     }
