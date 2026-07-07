@@ -74,7 +74,7 @@ export default function CodeMirrorEditor({ value, onChange, onViewReady }: Props
         keymap.of([...defaultKeymap, boldBinding, italicBinding]),
         updateListener,
         EditorView.theme({
-          "&": { height: "100%" },
+          "&": { height: "100%", fontFamily: "var(--font-mono)" },
           ".cm-scroller": { overflow: "auto" },
         }),
       ],

@@ -8,6 +8,10 @@
  */
 
 import type { Metadata } from "next";
+import { db } from "@/lib/db";
+import { settings } from "@/lib/db/schema/settings";
+import { eq } from "drizzle-orm";
+import { monoFontStack } from "@/lib/fonts";
 import "./globals.css";
 import "@/themes/default/styles/light.css";
 import "@/themes/default/styles/dark.css";
@@ -17,13 +21,28 @@ export const metadata: Metadata = {
   description: "A self-hosted blogging framework",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let fontStack: string | undefined;
+
+  try {
+    const row = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "appearance.font_mono"))
+      .get();
+    if (row) {
+      fontStack = monoFontStack(row.value);
+    }
+  } catch {
+    fontStack = undefined;
+  }
+
   return (
-    <html lang="en">
+    <html lang="en" style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}>
       <body className="min-h-screen bg-zinc-950 text-zinc-100">{children}</body>
     </html>
   );
