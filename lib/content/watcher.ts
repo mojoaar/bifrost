@@ -52,7 +52,11 @@ async function processFile(filePath: string, skipGit = false): Promise<void> {
     let action: "create" | "update" | null = null;
 
     if (existing) {
-      const row = db.select({ html: posts.contentHtml }).from(posts).where(eq(posts.slug, slug)).get();
+      const row = db
+        .select({ html: posts.contentHtml })
+        .from(posts)
+        .where(eq(posts.slug, slug))
+        .get();
       if (row?.html !== parsed.html) {
         db.update(posts)
           .set({
@@ -113,6 +117,18 @@ async function processFile(filePath: string, skipGit = false): Promise<void> {
 
 function deleteFromDb(filePath: string): void {
   const slug = slugFromFilePath(filePath);
+  const row = db
+    .select({ id: posts.slug })
+    .from(posts)
+    .where(eq(posts.slug, slug))
+    .get();
+  if (!row) {
+    console.warn(
+      `[watcher] unlink for ${slug} but no DB row exists — skipping`
+    );
+    return;
+  }
+  console.log(`[watcher] unlink: deleting ${slug} from DB`);
   db.delete(posts).where(eq(posts.slug, slug)).run();
 }
 
@@ -140,7 +156,10 @@ export async function ingestAll(skipGit = false): Promise<void> {
     });
     for (const entry of entries) {
       if (entry.isFile() && entry.name.endsWith(".md")) {
-        const filePath = path.join(entry.parentPath || CONTENT_POSTS_DIR, entry.name);
+        const filePath = path.join(
+          entry.parentPath || CONTENT_POSTS_DIR,
+          entry.name
+        );
         await processFile(filePath, skipGit);
       }
     }
