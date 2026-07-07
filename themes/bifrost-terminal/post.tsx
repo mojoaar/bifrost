@@ -31,7 +31,7 @@ export default function PostTemplate({ post, isAdmin = false }: Props) {
   const minutes = readingTime(post.contentHtml);
 
   return (
-    <article className="max-w-[68ch]">
+    <article>
       <header className="mb-8 border-b border-border pb-6">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-bold tracking-tight text-text-1 sm:text-display">
