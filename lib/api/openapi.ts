@@ -20,7 +20,7 @@ export function generateOpenApiSpec(): OpenAPISpec {
     openapi: "3.1.0",
     info: {
       title: "Bifröst API",
-      version: "0.5.0",
+      version: "1.0.0",
       description: "REST API for the Bifröst blogging framework",
     },
     servers: [{ url: "/api/v1" }],

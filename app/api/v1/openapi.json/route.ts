@@ -7,9 +7,9 @@
  * See the LICENSE file for details.
  */
 
-import { apiSuccess } from "@/lib/api/response";
+import { NextResponse } from "next/server";
 import { generateOpenApiSpec } from "@/lib/api/openapi";
 
 export async function GET() {
-  return apiSuccess(generateOpenApiSpec());
+  return NextResponse.json(generateOpenApiSpec());
 }
