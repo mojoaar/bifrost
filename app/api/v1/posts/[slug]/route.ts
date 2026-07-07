@@ -17,7 +17,7 @@ import {
   writePostToFilesystem,
   deletePostFromFilesystem,
 } from "@/lib/content/sync";
-import { renderMarkdown } from "@/lib/md/parser";
+import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -60,20 +60,17 @@ export async function PUT(
   const update = parsed.data;
   const now = new Date().toISOString();
   const existingFm: Record<string, unknown> = JSON.parse(existing.frontmatter);
+  const contentFm = parseFrontmatter(update.content ?? "").frontmatter;
+  const mergedFm = { ...existingFm, ...contentFm, ...(update.frontmatter ?? {}) };
 
   const updateData: Record<string, unknown> = { updatedAt: now };
 
   if (update.title !== undefined) updateData.title = update.title;
   if (update.status !== undefined) updateData.status = update.status;
   if (update.authorId !== undefined) updateData.authorId = update.authorId;
-  if (update.frontmatter !== undefined) {
-    updateData.frontmatter = JSON.stringify({
-      ...existingFm,
-      ...update.frontmatter,
-    });
-  }
 
   if (update.content !== undefined) {
+    updateData.frontmatter = JSON.stringify(mergedFm);
     try {
       const { html, excerpt } = await renderMarkdown(update.content);
       updateData.contentMd = update.content;
@@ -94,10 +91,6 @@ export async function PUT(
   db.update(posts).set(updateData).where(eq(posts.slug, slug)).run();
 
   if (update.content !== undefined) {
-    const mergedFm: Record<string, unknown> = {
-      ...existingFm,
-      ...(update.frontmatter ?? {}),
-    };
     await writePostToFilesystem(
       slug,
       update.content,

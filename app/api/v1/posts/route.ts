@@ -14,7 +14,7 @@ import { postTags } from "@/lib/db/schema/post-tags";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { postCreateSchema } from "@/lib/validation/posts";
 import { writePostToFilesystem } from "@/lib/content/sync";
-import { renderMarkdown } from "@/lib/md/parser";
+import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
@@ -65,6 +65,9 @@ export async function POST(request: NextRequest) {
   const { slug, title, content, frontmatter, status, authorId, tagIds } =
     parsed.data;
 
+  const contentFm = parseFrontmatter(content).frontmatter;
+  const mergedFm = { ...contentFm, ...frontmatter };
+
   const existing = db
     .select({ slug: posts.slug })
     .from(posts)
@@ -75,7 +78,7 @@ export async function POST(request: NextRequest) {
     return apiError("A post with this slug already exists", 409);
   }
 
-  await writePostToFilesystem(slug, content, { title, ...frontmatter });
+  await writePostToFilesystem(slug, content, mergedFm);
 
   const now = new Date().toISOString();
 
@@ -89,7 +92,7 @@ export async function POST(request: NextRequest) {
         contentMd: content,
         contentHtml: html,
         excerpt,
-        frontmatter: JSON.stringify(frontmatter),
+        frontmatter: JSON.stringify(mergedFm),
         status,
         authorId,
         publishedAt: status === "published" ? now : null,
