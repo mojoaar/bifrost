@@ -93,6 +93,8 @@ async function processFile(filePath: string, skipGit = false): Promise<void> {
       action = "create";
     }
 
+    console.log(`[watcher] processFile ${filePath} → slug=${slug} action=${action ?? "unchanged"}`);
+
     if (action && !skipGit) {
       try {
         const { commitPost } = await import("@/lib/git/repo");
