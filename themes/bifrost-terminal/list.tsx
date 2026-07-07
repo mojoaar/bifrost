@@ -69,16 +69,18 @@ export default function ListTemplate({ posts }: Props) {
               return (
                 <article
                   key={post.slug}
-                  className="group relative rounded-md border border-border bg-surface p-5 transition hover:border-border-strong"
+                  className="group relative rounded-md border border-border bg-surface transition hover:border-border-strong hover:bg-surface-raised"
                 >
                   <Link
                     href={`/${post.slug}`}
                     aria-label={post.title}
-                    className="absolute inset-0 z-0"
+                    className="absolute inset-0 z-0 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                   />
-                  <div className="relative z-10 flex items-baseline justify-between gap-4">
-                    <h3 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent group-hover:underline group-hover:decoration-accent group-hover:underline-offset-4">
-                      {post.title}
+                  <div className="relative z-10 flex items-baseline justify-between gap-4 p-5 pb-2">
+                    <h3 className="text-xl font-semibold tracking-tight text-text-1 transition group-hover:text-accent">
+                      <span className="bg-gradient-to-r from-accent to-accent bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-200 group-hover:bg-[length:100%_1px]">
+                        {post.title}
+                      </span>
                     </h3>
                     <time
                       dateTime={date}
@@ -91,12 +93,12 @@ export default function ListTemplate({ posts }: Props) {
                     </time>
                   </div>
                   {post.excerpt && (
-                    <p className="relative z-10 mt-2 text-sm leading-relaxed text-text-2">
+                    <p className="relative z-10 px-5 text-sm leading-relaxed text-text-2">
                       {post.excerpt}
                     </p>
                   )}
                   {tags.length > 0 && (
-                    <div className="relative z-10 mt-3 flex flex-wrap gap-1.5">
+                    <div className="relative z-10 flex flex-wrap gap-1.5 p-5 pt-3">
                       {tags.map((tag: string) => (
                         <Link
                           key={tag}
