@@ -11,8 +11,10 @@
 
 import { useEffect, useState } from "react";
 
+const BIFROST_REPO_URL = "https://github.com/mojoaar/bifrost";
+
 export default function Footer() {
-  const [text, setText] = useState("Powered by Bifröst");
+  const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -31,9 +33,25 @@ export default function Footer() {
 
   return (
     <footer className="mt-12 border-t border-border">
-      <div className="mx-auto max-w-3xl px-4 py-6 font-mono text-xs text-text-3">
-        <span className="text-text-muted">{"// "}</span>
-        {text}
+      <div className="mx-auto max-w-3xl space-y-1 px-4 py-6 font-mono text-xs text-text-3">
+        {text && (
+          <p>
+            <span className="text-text-muted">{"// "}</span>
+            {text}
+          </p>
+        )}
+        <p>
+          <span className="text-text-muted">{"// "}</span>
+          Powered by{" "}
+          <a
+            href={BIFROST_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-2 underline decoration-text-muted underline-offset-2 transition hover:text-accent hover:decoration-accent"
+          >
+            Bifröst
+          </a>
+        </p>
       </div>
     </footer>
   );
