@@ -148,6 +148,30 @@ export default function Preview({ source }: Props) {
     doc.close();
   }, [html]);
 
+  useEffect(() => {
+    if (!html) return;
+
+    const observer = new MutationObserver(() => {
+      const iframe = iframeRef.current;
+      if (!iframe) return;
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+
+      const parentTheme = document.documentElement.getAttribute("data-theme") ?? "dark";
+      const current = doc.documentElement.getAttribute("data-theme");
+      if (current !== parentTheme) {
+        doc.documentElement.setAttribute("data-theme", parentTheme);
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, [html]);
+
   if (!html) {
     return (
       <div className="flex h-full items-center justify-center font-mono text-sm text-text-3">
