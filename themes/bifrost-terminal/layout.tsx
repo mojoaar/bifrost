@@ -29,9 +29,9 @@ export default function DefaultLayout({
   return (
     <ThemeProvider>
       <div className="flex min-h-screen flex-col bg-bg-0 text-text-1">
-        <Header />
+        <Header widthClass={widthClass} />
         <main className={`mx-auto w-full flex-1 px-4 py-8 ${widthClass}`}>{children}</main>
-        <Footer />
+        <Footer widthClass={widthClass} />
       </div>
     </ThemeProvider>
   );

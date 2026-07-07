@@ -14,7 +14,7 @@ import Link from "next/link";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/themes/theme-context";
 
-export default function Header() {
+export default function Header({ widthClass = "max-w-3xl" }: { widthClass?: string }) {
   const { mode, toggle } = useTheme();
   const [title, setTitle] = useState("Bifröst");
 
@@ -35,7 +35,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-bg-0/80 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+      <div className={`mx-auto flex items-center justify-between px-4 py-3 ${widthClass}`}>
         <Link
           href="/"
           className="font-mono text-base font-semibold tracking-tight text-text-1"

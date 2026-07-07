@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 
 const BIFROST_REPO_URL = "https://github.com/mojoaar/bifrost";
 
-export default function Footer() {
+export default function Footer({ widthClass = "max-w-3xl" }: { widthClass?: string }) {
   const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function Footer() {
 
   return (
     <footer className="mt-12 border-t border-border">
-      <div className="mx-auto max-w-3xl space-y-1 px-4 py-6 font-mono text-xs text-text-3">
+      <div className={`mx-auto space-y-1 px-4 py-6 font-mono text-xs text-text-3 ${widthClass}`}>
         {text && (
           <p>
             <span className="text-text-muted">{"// "}</span>
