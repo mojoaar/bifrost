@@ -11,6 +11,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { Button } from "@/themes/default/components/ui/Button";
+import { Card } from "@/themes/default/components/ui/Card";
 
 interface Commit {
   sha: string;
@@ -25,26 +27,22 @@ export default function GitHistoryPage() {
   const [error, setError] = useState("");
   const [pushing, setPushing] = useState(false);
   const [pulling, setPulling] = useState(false);
-
-  const mounted = useRef(false);
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
-
+    if (initialFetchDone.current) return;
+    initialFetchDone.current = true;
     (async () => {
       try {
         const token = localStorage.getItem("bifrost_token");
         const res = await fetch("/api/v1/git/history", {
           headers: token ? { authorization: `Bearer ${token}` } : {},
         });
-
         const body = await res.json();
         if (!res.ok) {
           setError(body.error?.message ?? "Failed to load history");
           return;
         }
-
         setCommits(body.data ?? []);
       } catch {
         setError("Network error");
@@ -77,14 +75,11 @@ export default function GitHistoryPage() {
         method: "POST",
         headers: token ? { authorization: `Bearer ${token}` } : {},
       });
-
       const histRes = await fetch("/api/v1/git/history", {
         headers: token ? { authorization: `Bearer ${token}` } : {},
       });
       const histBody = await histRes.json();
-      if (histRes.ok) {
-        setCommits(histBody.data ?? []);
-      }
+      if (histRes.ok) setCommits(histBody.data ?? []);
     } catch {
       setError("Pull failed");
     } finally {
@@ -94,56 +89,55 @@ export default function GitHistoryPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Git History</h2>
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Git History</h1>
+          <p className="mt-1 font-mono text-sm text-text-3">
+            <span className="text-text-muted">$</span> git log --oneline
+          </p>
+        </div>
         <div className="flex gap-2">
-          <button
-            onClick={handlePull}
-            disabled={pulling}
-            className="rounded border border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-800 disabled:opacity-50"
-          >
-            {pulling ? "Pulling..." : "Pull"}
-          </button>
-          <button
-            onClick={handlePush}
-            disabled={pushing}
-            className="rounded bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-          >
-            {pushing ? "Pushing..." : "Push"}
-          </button>
+          <Button variant="ghost" onClick={handlePull} disabled={pulling}>
+            {pulling ? "pulling…" : "pull"}
+          </Button>
+          <Button variant="primary" onClick={handlePush} disabled={pushing}>
+            {pushing ? "pushing…" : "push"}
+          </Button>
         </div>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && (
+        <div className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <p className="text-zinc-400">Loading...</p>
+        <Card padding="md">
+          <p className="font-mono text-sm text-text-3">loading…</p>
+        </Card>
       ) : commits.length === 0 ? (
-        <p className="text-zinc-400">No commits yet.</p>
+        <Card padding="lg">
+          <p className="text-center font-mono text-sm text-text-3">
+            <span className="text-text-muted">$</span> no commits yet
+          </p>
+        </Card>
       ) : (
         <div className="space-y-2">
           {commits.map((commit) => (
-            <div
-              key={commit.sha}
-              className="rounded border border-zinc-800 p-3"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm">{commit.message}</p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {commit.author} — {new Date(commit.date).toLocaleString()}
+            <div key={commit.sha} className="rounded-md border border-border bg-bg-1 p-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-text-1">{commit.message}</p>
+                  <p className="mt-1 font-mono text-xs text-text-3">
+                    {commit.author} · {new Date(commit.date).toLocaleString()}
                   </p>
                 </div>
-                <Link
-                  href={`/admin/git/${commit.sha}`}
-                  className="text-xs text-zinc-400 hover:text-zinc-200"
-                >
-                  View diff
+                <Link href={`/admin/git/${commit.sha}`} className="font-mono text-xs text-text-2 transition hover:text-text-1">
+                  view diff →
                 </Link>
               </div>
-              <p className="mt-1 font-mono text-xs text-zinc-600">
-                {commit.sha.slice(0, 7)}
-              </p>
+              <p className="mt-2 font-mono text-xs text-text-muted">{commit.sha.slice(0, 7)}</p>
             </div>
           ))}
         </div>

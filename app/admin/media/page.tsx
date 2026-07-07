@@ -10,6 +10,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { Card } from "@/themes/default/components/ui/Card";
 
 interface MediaItem {
   id: string;
@@ -28,7 +29,6 @@ export default function MediaPage() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
-
   const initialFetchDone = useRef(false);
 
   const fetchMedia = useCallback(async () => {
@@ -76,13 +76,11 @@ export default function MediaPage() {
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    for (const file of files) uploadFile(file);
+    for (const file of Array.from(e.dataTransfer.files)) uploadFile(file);
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    for (const file of files) uploadFile(file);
+    for (const file of Array.from(e.target.files ?? [])) uploadFile(file);
   }
 
   async function handleDelete(id: string) {
@@ -103,63 +101,81 @@ export default function MediaPage() {
 
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-semibold">Media</h2>
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Media</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> ls content/media/
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          {error}
+        </div>
+      )}
 
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`mb-4 rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-          dragOver ? "border-zinc-400 bg-zinc-800" : "border-zinc-700"
+        className={`mb-6 rounded-md border-2 border-dashed p-10 text-center transition ${
+          dragOver ? "border-accent bg-accent/5" : "border-border bg-bg-1"
         }`}
       >
-        <p className="text-sm text-zinc-400">
-          {uploading ? "Uploading..." : "Drag and drop files here, or"}
+        <p className="font-mono text-sm text-text-2">
+          {uploading ? "uploading…" : "drag and drop files here, or"}
         </p>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="mt-2 text-sm text-zinc-300 underline hover:text-zinc-100 disabled:opacity-50"
+          className="mt-2 font-mono text-sm text-accent underline-offset-4 hover:underline disabled:opacity-50"
         >
           browse files
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+        <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} className="hidden" />
       </div>
 
       {loading ? (
-        <p className="text-zinc-400">Loading...</p>
+        <Card padding="md">
+          <p className="font-mono text-sm text-text-3">loading…</p>
+        </Card>
       ) : items.length === 0 ? (
-        <p className="text-zinc-400">No media uploaded yet.</p>
+        <Card padding="lg">
+          <p className="text-center font-mono text-sm text-text-3">
+            <span className="text-text-muted">$</span> no media yet
+          </p>
+        </Card>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
-            <div key={item.id} className="rounded border border-zinc-800 bg-zinc-900 p-3">
+            <div key={item.id} className="rounded-md border border-border bg-bg-1 p-3">
               {item.mimeType.startsWith("image/") ? (
-                <img src={`/${item.path}`} alt={item.filename} className="mb-2 h-32 w-full rounded object-cover" />
+                <img
+                  src={`/${item.path}`}
+                  alt={item.filename}
+                  className="mb-3 h-32 w-full rounded border border-border object-cover"
+                />
               ) : (
-                <div className="mb-2 flex h-32 items-center justify-center rounded bg-zinc-800 text-zinc-500 text-2xl">&#x1F4C4;</div>
+                <div className="mb-3 flex h-32 items-center justify-center rounded border border-border bg-bg-0 font-mono text-2xl text-text-muted">
+                  □
+                </div>
               )}
-              <p className="truncate text-xs text-zinc-400">{item.filename}</p>
-              <p className="text-xs text-zinc-600">{formatSize(item.sizeBytes)}</p>
-              <div className="mt-2 flex gap-2">
+              <p className="truncate font-mono text-xs text-text-2">{item.filename}</p>
+              <p className="mt-0.5 font-mono text-xs text-text-3">{formatSize(item.sizeBytes)}</p>
+              <div className="mt-3 flex gap-3 font-mono text-xs">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(`/${item.path}`);
                     setCopied(item.id);
                     setTimeout(() => setCopied(null), 2000);
                   }}
-                  className="text-xs text-zinc-400 hover:text-zinc-200"
+                  className="text-text-2 transition hover:text-text-1"
                 >
-                  {copied === item.id ? "Copied!" : "Copy path"}
+                  {copied === item.id ? "✓ copied" : "copy path"}
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
+                <button onClick={() => handleDelete(item.id)} className="text-text-3 transition hover:text-danger">
+                  delete
+                </button>
               </div>
             </div>
           ))}

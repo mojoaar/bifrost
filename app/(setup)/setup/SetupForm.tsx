@@ -11,6 +11,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/themes/default/components/ui/Button";
+import { Field, Input } from "@/themes/default/components/ui/Input";
+import { Card } from "@/themes/default/components/ui/Card";
 
 export default function SetupForm() {
   const router = useRouter();
@@ -25,21 +28,18 @@ export default function SetupForm() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("/api/v1/setup", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, password, title, description }),
       });
-
       const body = await res.json();
       if (!res.ok) {
         setError(body.error?.message ?? "Setup failed");
         return;
       }
-
-      router.push("/admin/login");
+      router.push("/login");
     } catch {
       setError("Network error");
     } finally {
@@ -48,33 +48,61 @@ export default function SetupForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-        <h1 className="text-2xl font-bold">Welcome to Bifröst</h1>
-        <p className="text-sm text-zinc-400">Set up your blog and admin account.</p>
+    <div className="flex min-h-screen items-center justify-center bg-bg-0 p-4">
+      <Card padding="lg" className="w-full max-w-md">
+        <div className="mb-6">
+          <p className="font-mono text-sm text-text-3">
+            <span className="text-text-muted">$</span> bifröst init
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Welcome to Bifröst</h1>
+          <p className="mt-1 text-sm text-text-3">Set up your blog and admin account.</p>
+        </div>
 
-        {error && <p className="rounded border border-red-800 bg-red-900/50 px-3 py-2 text-sm text-red-300">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 font-mono text-xs text-danger">
+              {error}
+            </div>
+          )}
 
-        <label className="block"><span className="text-sm text-zinc-400">Blog Title</span>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-        </label>
+          <div className="space-y-3">
+            <div className="font-mono text-xs uppercase tracking-wider text-text-3">Blog</div>
+            <Field label="Title">
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            </Field>
+            <Field label="Description">
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+            </Field>
+          </div>
 
-        <label className="block"><span className="text-sm text-zinc-400">Description</span>
-          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-        </label>
+          <div className="space-y-3">
+            <div className="font-mono text-xs uppercase tracking-wider text-text-3">Admin</div>
+            <Field label="Email">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </Field>
+            <Field label="Password" helper="Minimum 8 characters.">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+            </Field>
+          </div>
 
-        <label className="block"><span className="text-sm text-zinc-400">Admin Email</span>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-        </label>
-
-        <label className="block"><span className="text-sm text-zinc-400">Admin Password</span>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-        </label>
-
-        <button type="submit" disabled={loading} className="w-full rounded bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-50">
-          {loading ? "Setting up..." : "Create Blog"}
-        </button>
-      </form>
+          <Button type="submit" variant="primary" disabled={loading} className="w-full">
+            {loading ? "Creating…" : "Create Blog"}
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 }

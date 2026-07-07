@@ -1,14 +1,59 @@
 :root[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f4f4f5;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
+  --bg-0: #ffffff;
+  --bg-1: #fafafa;
+  --bg-2: #f4f4f5;
+  --bg-3: #e4e4e7;
+  --surface: #ffffff;
+  --surface-raised: #fafafa;
+  --surface-sunken: #f4f4f5;
+
+  --text-1: #18181b;
+  --text-2: #52525b;
+  --text-3: #71717a;
   --text-muted: #a1a1aa;
-  --border-color: #e4e4e7;
+
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
+  --accent-fg: #ffffff;
+  --accent-subtle: #dbeafe;
+
+  --success: #16a34a;
+  --success-subtle: #dcfce7;
+  --warning: #ca8a04;
+  --warning-subtle: #fef9c3;
+  --danger: #dc2626;
+  --danger-subtle: #fee2e2;
+
   --code-bg: #f4f4f5;
   --code-border: #e4e4e7;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code Variable', 'IBM Plex Mono', 'Source Code Pro Variable', 'Roboto Mono', Inconsolata, ui-monospace, monospace;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-display: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  --transition-fast: 100ms ease;
+  --transition-base: 200ms ease;
 }

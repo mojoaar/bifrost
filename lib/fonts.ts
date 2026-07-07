@@ -7,19 +7,4 @@
  * See the LICENSE file for details.
  */
 
-const MONO_FONTS: Record<string, string> = {
-  "Anonymous Pro": "'Anonymous Pro', monospace",
-  "Cascadia Code": "'Cascadia Code', monospace",
-  "Fira Code": "'Fira Code', monospace",
-  "IBM Plex Mono": "'IBM Plex Mono', monospace",
-  Inconsolata: "'Inconsolata', monospace",
-  "JetBrains Mono": "'JetBrains Mono', monospace",
-  "Roboto Mono": "'Roboto Mono', monospace",
-  "Source Code Pro": "'Source Code Pro', monospace",
-  "Space Mono": "'Space Mono', monospace",
-  "Victor Mono": "'Victor Mono', monospace",
-};
-
-export function monoFontStack(name: string): string | undefined {
-  return MONO_FONTS[name];
-}
+export { monoFontStack, FONT_NAMES, getFontEntry } from "./fonts/registry";

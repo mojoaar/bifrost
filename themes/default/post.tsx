@@ -17,23 +17,38 @@ interface Props {
 
 export default function PostTemplate({ post }: Props) {
   const date = post.publishedAt ?? post.createdAt;
+  const tags = (post.frontmatter?.tags as string[] | undefined) ?? [];
 
   return (
-    <article className="max-w-[65ch]">
-      <header className="mb-8 border-b border-[var(--border-color)] pb-6">
-        <h1 className="text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+    <article className="max-w-[68ch]">
+      <header className="mb-8 border-b border-border pb-6">
+        <h1 className="text-3xl font-bold tracking-tight text-text-1 sm:text-display">
           {post.title}
         </h1>
-        <time className="mt-3 block text-sm text-[var(--text-muted)]">
-          {new Date(date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
+        <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs text-text-3">
+          <time dateTime={date}>
+            {new Date(date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </time>
+          {tags.length > 0 && (
+            <>
+              <span className="text-text-muted">·</span>
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((t) => (
+                  <span key={t} className="rounded border border-border bg-bg-1 px-1.5 py-0.5 text-text-2">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </header>
       <div
-        className="prose"
+        className="text-text-1"
         dangerouslySetInnerHTML={{ __html: post.contentHtml }}
       />
     </article>

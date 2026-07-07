@@ -7,11 +7,33 @@
  * See the LICENSE file for details.
  */
 
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Footer() {
+  const [text, setText] = useState("Powered by Bifröst");
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/v1/settings");
+        const body = await res.json();
+        if (res.ok && body.data?.["site.footer_text"]) {
+          setText(String(body.data["site.footer_text"]));
+        }
+      } catch {
+        // use default
+      }
+    }
+    load();
+  }, []);
+
   return (
-    <footer className="border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
-      <div className="mx-auto max-w-3xl px-4 py-4 text-center text-sm text-[var(--text-muted)]">
-        Powered by Bifröst
+    <footer className="mt-12 border-t border-border">
+      <div className="mx-auto max-w-3xl px-4 py-6 font-mono text-xs text-text-3">
+        <span className="text-text-muted">{"// "}</span>
+        {text}
       </div>
     </footer>
   );

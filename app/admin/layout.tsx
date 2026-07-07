@@ -7,7 +7,109 @@
  * See the LICENSE file for details.
  */
 
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ThemeProvider } from "@/lib/themes/theme-context";
+import { Button } from "@/themes/default/components/ui/Button";
+
+interface NavItem {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+const NAV: NavItem[] = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/posts", label: "Posts" },
+  { href: "/admin/media", label: "Media" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/git", label: "Git" },
+  { href: "/admin/themes", label: "Themes" },
+  { href: "/admin/settings", label: "Settings" },
+  { href: "/api/docs", label: "API Explorer", external: true },
+];
+
+function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+  const isActive =
+    !item.external && (pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)));
+
+  if (item.external) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded-md px-3 py-1.5 text-sm text-text-2 transition hover:bg-bg-1 hover:text-text-1"
+      >
+        {item.label} <span className="text-text-muted">↗</span>
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
+        isActive ? "bg-bg-2 text-text-1" : "text-text-2 hover:bg-bg-1 hover:text-text-1"
+      }`}
+    >
+      {isActive && <span className="size-1.5 rounded-full bg-accent" />}
+      {item.label}
+    </Link>
+  );
+}
+
+function Sidebar() {
+  const pathname = usePathname();
+  return (
+    <aside className="sticky top-0 flex h-screen w-60 flex-col border-r border-border bg-bg-1 p-4">
+      <Link href="/admin" className="mb-6 flex items-center gap-2">
+        <span className="font-mono text-base font-semibold text-text-1">
+          <span className="text-accent">$</span> bifröst
+        </span>
+        <span className="rounded border border-border bg-bg-0 px-1.5 font-mono text-xs uppercase tracking-wider text-text-3">
+          admin
+        </span>
+      </Link>
+      <nav className="flex flex-1 flex-col gap-0.5">
+        {NAV.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} />
+        ))}
+      </nav>
+      <div className="border-t border-border pt-3 font-mono text-xs text-text-muted">v1.0.0</div>
+    </aside>
+  );
+}
+
+function TopBar() {
+  const pathname = usePathname();
+  const segments = pathname.split("/").filter(Boolean);
+  return (
+    <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-border bg-bg-0/80 px-6 backdrop-blur">
+      <div className="flex items-center">
+        <span className="font-mono text-sm text-text-3">~</span>
+        {segments.map((seg, i) => (
+          <span key={i} className="font-mono text-sm">
+            <span className="text-text-muted">/</span>
+            <span className={i === segments.length - 1 ? "text-text-1" : "text-text-2"}>{seg}</span>
+          </span>
+        ))}
+      </div>
+      <Button
+        variant="ghost"
+        onClick={() => {
+          localStorage.removeItem("bifrost_token");
+          window.location.href = "/login";
+        }}
+        className="font-mono text-xs"
+      >
+        logout
+      </Button>
+    </header>
+  );
+}
 
 export default function AdminLayout({
   children,
@@ -15,65 +117,14 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
-      <aside className="w-60 border-r border-zinc-800 p-4">
-        <Link href="/admin" className="mb-6 block text-lg font-bold">
-          Bifröst Admin
-        </Link>
-        <nav className="flex flex-col gap-1">
-          <Link
-            href="/admin"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/admin/posts"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Posts
-          </Link>
-          <Link
-            href="/admin/media"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Media
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Settings
-          </Link>
-          <Link
-            href="/admin/users"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Users
-          </Link>
-          <Link
-            href="/admin/git"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Git
-          </Link>
-          <Link
-            href="/admin/themes"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            Themes
-          </Link>
-          <a
-            href="/api/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
-          >
-            API Explorer
-          </a>
-        </nav>
-      </aside>
-      <main className="flex-1 p-6">{children}</main>
-    </div>
+    <ThemeProvider>
+      <div className="flex min-h-screen bg-bg-0 text-text-1">
+        <Sidebar />
+        <div className="flex min-h-screen flex-1 flex-col">
+          <TopBar />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      </div>
+    </ThemeProvider>
   );
 }

@@ -10,13 +10,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Table, THead, TR, TH, TD } from "@/themes/default/components/ui/Table";
+import { Card } from "@/themes/default/components/ui/Card";
 
 interface User {
   id: string;
   email: string;
   displayName: string;
-  role: string;
+  role: "admin" | "editor" | "author";
   createdAt: string;
+}
+
+function RolePill({ role }: { role: User["role"] }) {
+  const colors = {
+    admin: "border-accent/40 text-accent",
+    editor: "border-success/40 text-success",
+    author: "border-border text-text-3",
+  } as const;
+  return (
+    <span className={`rounded border bg-bg-0 px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider ${colors[role]}`}>
+      {role}
+    </span>
+  );
 }
 
 export default function UsersPage() {
@@ -36,47 +51,57 @@ export default function UsersPage() {
         if (res.ok) setUsers(body.data ?? []);
         else setError(body.error?.message ?? "Failed to load users");
       })
-      .catch(() => {
-        if (!cancelled) setError("Network error");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .catch(() => { if (!cancelled) setError("Network error"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) return <p className="text-zinc-400">Loading...</p>;
-  if (error) return <p className="text-red-400">{error}</p>;
+  if (loading) {
+    return (
+      <Card padding="md">
+        <p className="font-mono text-sm text-text-3">loading…</p>
+      </Card>
+    );
+  }
+  if (error) {
+    return (
+      <Card padding="md">
+        <p className="text-sm text-danger">{error}</p>
+      </Card>
+    );
+  }
 
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-semibold">Users</h2>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-zinc-800 text-left text-zinc-400">
-            <th className="pb-2 font-medium">Email</th>
-            <th className="pb-2 font-medium">Name</th>
-            <th className="pb-2 font-medium">Role</th>
-            <th className="pb-2 font-medium">Joined</th>
-          </tr>
-        </thead>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> getent passwd | wc -l → {users.length}
+        </p>
+      </div>
+
+      <Table>
+        <THead>
+          <TR>
+            <TH>Email</TH>
+            <TH>Name</TH>
+            <TH>Role</TH>
+            <TH>Joined</TH>
+          </TR>
+        </THead>
         <tbody>
           {users.map((u) => (
-            <tr key={u.id} className="border-b border-zinc-800">
-              <td className="py-2 text-zinc-300">{u.email}</td>
-              <td className="py-2">{u.displayName}</td>
-              <td className="py-2">
-                <span className={`rounded px-2 py-0.5 text-xs ${
-                  u.role === "admin" ? "bg-purple-900/50 text-purple-400" :
-                  u.role === "editor" ? "bg-blue-900/50 text-blue-400" :
-                  "bg-zinc-800 text-zinc-400"
-                }`}>{u.role}</span>
-              </td>
-              <td className="py-2 text-zinc-500">{new Date(u.createdAt).toLocaleDateString()}</td>
-            </tr>
+            <TR key={u.id}>
+              <TD className="font-mono text-text-2">{u.email}</TD>
+              <TD className="text-text-1">{u.displayName}</TD>
+              <TD><RolePill role={u.role} /></TD>
+              <TD className="font-mono text-xs text-text-3">
+                {new Date(u.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              </TD>
+            </TR>
           ))}
         </tbody>
-      </table>
+      </Table>
     </div>
   );
 }

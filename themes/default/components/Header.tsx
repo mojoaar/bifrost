@@ -33,27 +33,27 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)]">
+    <header className="sticky top-0 z-20 border-b border-border bg-bg-0/80 backdrop-blur">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
         <Link
           href="/"
-          className="text-lg font-bold tracking-tight text-[var(--text-primary)]"
+          className="font-mono text-base font-semibold tracking-tight text-text-1"
         >
-          {title}
+          <span className="text-accent">$</span> {title}
         </Link>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-3 text-sm">
           <Link
             href="/"
-            className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="text-text-2 transition hover:text-text-1"
           >
             Home
           </Link>
           <button
             onClick={toggle}
-            className="rounded border border-[var(--border-color)] px-2 py-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="rounded-md border border-border bg-bg-1 px-2.5 py-1 font-mono text-xs text-text-2 transition hover:border-border-strong hover:text-text-1"
             aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
           >
-            {mode === "light" ? "Dark" : "Light"}
+            {mode === "light" ? "light" : "dark"}
           </button>
         </nav>
       </div>

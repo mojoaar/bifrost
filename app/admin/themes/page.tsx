@@ -8,34 +8,41 @@
  */
 
 import { listThemes } from "@/lib/themes/registry";
+import { Card } from "@/themes/default/components/ui/Card";
 
 export default async function ThemesPage() {
   const themes = await listThemes();
 
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-semibold">Themes</h2>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Themes</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> ls themes/
+        </p>
+      </div>
 
       {themes.length === 0 ? (
-        <p className="text-zinc-400">No themes installed.</p>
+        <Card padding="lg">
+          <p className="text-center font-mono text-sm text-text-3">no themes installed</p>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {themes.map((theme) => (
-            <div
-              key={theme.manifest.name}
-              className="rounded border border-zinc-800 bg-zinc-900 p-4"
-            >
+            <Card key={theme.manifest.name} padding="md">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{theme.manifest.name}</h3>
-                <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-900">
-                  Active
+                <h3 className="font-mono text-base font-semibold text-text-1">
+                  {theme.manifest.name}
+                </h3>
+                <span className="rounded border border-accent/40 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-accent">
+                  active
                 </span>
               </div>
-              <p className="mb-1 text-xs text-zinc-500">
-                v{theme.manifest.version} by {theme.manifest.author}
+              <p className="mb-2 font-mono text-xs text-text-3">
+                v{theme.manifest.version} · {theme.manifest.author}
               </p>
-              <p className="text-sm text-zinc-400">{theme.manifest.description}</p>
-            </div>
+              <p className="text-sm text-text-2">{theme.manifest.description}</p>
+            </Card>
           ))}
         </div>
       )}

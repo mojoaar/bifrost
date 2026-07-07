@@ -20,9 +20,9 @@ export default function DefaultLayout({
 }) {
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <div className="flex min-h-screen flex-col bg-bg-0 text-text-1">
         <Header />
-        <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">{children}</main>
         <Footer />
       </div>
     </ThemeProvider>

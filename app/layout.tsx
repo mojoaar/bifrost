@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
-import { monoFontStack } from "@/lib/fonts";
+import { monoFontStack } from "@/lib/fonts/registry";
 import "./globals.css";
 import "@/themes/default/styles/light.css";
 import "@/themes/default/styles/dark.css";
@@ -42,8 +42,8 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}>
-      <body className="min-h-screen bg-zinc-950 text-zinc-100">{children}</body>
+    <html lang="en" data-theme="dark" style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}>
+      <body className="bg-bg-0 text-text-1">{children}</body>
     </html>
   );
 }

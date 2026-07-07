@@ -19,33 +19,35 @@ interface Props {
 export default function ListTemplate({ posts }: Props) {
   if (posts.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-[var(--text-muted)]">No posts yet.</p>
+      <div className="rounded-md border border-dashed border-border bg-surface-sunken py-16 text-center">
+        <p className="font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> ls content/posts/<span className="text-text-muted"># empty</span>
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-3">
       {posts.map((post) => {
         const date = post.publishedAt ?? post.createdAt;
         const tags = (post.frontmatter?.tags as string[]) ?? [];
 
         return (
-          <article key={post.slug} className="border-b border-[var(--border-color)] pb-8">
-            <Link href={`/${post.slug}`} className="group block">
-              <h2 className="text-2xl font-semibold tracking-tight group-hover:text-[var(--accent)]">
+          <article key={post.slug} className="group rounded-md border border-border bg-surface p-5 transition hover:border-border-strong">
+            <Link href={`/${post.slug}`} className="block">
+              <h2 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent">
                 {post.title}
               </h2>
-              <time className="mt-1.5 block text-sm text-[var(--text-muted)]">
+              <div className="mt-1.5 font-mono text-xs text-text-3">
                 {new Date(date).toLocaleDateString("en-US", {
                   year: "numeric",
-                  month: "long",
+                  month: "short",
                   day: "numeric",
                 })}
-              </time>
+              </div>
               {post.excerpt && (
-                <p className="mt-3 text-[var(--text-secondary)] leading-relaxed">
+                <p className="mt-3 text-sm leading-relaxed text-text-2">
                   {post.excerpt}
                 </p>
               )}
@@ -56,7 +58,7 @@ export default function ListTemplate({ posts }: Props) {
                   <Link
                     key={tag}
                     href={`/tag/${tag}`}
-                    className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--accent)] hover:underline"
+                    className="rounded border border-border bg-bg-1 px-1.5 py-0.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
                   >
                     #{tag}
                   </Link>

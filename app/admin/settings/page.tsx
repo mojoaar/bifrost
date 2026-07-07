@@ -10,6 +10,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card } from "@/themes/default/components/ui/Card";
+import { Field, Input, Select } from "@/themes/default/components/ui/Input";
+import { Button } from "@/themes/default/components/ui/Button";
+import { FONT_NAMES } from "@/lib/fonts/registry";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -18,18 +22,20 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       try {
         const res = await fetch("/api/v1/settings");
         const body = await res.json();
-        if (res.ok) setSettings(body.data ?? {});
+        if (!cancelled && res.ok) setSettings(body.data ?? {});
       } catch {
         // silent
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   async function handleSave(e: React.FormEvent) {
@@ -37,7 +43,6 @@ export default function SettingsPage() {
     setSaving(true);
     setMessage("");
     const token = localStorage.getItem("bifrost_token");
-
     try {
       const res = await fetch("/api/v1/settings", {
         method: "PUT",
@@ -47,7 +52,6 @@ export default function SettingsPage() {
         },
         body: JSON.stringify(settings),
       });
-
       if (res.ok) setMessage("Saved");
     } catch {
       setMessage("Error saving");
@@ -62,71 +66,93 @@ export default function SettingsPage() {
     };
   }
 
-  if (loading) return <p className="text-zinc-400">Loading...</p>;
+  if (loading) {
+    return (
+      <Card padding="md">
+        <p className="font-mono text-sm text-text-3">loading…</p>
+      </Card>
+    );
+  }
 
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-semibold">Settings</h2>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> cat bifrost.config.ts
+        </p>
+      </div>
 
-      <form onSubmit={handleSave} className="max-w-lg space-y-6">
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-zinc-300">Site</legend>
+      <form onSubmit={handleSave} className="max-w-2xl space-y-6">
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Site</div>
           <div className="space-y-3">
-            <label className="block">
-              <span className="text-sm text-zinc-400">Title</span>
-              <input type="text" value={settings["site.title"] ?? ""} onChange={setValue("site.title")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-zinc-400">Description</span>
-              <input type="text" value={settings["site.description"] ?? ""} onChange={setValue("site.description")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-            </label>
+            <Field label="Title">
+              <Input value={settings["site.title"] ?? ""} onChange={setValue("site.title")} />
+            </Field>
+            <Field label="Description">
+              <Input value={settings["site.description"] ?? ""} onChange={setValue("site.description")} />
+            </Field>
+            <Field label="Footer Text">
+              <Input
+                value={settings["site.footer_text"] ?? ""}
+                onChange={setValue("site.footer_text")}
+                placeholder="Powered by Bifröst"
+              />
+            </Field>
           </div>
-        </fieldset>
+        </Card>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-zinc-300">Appearance</legend>
-          <label className="block">
-            <span className="text-sm text-zinc-400">Monospace Font</span>
-            <select value={settings["appearance.font_mono"] ?? "JetBrains Mono"} onChange={setValue("appearance.font_mono")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none">
-              {[
-                "Anonymous Pro",
-                "Cascadia Code",
-                "Fira Code",
-                "IBM Plex Mono",
-                "Inconsolata",
-                "JetBrains Mono",
-                "Roboto Mono",
-                "Source Code Pro",
-                "Space Mono",
-                "Victor Mono",
-              ].map((font) => (
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Appearance</div>
+          <Field
+            label="Monospace Font"
+            helper="JetBrains Mono, Fira Code, and Source Code Pro are bundled. Others fall back to system mono."
+          >
+            <Select
+              value={settings["appearance.font_mono"] ?? FONT_NAMES[0]}
+              onChange={setValue("appearance.font_mono")}
+            >
+              {FONT_NAMES.map((font) => (
                 <option key={font} value={font}>{font}</option>
               ))}
-            </select>
-          </label>
-        </fieldset>
+            </Select>
+          </Field>
+        </Card>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-zinc-300">Theme</legend>
-          <label className="block">
-            <span className="text-sm text-zinc-400">Active Theme</span>
-            <input type="text" value={settings["theme"] ?? "default"} onChange={setValue("theme")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none" />
-          </label>
-        </fieldset>
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Theme</div>
+          <Field label="Active Theme">
+            <Input
+              value={settings["theme"] ?? "default"}
+              onChange={setValue("theme")}
+              placeholder="default"
+              className="font-mono"
+            />
+          </Field>
+        </Card>
 
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-zinc-300">Git Remote</legend>
-          <label className="block">
-            <span className="text-sm text-zinc-400">Remote URL</span>
-            <input type="text" value={settings["git.remote"] ?? ""} onChange={setValue("git.remote")} placeholder="git@github.com:user/repo.git" className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-mono focus:border-zinc-500 focus:outline-none" />
-          </label>
-        </fieldset>
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Git Remote</div>
+          <Field label="Remote URL" helper="Optional. Auto-commit will push to this on save.">
+            <Input
+              value={settings["git.remote"] ?? ""}
+              onChange={setValue("git.remote")}
+              placeholder="git@github.com:user/repo.git"
+              className="font-mono"
+            />
+          </Field>
+        </Card>
 
         <div className="flex items-center gap-4">
-          <button type="submit" disabled={saving} className="rounded bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-50">
+          <Button type="submit" variant="primary" disabled={saving}>
             {saving ? "Saving..." : "Save Settings"}
-          </button>
-          {message && <span className="text-sm text-green-400">{message}</span>}
+          </Button>
+          {message && (
+            <span className={`font-mono text-xs ${message === "Saved" ? "text-success" : "text-danger"}`}>
+              {message}
+            </span>
+          )}
         </div>
       </form>
     </div>
