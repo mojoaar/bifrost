@@ -157,6 +157,14 @@ pre:has(span[style*="--shiki"]) code {
   color: inherit;
 }
 
+pre:has(span[style*="--shiki"]) span {
+  color: var(--shiki-light);
+}
+
+:root[data-theme="dark"] pre:has(span[style*="--shiki"]) span {
+  color: var(--shiki-dark);
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-1);
   line-height: 1.25;
