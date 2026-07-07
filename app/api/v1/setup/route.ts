@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
 
   if (admin) return apiError("Setup already completed", 409);
 
-  let body: { email?: string; password?: string; title?: string; description?: string };
+  let body: { email?: string; password?: string; name?: string; title?: string; description?: string };
   try {
     body = await request.json();
   } catch {
     return apiError("Invalid JSON body", 400);
   }
 
-  const { email, password, title, description } = body;
+  const { email, password, name, title, description } = body;
   if (!email || !password) return apiError("Email and password are required", 400);
 
   const passwordHash = await hashPassword(password);
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       id: generateId(),
       email: email.toLowerCase().trim(),
       passwordHash,
-      displayName: "Admin",
+      displayName: (name?.trim() || email.split("@")[0] || "Admin"),
       role: "admin",
       createdAt: now,
       updatedAt: now,

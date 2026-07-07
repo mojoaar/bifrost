@@ -18,6 +18,7 @@ import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 export default function SetupForm() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [title, setTitle] = useState("");
@@ -33,7 +34,7 @@ export default function SetupForm() {
       const res = await fetch("/api/v1/setup", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password, title, description }),
+        body: JSON.stringify({ name, email, password, title, description }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -81,6 +82,14 @@ export default function SetupForm() {
 
           <div className="space-y-3">
             <div className="font-mono text-xs uppercase tracking-wider text-text-3">Admin</div>
+            <Field label="Display Name">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                autoComplete="name"
+              />
+            </Field>
             <Field label="Email">
               <Input
                 type="email"
