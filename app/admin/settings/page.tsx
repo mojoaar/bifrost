@@ -193,6 +193,25 @@ export default function SettingsPage() {
                 <option value="wide">Wide</option>
               </Select>
             </Field>
+            <Field label="Date Format" helper="US 12/31 · EU 31/12 · ISO 2026-12-31">
+              <Select
+                value={settings["appearance.date_format"] ?? "US"}
+                onChange={setValue("appearance.date_format")}
+              >
+                <option value="US">US (M/D/Y)</option>
+                <option value="EU">EU (D/M/Y)</option>
+                <option value="ISO">ISO (Y-M-D)</option>
+              </Select>
+            </Field>
+            <Field label="Time Format">
+              <Select
+                value={settings["appearance.time_format"] ?? "12h"}
+                onChange={setValue("appearance.time_format")}
+              >
+                <option value="12h">12h (1:00 PM)</option>
+                <option value="24h">24h (13:00)</option>
+              </Select>
+            </Field>
           </div>
         </Card>
 

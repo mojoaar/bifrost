@@ -16,6 +16,7 @@ import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/u
 import { StatusPill } from "@/themes/bifrost-terminal/components/ui/StatusPill";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { useDateTimeFormat } from "@/lib/format-date";
 
 interface Post {
   slug: string;
@@ -26,6 +27,7 @@ interface Post {
 }
 
 export default function PostsPage() {
+  const { formatDateShort } = useDateTimeFormat();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -145,7 +147,7 @@ export default function PostsPage() {
                 </TD>
                 <TD className="font-mono text-xs text-text-3">{post.slug}</TD>
                 <TD className="font-mono text-xs text-text-3">
-                  {new Date(post.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                  {formatDateShort(post.updatedAt)}
                 </TD>
                 <TD className="text-right">
                   <div className="flex justify-end gap-2">

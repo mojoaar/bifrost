@@ -69,14 +69,14 @@ export default function ListTemplate({ posts }: Props) {
               return (
                 <article
                   key={post.slug}
-                  className="group relative cursor-pointer rounded-md border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-raised hover:shadow-sm"
+                  className="group relative rounded-md border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-raised hover:shadow-sm"
                 >
                   <Link
                     href={`/${post.slug}`}
                     aria-label={post.title}
-                    className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
+                    className="absolute inset-0 z-10 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-0"
                   />
-                  <div className="relative z-10 flex items-baseline justify-between gap-4 pb-2">
+                  <div className="pointer-events-none relative z-0 flex items-baseline justify-between gap-4 pb-2">
                     <h3 className="text-xl font-semibold tracking-tight text-text-1 transition group-hover:text-accent">
                       <span className="bg-gradient-to-r from-accent to-accent bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-200 group-hover:bg-[length:100%_1px]">
                         {post.title}
@@ -93,17 +93,17 @@ export default function ListTemplate({ posts }: Props) {
                     </time>
                   </div>
                   {post.excerpt && (
-                    <p className="relative z-10 text-sm leading-relaxed text-text-2">
+                    <p className="pointer-events-none relative z-0 text-sm leading-relaxed text-text-2">
                       {post.excerpt}
                     </p>
                   )}
                   {tags.length > 0 && (
-                    <div className="relative z-10 mt-3 flex flex-wrap gap-1.5">
+                    <div className="pointer-events-none relative z-0 mt-3 flex flex-wrap gap-1.5">
                       {tags.map((tag: string) => (
                         <Link
                           key={tag}
                           href={`/tag/${tag}`}
-                          className="rounded border border-border bg-bg-1 px-1.5 py-0.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+                          className="pointer-events-auto relative z-20 rounded border border-border bg-bg-1 px-1.5 py-0.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
                         >
                           #{tag}
                         </Link>

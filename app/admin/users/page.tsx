@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/ui/Table";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { useDateTimeFormat } from "@/lib/format-date";
 
 interface User {
   id: string;
@@ -35,6 +36,7 @@ function RolePill({ role }: { role: User["role"] }) {
 }
 
 export default function UsersPage() {
+  const { formatDateShort } = useDateTimeFormat();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -96,7 +98,7 @@ export default function UsersPage() {
               <TD className="text-text-1">{u.displayName}</TD>
               <TD><RolePill role={u.role} /></TD>
               <TD className="font-mono text-xs text-text-3">
-                {new Date(u.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                {formatDateShort(u.createdAt)}
               </TD>
             </TR>
           ))}

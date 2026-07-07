@@ -10,6 +10,7 @@
 "use client";
 
 import type { PostData } from "@/lib/themes/types";
+import { useCodeCopyButtons } from "@/components/CodeCopyButton";
 
 interface Props {
   post: PostData;
@@ -29,6 +30,7 @@ export default function PostTemplate({ post, isAdmin = false }: Props) {
   const date = post.publishedAt ?? post.createdAt;
   const tags = (post.frontmatter?.tags as string[] | undefined) ?? [];
   const minutes = readingTime(post.contentHtml);
+  const containerRef = useCodeCopyButtons(post.contentHtml);
 
   return (
     <article>
@@ -75,6 +77,7 @@ export default function PostTemplate({ post, isAdmin = false }: Props) {
         </div>
       </header>
       <div
+        ref={containerRef}
         className="text-text-1"
         dangerouslySetInnerHTML={{ __html: post.contentHtml }}
       />

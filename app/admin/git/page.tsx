@@ -14,6 +14,7 @@ import Link from "next/link";
 import { GitBranch, GitCommit, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { useDateTimeFormat } from "@/lib/format-date";
 
 interface Commit {
   sha: string;
@@ -23,6 +24,7 @@ interface Commit {
 }
 
 export default function GitHistoryPage() {
+  const { formatDate } = useDateTimeFormat();
   const [commits, setCommits] = useState<Commit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -165,7 +167,7 @@ export default function GitHistoryPage() {
                     <span>{commit.message}</span>
                   </p>
                   <p className="mt-1 font-mono text-xs text-text-3">
-                    {commit.author} · {new Date(commit.date).toLocaleString()}
+                    {commit.author} · {formatDate(commit.date)}
                   </p>
                 </div>
                 <Link href={`/admin/git/${commit.sha}`} className="font-mono text-xs text-text-2 transition hover:text-text-1">

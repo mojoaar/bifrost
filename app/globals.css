@@ -268,3 +268,16 @@ li {
 .scrollbar-themed::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
+
+.code-block-wrapper {
+  position: relative;
+  max-width: 100%;
+}
+
+.code-block-wrapper:hover button {
+  opacity: 1;
+}
+
+.code-block-wrapper pre {
+  margin: 0;
+}
