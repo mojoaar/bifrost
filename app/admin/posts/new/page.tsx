@@ -9,10 +9,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import AIAssistant from "@/lib/editor/AIAssistant";
+import EditorToolbar from "@/lib/editor/EditorToolbar";
+import type { EditorView } from "@codemirror/view";
 
 const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
 const Preview = dynamic(() => import("@/lib/editor/Preview"), { ssr: false });
@@ -25,6 +27,17 @@ export default function NewPostPage() {
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const editorViewRef = useRef<EditorView | null>(null);
+
+  const getEditorView = useCallback(() => editorViewRef.current, []);
+  const getSelection = useCallback(() => {
+    const view = editorViewRef.current;
+    if (!view) return "";
+    return view.state.sliceDoc(
+      view.state.selection.main.from,
+      view.state.selection.main.to
+    );
+  }, []);
 
   function generateSlug(t: string) {
     return t
@@ -120,8 +133,20 @@ export default function NewPostPage() {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="flex flex-1 gap-px rounded border border-zinc-800 bg-zinc-800">
-        <div className="w-1/2 bg-zinc-950">
-          <Editor value={content} onChange={setContent} />
+        <div className="flex w-1/2 flex-col bg-zinc-950">
+          <EditorToolbar
+            getEditorView={getEditorView}
+            getSelection={getSelection}
+          />
+          <div className="flex-1">
+            <Editor
+              value={content}
+              onChange={setContent}
+              onViewReady={(v) => {
+                editorViewRef.current = v;
+              }}
+            />
+          </div>
         </div>
         <div className="w-1/2 bg-zinc-950">
           <Preview source={content} />

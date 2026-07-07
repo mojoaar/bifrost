@@ -10,7 +10,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { EditorView, keymap, lineNumbers } from "@codemirror/view";
+import { EditorView, keymap, lineNumbers, type KeyBinding } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -19,9 +19,40 @@ import { defaultKeymap } from "@codemirror/commands";
 interface Props {
   value: string;
   onChange: (value: string) => void;
+  onViewReady?: (view: EditorView) => void;
 }
 
-export default function CodeMirrorEditor({ value, onChange }: Props) {
+const boldBinding: KeyBinding = {
+  key: "Mod-b",
+  run: ({ state, dispatch }) => {
+    const { from, to } = state.selection.main;
+    const text = state.sliceDoc(from, to);
+    dispatch(
+      state.update({
+        changes: { from, to, insert: `**${text}**` },
+        selection: { anchor: from + 2, head: from + 2 + text.length },
+      })
+    );
+    return true;
+  },
+};
+
+const italicBinding: KeyBinding = {
+  key: "Mod-i",
+  run: ({ state, dispatch }) => {
+    const { from, to } = state.selection.main;
+    const text = state.sliceDoc(from, to);
+    dispatch(
+      state.update({
+        changes: { from, to, insert: `_${text}_` },
+        selection: { anchor: from + 1, head: from + 1 + text.length },
+      })
+    );
+    return true;
+  },
+};
+
+export default function CodeMirrorEditor({ value, onChange, onViewReady }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -40,7 +71,7 @@ export default function CodeMirrorEditor({ value, onChange }: Props) {
         lineNumbers(),
         markdown({ base: markdownLanguage }),
         oneDark,
-        keymap.of(defaultKeymap),
+        keymap.of([...defaultKeymap, boldBinding, italicBinding]),
         updateListener,
         EditorView.theme({
           "&": { height: "100%" },
@@ -55,6 +86,7 @@ export default function CodeMirrorEditor({ value, onChange }: Props) {
     });
 
     viewRef.current = view;
+    if (onViewReady) onViewReady(view);
 
     return () => {
       view.destroy();
