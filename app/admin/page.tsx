@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Upload, Settings as SettingsIcon, FileText } from "lucide-react";
+import { Plus, Upload, Settings as SettingsIcon, FileText, Image as ImageIcon, CheckCircle2, FileEdit } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 
@@ -21,6 +21,13 @@ interface AdminWidget {
   label: string;
 }
 
+interface Stats {
+  total: number;
+  drafts: number;
+  published: number;
+  media: number;
+}
+
 interface Post {
   slug: string;
   title: string;
@@ -28,9 +35,32 @@ interface Post {
   updatedAt: string;
 }
 
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+}) {
+  return (
+    <Card padding="md">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="font-mono text-xs uppercase tracking-wider text-text-3">{label}</div>
+          <div className="mt-2 font-mono text-3xl font-semibold tabular-nums text-text-1">{value}</div>
+        </div>
+        <Icon size={16} className="text-text-3" />
+      </div>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const [widgets, setWidgets] = useState<AdminWidget[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [stats, setStats] = useState<Stats>({ total: 0, drafts: 0, published: 0, media: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,13 +80,31 @@ export default function AdminDashboard() {
       } catch {
         // plugin load failed — no widgets
       }
+      const token = localStorage.getItem("bifrost_token");
+      const authHeader: Record<string, string> = token ? { authorization: `Bearer ${token}` } : {};
       try {
-        const res = await fetch("/api/v1/posts?limit=5&status=published", {
-          headers: { authorization: `Bearer ${localStorage.getItem("bifrost_token") ?? ""}` },
-        });
-        if (res.ok) {
-          const body = await res.json();
-          if (!cancelled) setPosts(body.data ?? []);
+        const [allRes, draftsRes, publishedRes, mediaRes, recentRes] = await Promise.all([
+          fetch("/api/v1/posts?limit=1", { headers: authHeader }),
+          fetch("/api/v1/posts?limit=1&status=draft", { headers: authHeader }),
+          fetch("/api/v1/posts?limit=1&status=published", { headers: authHeader }),
+          fetch("/api/v1/media", { headers: authHeader }),
+          fetch("/api/v1/posts?limit=5&status=published", { headers: authHeader }),
+        ]);
+        const [allBody, draftsBody, publishedBody, mediaBody, recentBody] = await Promise.all([
+          allRes.json().catch(() => ({})),
+          draftsRes.json().catch(() => ({})),
+          publishedRes.json().catch(() => ({})),
+          mediaRes.json().catch(() => ({})),
+          recentRes.json().catch(() => ({})),
+        ]);
+        if (!cancelled) {
+          setStats({
+            total: allBody.meta?.total ?? 0,
+            drafts: draftsBody.meta?.total ?? 0,
+            published: publishedBody.meta?.total ?? 0,
+            media: Array.isArray(mediaBody.data) ? mediaBody.data.length : 0,
+          });
+          setPosts(recentBody.data ?? []);
         }
       } catch {
         // silent
@@ -85,6 +133,13 @@ export default function AdminDashboard() {
             <span>New Post</span>
           </Button>
         </Link>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="Total Posts" value={stats.total} icon={FileText} />
+        <StatCard label="Published" value={stats.published} icon={CheckCircle2} />
+        <StatCard label="Drafts" value={stats.drafts} icon={FileEdit} />
+        <StatCard label="Media" value={stats.media} icon={ImageIcon} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

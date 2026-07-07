@@ -16,6 +16,25 @@ interface Props {
   posts: PostData[];
 }
 
+interface Group {
+  year: string;
+  posts: PostData[];
+}
+
+function groupByYear(posts: PostData[]): Group[] {
+  const map = new Map<string, PostData[]>();
+  for (const post of posts) {
+    const date = post.publishedAt ?? post.createdAt;
+    const year = new Date(date).getFullYear().toString();
+    const list = map.get(year) ?? [];
+    list.push(post);
+    map.set(year, list);
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => Number(b[0]) - Number(a[0]))
+    .map(([year, list]) => ({ year, posts: list }));
+}
+
 export default function ListTemplate({ posts }: Props) {
   if (posts.length === 0) {
     return (
@@ -27,47 +46,71 @@ export default function ListTemplate({ posts }: Props) {
     );
   }
 
-  return (
-    <div className="space-y-3">
-      {posts.map((post) => {
-        const date = post.publishedAt ?? post.createdAt;
-        const tags = (post.frontmatter?.tags as string[]) ?? [];
+  const groups = groupByYear(posts);
 
-        return (
-          <article key={post.slug} className="group rounded-md border border-border bg-surface p-5 transition hover:border-border-strong">
-            <Link href={`/${post.slug}`} className="block">
-              <h2 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent">
-                {post.title}
-              </h2>
-              <div className="mt-1.5 font-mono text-xs text-text-3">
-                {new Date(date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </div>
-              {post.excerpt && (
-                <p className="mt-3 text-sm leading-relaxed text-text-2">
-                  {post.excerpt}
-                </p>
-              )}
-            </Link>
-            {tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {tags.map((tag: string) => (
-                  <Link
-                    key={tag}
-                    href={`/tag/${tag}`}
-                    className="rounded border border-border bg-bg-1 px-1.5 py-0.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
-                  >
-                    #{tag}
+  return (
+    <div className="space-y-8">
+      {groups.map((group) => (
+        <section key={group.year}>
+          <div className="mb-3 flex items-baseline gap-3">
+            <h2 className="font-mono text-2xl font-semibold tabular-nums text-text-1">
+              {group.year}
+            </h2>
+            <span className="font-mono text-xs text-text-3">
+              {group.posts.length} {group.posts.length === 1 ? "post" : "posts"}
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div className="space-y-3">
+            {group.posts.map((post) => {
+              const date = post.publishedAt ?? post.createdAt;
+              const tags = (post.frontmatter?.tags as string[]) ?? [];
+
+              return (
+                <article
+                  key={post.slug}
+                  className="group rounded-md border border-border bg-surface p-5 transition hover:border-border-strong"
+                >
+                  <Link href={`/${post.slug}`} className="block">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <h3 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent">
+                        {post.title}
+                      </h3>
+                      <time
+                        dateTime={date}
+                        className="shrink-0 font-mono text-xs text-text-3"
+                      >
+                        {new Date(date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </div>
+                    {post.excerpt && (
+                      <p className="mt-2 text-sm leading-relaxed text-text-2">
+                        {post.excerpt}
+                      </p>
+                    )}
                   </Link>
-                ))}
-              </div>
-            )}
-          </article>
-        );
-      })}
+                  {tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {tags.map((tag: string) => (
+                        <Link
+                          key={tag}
+                          href={`/tag/${tag}`}
+                          className="rounded border border-border bg-bg-1 px-1.5 py-0.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+                        >
+                          #{tag}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

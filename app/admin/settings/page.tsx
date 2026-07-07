@@ -106,19 +106,31 @@ export default function SettingsPage() {
 
         <Card padding="md">
           <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Appearance</div>
-          <Field
-            label="Monospace Font"
-            helper="JetBrains Mono, Fira Code, and Source Code Pro are bundled. Others fall back to system mono."
-          >
-            <Select
-              value={settings["appearance.font_mono"] ?? FONT_NAMES[0]}
-              onChange={setValue("appearance.font_mono")}
+          <div className="space-y-3">
+            <Field label="Theme Mode" helper="System follows your OS preference. Light and dark override it.">
+              <Select
+                value={settings["appearance.theme_mode"] ?? "dark"}
+                onChange={setValue("appearance.theme_mode")}
+              >
+                <option value="system">system</option>
+                <option value="light">light</option>
+                <option value="dark">dark</option>
+              </Select>
+            </Field>
+            <Field
+              label="Monospace Font"
+              helper="JetBrains Mono, Fira Code, and Source Code Pro are bundled. Others fall back to system mono."
             >
-              {FONT_NAMES.map((font) => (
-                <option key={font} value={font}>{font}</option>
-              ))}
-            </Select>
-          </Field>
+              <Select
+                value={settings["appearance.font_mono"] ?? FONT_NAMES[0]}
+                onChange={setValue("appearance.font_mono")}
+              >
+                {FONT_NAMES.map((font) => (
+                  <option key={font} value={font}>{font}</option>
+                ))}
+              </Select>
+            </Field>
+          </div>
         </Card>
 
         <Card padding="md">

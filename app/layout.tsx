@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 };
 
 const THEME_COOKIE = "bifrost_theme";
+const FONT_KEY = "appearance.font_mono";
+const THEME_MODE_KEY = "appearance.theme_mode";
 
 export default async function RootLayout({
   children,
@@ -30,28 +32,42 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const themeCookie = cookieStore.get(THEME_COOKIE)?.value;
-  const theme: "light" | "dark" = themeCookie === "light" ? "light" : "dark";
+  const cookieValue = cookieStore.get(THEME_COOKIE)?.value;
+  const cookieTheme: "light" | "dark" = cookieValue === "light" ? "light" : "dark";
 
   let fontStack: string | undefined;
+  let themeMode: "system" | "light" | "dark" = "dark";
 
   try {
-    const row = db
+    const fontRow = db
       .select()
       .from(settings)
-      .where(eq(settings.key, "appearance.font_mono"))
+      .where(eq(settings.key, FONT_KEY))
       .get();
-    if (row) {
-      fontStack = monoFontStack(row.value);
+    if (fontRow) {
+      fontStack = monoFontStack(fontRow.value);
+    }
+    const modeRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, THEME_MODE_KEY))
+      .get();
+    if (modeRow) {
+      const m = modeRow.value;
+      if (m === "light" || m === "dark" || m === "system") {
+        themeMode = m;
+      }
     }
   } catch {
     fontStack = undefined;
   }
 
+  const activeTheme: "light" | "dark" = themeMode === "system" ? cookieTheme : themeMode;
+
   return (
     <html
       lang="en"
-      data-theme={theme}
+      data-theme={activeTheme}
       style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}
     >
       <body className="bg-bg-0 text-text-1">{children}</body>
