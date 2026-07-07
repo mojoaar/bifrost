@@ -68,12 +68,26 @@ export default function SettingsPage() {
         },
         body: JSON.stringify(settings),
       });
-      if (res.ok) setMessage("Saved");
+      if (res.ok) {
+        applyTheme(settings["appearance.theme_mode"]);
+        setMessage("Saved");
+      }
     } catch {
       setMessage("Error saving");
     } finally {
       setSaving(false);
     }
+  }
+
+  function applyTheme(mode: string | undefined) {
+    let next: "light" | "dark" = "dark";
+    if (mode === "light" || mode === "dark") {
+      next = mode;
+    } else if (mode === "system") {
+      next = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    }
+    document.documentElement.setAttribute("data-theme", next);
+    document.cookie = `bifrost_theme=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
   }
 
   function setValue(key: string) {
