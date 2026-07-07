@@ -24,8 +24,7 @@ interface Group {
 function groupByYear(posts: PostData[]): Group[] {
   const map = new Map<string, PostData[]>();
   for (const post of posts) {
-    const date = post.publishedAt ?? post.createdAt;
-    const year = new Date(date).getFullYear().toString();
+    const year = new Date(post.createdAt).getFullYear().toString();
     const list = map.get(year) ?? [];
     list.push(post);
     map.set(year, list);
@@ -63,7 +62,6 @@ export default function ListTemplate({ posts }: Props) {
           </div>
           <div className="space-y-3">
             {group.posts.map((post) => {
-              const date = post.publishedAt ?? post.createdAt;
               const tags = (post.frontmatter?.tags as string[]) ?? [];
 
               return (
@@ -83,10 +81,10 @@ export default function ListTemplate({ posts }: Props) {
                       </span>
                     </h3>
                     <time
-                      dateTime={date}
+                      dateTime={post.createdAt}
                       className="shrink-0 font-mono text-xs text-text-3"
                     >
-                      {new Date(date).toLocaleDateString("en-US", {
+                      {new Date(post.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}

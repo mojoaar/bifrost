@@ -272,12 +272,9 @@ export async function seedPosts(authorId: string): Promise<void> {
     if (existing) continue;
 
     const { html, excerpt } = await renderMarkdown(post.content);
-    const frontmatter: Record<string, unknown> = { tags: post.tags };
+    const frontmatter: Record<string, unknown> = { title: post.title, date, tags: post.tags };
 
-    await writePostToFilesystem(post.slug, post.content, {
-      title: post.title,
-      ...frontmatter,
-    });
+    await writePostToFilesystem(post.slug, post.content, frontmatter);
 
     db.insert(posts)
       .values({
