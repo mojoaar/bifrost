@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/themes/theme-context";
 
 export default function Header() {
@@ -50,10 +51,10 @@ export default function Header() {
           </Link>
           <button
             onClick={toggle}
-            className="rounded-md border border-border bg-bg-1 px-2.5 py-1 font-mono text-xs text-text-2 transition hover:border-border-strong hover:text-text-1"
+            className="rounded-md border border-border bg-bg-1 p-1.5 text-text-2 transition hover:border-border-strong hover:text-text-1"
             aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
           >
-            {mode === "light" ? "light" : "dark"}
+            {mode === "light" ? <Moon size={14} /> : <Sun size={14} />}
           </button>
         </nav>
       </div>

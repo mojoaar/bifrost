@@ -8,6 +8,7 @@
  */
 
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
@@ -21,11 +22,17 @@ export const metadata: Metadata = {
   description: "A self-hosted blogging framework",
 };
 
+const THEME_COOKIE = "bifrost_theme";
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get(THEME_COOKIE)?.value;
+  const theme: "light" | "dark" = themeCookie === "light" ? "light" : "dark";
+
   let fontStack: string | undefined;
 
   try {
@@ -42,7 +49,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" data-theme="dark" style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}>
+    <html
+      lang="en"
+      data-theme={theme}
+      style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}
+    >
       <body className="bg-bg-0 text-text-1">{children}</body>
     </html>
   );

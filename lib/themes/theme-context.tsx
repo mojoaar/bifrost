@@ -12,52 +12,58 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   useCallback,
   type ReactNode,
 } from "react";
 
-type ThemeMode = "light" | "dark";
+export type ThemeMode = "light" | "dark";
 
 interface ThemeContextValue {
   mode: ThemeMode;
   toggle: () => void;
+  setMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function getInitialMode(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
+const COOKIE_NAME = "bifrost_theme";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-  const stored = localStorage.getItem("bifrost_theme") as ThemeMode | null;
-  if (stored === "light" || stored === "dark") return stored;
-
-  if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-    return "light";
-  }
-
-  return "dark";
+function writeCookie(mode: ThemeMode) {
+  document.cookie = `${COOKIE_NAME}=${mode}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>(getInitialMode);
+export function ThemeProvider({
+  initialMode = "dark",
+  children,
+}: {
+  initialMode?: ThemeMode;
+  children: ReactNode;
+}) {
+  const [mode, setModeState] = useState<ThemeMode>(initialMode);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", mode);
-  }, [mode]);
+  const setMode = useCallback((next: ThemeMode) => {
+    setModeState(next);
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", next);
+      writeCookie(next);
+    }
+  }, []);
 
   const toggle = useCallback(() => {
     setModeState((prev) => {
       const next = prev === "light" ? "dark" : "light";
-      localStorage.setItem("bifrost_theme", next);
-      document.documentElement.setAttribute("data-theme", next);
+      if (typeof document !== "undefined") {
+        document.documentElement.setAttribute("data-theme", next);
+        writeCookie(next);
+      }
       return next;
     });
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ mode, toggle }}>
+    <ThemeContext.Provider value={{ mode, toggle, setMode }}>
       {children}
     </ThemeContext.Provider>
   );

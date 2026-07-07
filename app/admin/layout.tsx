@@ -11,7 +11,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeProvider } from "@/lib/themes/theme-context";
+import { Sun, Moon } from "lucide-react";
+import { ThemeProvider, useTheme } from "@/lib/themes/theme-context";
 import { Button } from "@/themes/default/components/ui/Button";
 
 interface NavItem {
@@ -61,6 +62,19 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
+function ThemeToggle() {
+  const { mode, toggle } = useTheme();
+  return (
+    <button
+      onClick={toggle}
+      className="rounded-md border border-border bg-bg-1 p-1.5 text-text-2 transition hover:border-border-strong hover:text-text-1"
+      aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
+    >
+      {mode === "light" ? <Moon size={14} /> : <Sun size={14} />}
+    </button>
+  );
+}
+
 function Sidebar() {
   const pathname = usePathname();
   return (
@@ -97,27 +111,28 @@ function TopBar() {
           </span>
         ))}
       </div>
-      <Button
-        variant="ghost"
-        onClick={() => {
-          localStorage.removeItem("bifrost_token");
-          window.location.href = "/login";
-        }}
-        className="font-mono text-xs"
-      >
-        logout
-      </Button>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <Button
+          variant="ghost"
+          onClick={() => {
+            localStorage.removeItem("bifrost_token");
+            window.location.href = "/login";
+          }}
+          className="font-mono text-xs"
+        >
+          logout
+        </Button>
+      </div>
     </header>
   );
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const initialMode: "light" | "dark" = pathname?.startsWith("/admin") ? "dark" : "dark";
   return (
-    <ThemeProvider>
+    <ThemeProvider initialMode={initialMode}>
       <div className="flex min-h-screen bg-bg-0 text-text-1">
         <Sidebar />
         <div className="flex min-h-screen flex-1 flex-col">
@@ -127,4 +142,12 @@ export default function AdminLayout({
       </div>
     </ThemeProvider>
   );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <AdminShell>{children}</AdminShell>;
 }

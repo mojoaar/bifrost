@@ -36,6 +36,7 @@
     "express": "^5.2.1",
     "isomorphic-git": "^1.38.6",
     "jose": "^6.2.3",
+    "lucide-react": "^1.23.0",
     "memfs": "^4.58.0",
     "next": "^16.0.0",
     "react": "^19.2.0",
