@@ -130,6 +130,7 @@ export default function PostsPage() {
               <TH>Title</TH>
               <TH>Status</TH>
               <TH>Slug</TH>
+              <TH>Created</TH>
               <TH>Updated</TH>
               <TH className="text-right">Actions</TH>
             </TR>
@@ -146,6 +147,9 @@ export default function PostsPage() {
                   <StatusPill status={post.status} />
                 </TD>
                 <TD className="font-mono text-xs text-text-3">{post.slug}</TD>
+                <TD className="font-mono text-xs text-text-3">
+                  {formatDateShort(post.createdAt)}
+                </TD>
                 <TD className="font-mono text-xs text-text-3">
                   {formatDateShort(post.updatedAt)}
                 </TD>
