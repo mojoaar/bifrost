@@ -141,7 +141,7 @@ export default function EditPostPage() {
           </Select>
         </Field>
         <div className="flex items-end gap-2">
-          <Button variant="primary" onClick={handleSave} disabled={saving}>
+          <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
             <Save size={14} />
             <span>{saving ? "Saving..." : "Save"}</span>
           </Button>
