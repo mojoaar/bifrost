@@ -14,9 +14,11 @@ import { getHistory } from "@/lib/git/repo";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const slug = searchParams.get("slug") ?? undefined;
+  const limitParam = searchParams.get("limit");
+  const limit = limitParam ? Math.min(500, Math.max(1, Number(limitParam))) : undefined;
 
   try {
-    const history = await getHistory(slug);
+    const history = await getHistory(slug, limit);
     return apiSuccess(history);
   } catch (err) {
     return apiError("Failed to get history", 500, String(err));

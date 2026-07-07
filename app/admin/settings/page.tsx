@@ -146,15 +146,61 @@ export default function SettingsPage() {
         </Card>
 
         <Card padding="md">
-          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Git Remote</div>
-          <Field label="Remote URL" helper="Optional. Auto-commit will push to this on save.">
-            <Input
-              value={settings["git.remote"] ?? ""}
-              onChange={setValue("git.remote")}
-              placeholder="git@github.com:user/repo.git"
-              className="font-mono"
-            />
-          </Field>
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Git</div>
+          <div className="space-y-3">
+            <Field label="Remote URL" helper="Optional. Leave empty to disable push/pull.">
+              <Input
+                value={settings["git.remote"] ?? ""}
+                onChange={setValue("git.remote")}
+                placeholder="git@github.com:user/repo.git"
+                className="font-mono"
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Branch">
+                <Input
+                  value={settings["git.branch"] ?? "main"}
+                  onChange={setValue("git.branch")}
+                  placeholder="main"
+                  className="font-mono"
+                />
+              </Field>
+              <Field label="History Limit" helper="Max commits shown in /admin/git">
+                <Input
+                  type="number"
+                  min="1"
+                  max="500"
+                  value={settings["git.history_limit"] ?? "50"}
+                  onChange={setValue("git.history_limit")}
+                  className="font-mono"
+                />
+              </Field>
+            </div>
+            <Field
+              label="Auth Token"
+              helper="Personal access token, deploy key, or password. Overrides BIFROST_GIT_TOKEN env var. Stored in the database."
+            >
+              <Input
+                type="password"
+                value={settings["git.token"] ?? ""}
+                onChange={setValue("git.token")}
+                placeholder="ghp_•••••••"
+                className="font-mono"
+                autoComplete="off"
+              />
+            </Field>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["git.autoCommit"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "git.autoCommit": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Auto-commit on post save</span>
+            </label>
+          </div>
         </Card>
 
         <div className="flex items-center gap-4">

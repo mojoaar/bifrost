@@ -12,6 +12,7 @@ import http from "isomorphic-git/http/node";
 import fs from "fs";
 import path from "path";
 import { loadConfig } from "@/lib/config/loader";
+import { getSetting } from "@/lib/settings";
 
 const CONTENT_DIR = path.resolve("content");
 const DIR = CONTENT_DIR;
@@ -21,6 +22,27 @@ export interface CommitEntry {
   message: string;
   date: string;
   author: string;
+}
+
+interface GitRuntimeConfig {
+  enabled: boolean;
+  autoCommit: boolean;
+  remote: string;
+  branch: string;
+  token: string;
+  historyLimit: number;
+}
+
+function loadGitConfig(): GitRuntimeConfig {
+  const file = loadConfig().git;
+  return {
+    enabled: file.enabled,
+    autoCommit: getSetting("git.autoCommit") === "true" || (getSetting("git.autoCommit") === undefined && file.autoCommit),
+    remote: getSetting("git.remote") ?? file.remote,
+    branch: getSetting("git.branch") ?? "main",
+    token: getSetting("git.token") ?? process.env.BIFROST_GIT_TOKEN ?? "",
+    historyLimit: Number(getSetting("git.history_limit")) || 50,
+  };
 }
 
 export async function initContentRepo(): Promise<void> {
@@ -34,7 +56,7 @@ export async function commitPost(
   slug: string,
   title: string
 ): Promise<string | null> {
-  const config = loadConfig().git;
+  const config = loadGitConfig();
   if (!config.enabled) return null;
 
   await initContentRepo();
@@ -69,8 +91,11 @@ export async function commitPost(
   return sha;
 }
 
-export async function getHistory(slug?: string): Promise<CommitEntry[]> {
+export async function getHistory(slug?: string, limit?: number): Promise<CommitEntry[]> {
   await initContentRepo();
+
+  const config = loadGitConfig();
+  const depth = limit ?? config.historyLimit;
 
   const filepath = slug || undefined;
 
@@ -78,7 +103,7 @@ export async function getHistory(slug?: string): Promise<CommitEntry[]> {
     fs,
     dir: DIR,
     filepath,
-    depth: 50,
+    depth,
   });
 
   return log.map((entry) => ({
@@ -166,7 +191,7 @@ async function diffBetweenOids(
 }
 
 export async function pushToRemote(): Promise<void> {
-  const config = loadConfig().git;
+  const config = loadGitConfig();
   if (!config.remote) return;
 
   await git.push({
@@ -174,16 +199,16 @@ export async function pushToRemote(): Promise<void> {
     http,
     dir: DIR,
     remote: "origin",
-    ref: "main",
+    ref: config.branch,
     onAuth: () => ({
       username: config.remote.includes("github.com") ? "git" : "",
-      password: process.env.BIFROST_GIT_TOKEN ?? "",
+      password: config.token,
     }),
   });
 }
 
 export async function pullFromRemote(): Promise<void> {
-  const config = loadConfig().git;
+  const config = loadGitConfig();
   if (!config.remote) return;
 
   await git.pull({
@@ -191,12 +216,12 @@ export async function pullFromRemote(): Promise<void> {
     http,
     dir: DIR,
     remote: "origin",
-    ref: "main",
+    ref: config.branch,
     singleBranch: true,
     author: { name: "Bifröst", email: "bifrost@localhost" },
     onAuth: () => ({
       username: config.remote.includes("github.com") ? "git" : "",
-      password: process.env.BIFROST_GIT_TOKEN ?? "",
+      password: config.token,
     }),
   });
 }
