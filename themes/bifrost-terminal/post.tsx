@@ -13,6 +13,7 @@ import type { PostData } from "@/lib/themes/types";
 
 interface Props {
   post: PostData;
+  isAdmin?: boolean;
 }
 
 function wordCount(html: string): number {
@@ -24,11 +25,10 @@ function readingTime(html: string): number {
   return Math.max(1, Math.round(wordCount(html) / 220));
 }
 
-export default function PostTemplate({ post }: Props) {
+export default function PostTemplate({ post, isAdmin = false }: Props) {
   const date = post.publishedAt ?? post.createdAt;
   const tags = (post.frontmatter?.tags as string[] | undefined) ?? [];
   const minutes = readingTime(post.contentHtml);
-  const isAdmin = typeof window !== "undefined" && !!localStorage.getItem("bifrost_token");
 
   return (
     <article className="max-w-[68ch]">

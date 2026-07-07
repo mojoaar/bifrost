@@ -14,6 +14,8 @@ import { loadTheme } from "@/lib/themes/registry";
 import type { PostData } from "@/lib/themes/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { verifyRefreshToken } from "@/lib/auth/token";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -45,6 +47,18 @@ export default async function PostPage({ params }: Props) {
 
   if (!row) notFound();
 
+  const cookieStore = await cookies();
+  const refreshCookie = cookieStore.get("bifrost_refresh")?.value;
+  let isAdmin = false;
+  if (refreshCookie) {
+    try {
+      const payload = await verifyRefreshToken(refreshCookie);
+      isAdmin = payload?.role === "admin";
+    } catch {
+      isAdmin = false;
+    }
+  }
+
   const theme = await loadTheme("bifrost-terminal");
   const PostComponent = theme.components.post;
 
@@ -69,5 +83,5 @@ export default async function PostPage({ params }: Props) {
     );
   }
 
-  return <PostComponent post={postData} />;
+  return <PostComponent post={postData} isAdmin={isAdmin} />;
 }
