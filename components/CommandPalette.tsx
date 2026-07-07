@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Search, CornerDownLeft } from "lucide-react";
 import { getCommands, type Command } from "@/lib/commands";
 import { filter } from "@/lib/commands/fuzzy";
@@ -33,7 +33,14 @@ export function CommandPalette() {
   const [prevOpen, setPrevOpen] = useState(false);
   const mac = useMemo(() => isMac(), []);
 
-  // Reset state on open transition (React docs: "Storing information from previous renders")
+  const closeRef = useRef(close);
+  const filteredRef = useRef<Command[]>([]);
+  const activeIndexRef = useRef(0);
+
+  useLayoutEffect(() => {
+    closeRef.current = close;
+  });
+
   if (isOpen !== prevOpen) {
     setPrevOpen(isOpen);
     if (isOpen) {
@@ -56,29 +63,36 @@ export function CommandPalette() {
     return filter(trimmed, commands, (c) => [c.label, ...(c.keywords ?? []), c.section]);
   }, [query, commands]);
 
+  useLayoutEffect(() => {
+    filteredRef.current = filtered;
+    activeIndexRef.current = activeIndex;
+  });
+
   const displayIndex = Math.min(activeIndex, Math.max(0, filtered.length - 1));
 
   useEffect(() => {
     if (!isOpen) return;
     function onKey(e: KeyboardEvent) {
+      const list = filteredRef.current;
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, Math.max(0, filtered.length - 1)));
+        setActiveIndex((i) => Math.min(i + 1, Math.max(0, list.length - 1)));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveIndex((i) => Math.max(0, i - 1));
       } else if (e.key === "Enter") {
         e.preventDefault();
-        const cmd = filtered[displayIndex];
+        const idx = Math.min(activeIndexRef.current, Math.max(0, list.length - 1));
+        const cmd = list[idx];
         if (cmd) {
           void cmd.perform();
-          close();
+          closeRef.current();
         }
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, filtered, activeIndex, displayIndex, close]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
