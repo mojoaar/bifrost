@@ -19,7 +19,7 @@ export async function GET() {
     .select()
     .from(posts)
     .where(eq(posts.status, "published"))
-    .orderBy(sql`${posts.publishedAt} DESC`)
+    .orderBy(sql`${posts.createdAt} DESC`)
     .limit(20)
     .all();
 

@@ -32,7 +32,7 @@ export default async function TagPage({ params }: Props) {
     .where(
       sql`${posts.status} = 'published' AND ${posts.frontmatter} LIKE ${`%${tag}%`}`
     )
-    .orderBy(sql`${posts.publishedAt} DESC`)
+    .orderBy(sql`${posts.createdAt} DESC`)
     .all();
 
   const theme = await loadTheme("bifrost-terminal");

@@ -18,7 +18,7 @@ export default async function HomePage() {
     .select()
     .from(posts)
     .where(eq(posts.status, "published"))
-    .orderBy(sql`${posts.publishedAt} DESC`)
+    .orderBy(sql`${posts.createdAt} DESC`)
     .all();
 
   const theme = await loadTheme("bifrost-terminal");
