@@ -69,31 +69,34 @@ export default function ListTemplate({ posts }: Props) {
               return (
                 <article
                   key={post.slug}
-                  className="group rounded-md border border-border bg-surface p-5 transition hover:border-border-strong"
+                  className="group relative rounded-md border border-border bg-surface p-5 transition hover:border-border-strong"
                 >
-                  <Link href={`/${post.slug}`} className="block">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <h3 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent">
-                        {post.title}
-                      </h3>
-                      <time
-                        dateTime={date}
-                        className="shrink-0 font-mono text-xs text-text-3"
-                      >
-                        {new Date(date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </time>
-                    </div>
-                    {post.excerpt && (
-                      <p className="mt-2 text-sm leading-relaxed text-text-2">
-                        {post.excerpt}
-                      </p>
-                    )}
-                  </Link>
+                  <Link
+                    href={`/${post.slug}`}
+                    aria-label={post.title}
+                    className="absolute inset-0 z-0"
+                  />
+                  <div className="relative z-10 flex items-baseline justify-between gap-4">
+                    <h3 className="text-xl font-semibold tracking-tight text-text-1 group-hover:text-accent group-hover:underline group-hover:decoration-accent group-hover:underline-offset-4">
+                      {post.title}
+                    </h3>
+                    <time
+                      dateTime={date}
+                      className="shrink-0 font-mono text-xs text-text-3"
+                    >
+                      {new Date(date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </time>
+                  </div>
+                  {post.excerpt && (
+                    <p className="relative z-10 mt-2 text-sm leading-relaxed text-text-2">
+                      {post.excerpt}
+                    </p>
+                  )}
                   {tags.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className="relative z-10 mt-3 flex flex-wrap gap-1.5">
                       {tags.map((tag: string) => (
                         <Link
                           key={tag}
