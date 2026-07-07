@@ -10,25 +10,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Save, AlertTriangle, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { FONT_NAMES } from "@/lib/fonts/registry";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [themes, setThemes] = useState<{ slug: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/v1/settings");
-        const body = await res.json();
-        if (!cancelled && res.ok) setSettings(body.data ?? {});
+        const [settingsRes, themesRes] = await Promise.all([
+          fetch("/api/v1/settings"),
+          fetch("/api/v1/themes"),
+        ]);
+        const [settingsBody, themesBody] = await Promise.all([
+          settingsRes.json(),
+          themesRes.json(),
+        ]);
+        if (cancelled) return;
+        if (settingsRes.ok) setSettings(settingsBody.data ?? {});
+        if (themesRes.ok) setThemes(themesBody.data ?? []);
       } catch {
         // silent
       } finally {
@@ -65,6 +80,30 @@ export default function SettingsPage() {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setSettings((s) => ({ ...s, [key]: e.target.value }));
     };
+  }
+
+  async function handleReset() {
+    if (resetConfirm !== "RESET") return;
+    setResetting(true);
+    setResetMessage("");
+    const token = localStorage.getItem("bifrost_token");
+    try {
+      const res = await fetch("/api/v1/admin/reset", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setResetMessage(body.error?.message ?? "Reset failed");
+        return;
+      }
+      setResetMessage("All content removed. Reloading...");
+      setTimeout(() => router.push("/admin"), 800);
+    } catch {
+      setResetMessage("Network error");
+    } finally {
+      setResetting(false);
+    }
   }
 
   if (loading) {
@@ -136,12 +175,21 @@ export default function SettingsPage() {
         <Card padding="md">
           <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Theme</div>
           <Field label="Active Theme">
-            <Input
+            <Select
               value={settings["theme"] ?? "bifrost-terminal"}
               onChange={setValue("theme")}
-              placeholder="bifrost-terminal"
               className="font-mono"
-            />
+            >
+              {themes.length === 0 ? (
+                <option value="bifrost-terminal">bifrost-terminal</option>
+              ) : (
+                themes.map((t) => (
+                  <option key={t.slug} value={t.slug}>
+                    {t.name}
+                  </option>
+                ))
+              )}
+            </Select>
           </Field>
         </Card>
 
@@ -215,6 +263,78 @@ export default function SettingsPage() {
           )}
         </div>
       </form>
+
+      <div className="mt-10 max-w-2xl">
+        <Card padding="md" className="border-danger/40">
+          <div className="mb-3 flex items-center gap-2">
+            <AlertTriangle size={14} className="text-danger" />
+            <span className="font-mono text-xs uppercase tracking-wider text-danger">
+              Danger Zone
+            </span>
+          </div>
+          <p className="mb-4 text-sm text-text-2">
+            Remove all posts, media, tags, and the git history. This will not
+            affect the database schema, themes, or installed plugins.
+          </p>
+
+          {!resetOpen ? (
+            <Button
+              variant="danger"
+              onClick={() => setResetOpen(true)}
+              type="button"
+            >
+              <Trash2 size={14} />
+              <span>Remove demo data</span>
+            </Button>
+          ) : (
+            <div className="space-y-3 rounded-md border border-danger/30 bg-danger/5 p-3">
+              <p className="font-mono text-xs text-text-2">
+                <span className="text-danger">$</span> Type{" "}
+                <span className="rounded bg-bg-0 px-1.5 py-0.5 font-semibold text-danger">
+                  RESET
+                </span>{" "}
+                to confirm. This cannot be undone.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={resetConfirm}
+                  onChange={(e) => setResetConfirm(e.target.value)}
+                  placeholder="RESET"
+                  className="font-mono"
+                  autoComplete="off"
+                  autoFocus
+                />
+                <Button
+                  variant="danger"
+                  type="button"
+                  onClick={handleReset}
+                  disabled={resetting || resetConfirm !== "RESET"}
+                >
+                  <Trash2 size={14} />
+                  <span>{resetting ? "Resetting..." : "Confirm"}</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => {
+                    setResetOpen(false);
+                    setResetConfirm("");
+                    setResetMessage("");
+                  }}
+                  disabled={resetting}
+                >
+                  cancel
+                </Button>
+              </div>
+              {resetMessage && (
+                <p className={`font-mono text-xs ${resetMessage.includes("All content") ? "text-success" : "text-danger"}`}>
+                  {resetMessage}
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }
