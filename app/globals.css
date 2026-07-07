@@ -9,19 +9,21 @@
 
 @import "tailwindcss";
 
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+}
+
 body {
-  font-family: var(--font-sans, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 1.0625rem;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code,
-pre,
-kbd,
-samp {
-  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace);
+code, pre, kbd, samp {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
 }
 
 pre {

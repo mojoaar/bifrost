@@ -89,15 +89,15 @@ export default function SettingsPage() {
             <span className="text-sm text-zinc-400">Monospace Font</span>
             <select value={settings["appearance.font_mono"] ?? "JetBrains Mono"} onChange={setValue("appearance.font_mono")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none">
               {[
-                "JetBrains Mono",
-                "Fira Code",
-                "Source Code Pro",
-                "IBM Plex Mono",
-                "Inconsolata",
-                "Roboto Mono",
-                "Space Mono",
                 "Anonymous Pro",
                 "Cascadia Code",
+                "Fira Code",
+                "IBM Plex Mono",
+                "Inconsolata",
+                "JetBrains Mono",
+                "Roboto Mono",
+                "Source Code Pro",
+                "Space Mono",
                 "Victor Mono",
               ].map((font) => (
                 <option key={font} value={font}>{font}</option>
