@@ -13,8 +13,8 @@ import { useEffect, useRef } from "react";
 import { EditorView, keymap, lineNumbers, type KeyBinding } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { oneDark } from "@codemirror/theme-one-dark";
 import { defaultKeymap } from "@codemirror/commands";
+import { bifrostTheme } from "./theme";
 
 interface Props {
   value: string;
@@ -70,13 +70,9 @@ export default function CodeMirrorEditor({ value, onChange, onViewReady }: Props
       extensions: [
         lineNumbers(),
         markdown({ base: markdownLanguage }),
-        oneDark,
+        bifrostTheme,
         keymap.of([...defaultKeymap, boldBinding, italicBinding]),
         updateListener,
-        EditorView.theme({
-          "&": { height: "100%", fontFamily: "var(--font-mono)" },
-          ".cm-scroller": { overflow: "auto" },
-        }),
       ],
     });
 
