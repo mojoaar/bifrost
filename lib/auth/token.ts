@@ -19,7 +19,7 @@ const REFRESH_SECRET = new TextEncoder().encode(
     "bifrost-dev-refresh-secret-change-me"
 );
 
-const ACCESS_EXPIRES = "15m";
+const ACCESS_EXPIRES = "1h";
 const REFRESH_EXPIRES = "7d";
 
 export function createAccessToken(payload: TokenPayload): Promise<string> {
