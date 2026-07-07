@@ -20,6 +20,10 @@ function isMac(): boolean {
   return /mac/i.test(navigator.platform);
 }
 
+function scrollActiveIntoView(el: HTMLButtonElement | null) {
+  if (el) el.scrollIntoView({ block: "nearest" });
+}
+
 export function CommandPalette() {
   const { isOpen, close } = useCommandPalette();
   const [query, setQuery] = useState("");
@@ -29,6 +33,7 @@ export function CommandPalette() {
   const [prevOpen, setPrevOpen] = useState(false);
   const mac = useMemo(() => isMac(), []);
 
+  // Reset state on open transition (React docs: "Storing information from previous renders")
   if (isOpen !== prevOpen) {
     setPrevOpen(isOpen);
     if (isOpen) {
@@ -107,7 +112,7 @@ export function CommandPalette() {
           </kbd>
         </div>
 
-        <div className="max-h-80 overflow-y-auto" role="listbox">
+        <div className="scrollbar-themed max-h-80 overflow-y-auto" role="listbox">
           {loading && (
             <div className="px-4 py-6 text-center font-mono text-xs text-text-3">loading…</div>
           )}
@@ -129,6 +134,7 @@ export function CommandPalette() {
                     <button
                       key={cmd.id}
                       type="button"
+                      ref={isActive ? scrollActiveIntoView : undefined}
                       onClick={() => {
                         void cmd.perform();
                         close();

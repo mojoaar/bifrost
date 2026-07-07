@@ -207,3 +207,26 @@ li {
   background: var(--accent-subtle);
   color: var(--text-1);
 }
+
+.scrollbar-themed {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.scrollbar-themed::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
