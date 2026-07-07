@@ -50,6 +50,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-950">
       <form
         onSubmit={handleSubmit}
+        suppressHydrationWarning
         className="w-full max-w-sm space-y-4 rounded-lg border border-zinc-800 bg-zinc-900 p-6"
       >
         <h2 className="text-xl font-semibold text-zinc-100">Login</h2>
