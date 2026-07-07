@@ -50,20 +50,23 @@ async function processFile(filePath: string): Promise<void> {
       .get();
 
     if (existing) {
-      db.update(posts)
-        .set({
-          title,
-          contentMd: raw,
-          contentHtml: parsed.html,
-          excerpt: parsed.excerpt,
-          frontmatter: JSON.stringify(parsed.frontmatter),
-          status,
-          authorId,
-          publishedAt: status === "published" ? date : null,
-          updatedAt: now,
-        })
-        .where(eq(posts.slug, slug))
-        .run();
+      const row = db.select({ html: posts.contentHtml }).from(posts).where(eq(posts.slug, slug)).get();
+      if (row?.html !== parsed.html) {
+        db.update(posts)
+          .set({
+            title,
+            contentMd: raw,
+            contentHtml: parsed.html,
+            excerpt: parsed.excerpt,
+            frontmatter: JSON.stringify(parsed.frontmatter),
+            status,
+            authorId,
+            publishedAt: status === "published" ? date : null,
+            updatedAt: now,
+          })
+          .where(eq(posts.slug, slug))
+          .run();
+      }
     } else {
       db.insert(posts)
         .values({
