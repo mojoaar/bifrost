@@ -127,6 +127,36 @@ pre code {
   font-size: inherit;
 }
 
+pre:has(span[style*="--shiki"]) {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  margin: var(--space-5) 0;
+}
+
+:root[data-theme="dark"] pre:has(span[style*="--shiki"]) {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+:root[data-theme="light"] pre:has(span[style*="--shiki"]) {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+pre:has(span[style*="--shiki"]) code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-1);
   line-height: 1.25;

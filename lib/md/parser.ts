@@ -13,7 +13,9 @@ import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
-import rehypeSanitize from "rehype-sanitize";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeShiki from "@shikijs/rehype";
+import type { Schema } from "hast-util-sanitize";
 import type { ParsedMarkdown } from "./types";
 import { runHook } from "@/lib/plugins/registry";
 
@@ -44,11 +46,27 @@ export function parseFrontmatter(content: string): {
   return { frontmatter, body };
 }
 
+const shikiSchema: Schema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [...(defaultSchema.attributes?.code ?? []), ["className", /^language-./, "shiki"]],
+    pre: [...(defaultSchema.attributes?.pre ?? []), ["className", /^shiki/, "shiki-wrapper"]],
+    span: [...(defaultSchema.attributes?.span ?? []), ["style"], ["className", /^(line|token).*$/]],
+    "*": [...(defaultSchema.attributes?.["*"] ?? []), ["className"]],
+  },
+};
+
 const processor = remark()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkRehype, { allowDangerousHtml: false })
-  .use(rehypeSanitize)
+  .use(rehypeShiki, {
+    themes: { light: "github-light", dark: "github-dark" },
+    defaultColor: false,
+    cssVariablePrefix: "--shiki-",
+  })
+  .use(rehypeSanitize, shikiSchema)
   .use(rehypeStringify);
 
 export async function renderMarkdown(
