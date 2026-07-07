@@ -62,14 +62,14 @@ export async function POST(request: NextRequest) {
 
   if (title) {
     db.insert(settings)
-      .values({ key: "site.title", value: JSON.stringify(title) })
-      .onConflictDoUpdate({ target: settings.key, set: { value: JSON.stringify(title) } })
+      .values({ key: "site.title", value: title })
+      .onConflictDoUpdate({ target: settings.key, set: { value: title } })
       .run();
   }
   if (description) {
     db.insert(settings)
-      .values({ key: "site.description", value: JSON.stringify(description) })
-      .onConflictDoUpdate({ target: settings.key, set: { value: JSON.stringify(description) } })
+      .values({ key: "site.description", value: description })
+      .onConflictDoUpdate({ target: settings.key, set: { value: description } })
       .run();
   }
 
