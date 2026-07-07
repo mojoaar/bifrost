@@ -90,5 +90,16 @@ export default function CodeMirrorEditor({ value, onChange, onViewReady }: Props
     };
   }, []);
 
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const currentContent = view.state.doc.toString();
+    if (value !== currentContent) {
+      view.dispatch({
+        changes: { from: 0, to: currentContent.length, insert: value },
+      });
+    }
+  }, [value]);
+
   return <div ref={containerRef} className="h-full" />;
 }
