@@ -31,6 +31,7 @@ export default function NewPostPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const editorViewRef = useRef<EditorView | null>(null);
+  const lastTitleRef = useRef("");
 
   const getEditorView = useCallback(() => editorViewRef.current, []);
   const getSelection = useCallback(() => {
@@ -41,6 +42,23 @@ export default function NewPostPage() {
 
   function generateSlug(t: string) {
     return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n*/;
+
+  function buildFrontmatter(t: string): string {
+    const today = new Date().toISOString().slice(0, 10);
+    return `---\ntitle: "${t.replace(/"/g, '\\"')}"\ndate: ${today}\ntags: []\n---\n\n`;
+  }
+
+  function mergeFrontmatter(text: string, t: string): string {
+    if (!t) return text;
+    const newFm = buildFrontmatter(t);
+    if (!text || text.trim() === "") return newFm;
+    const match = text.match(FRONTMATTER_RE);
+    if (!match) return newFm + text.replace(/^\n+/, "");
+    const after = text.slice(match[0].length);
+    return newFm + after.replace(/^\n+/, "");
   }
 
   async function handleSave() {
@@ -77,6 +95,13 @@ export default function NewPostPage() {
       setSaving(false);
     }
   }
+
+  useEffect(() => {
+    if (title.trim() && title !== lastTitleRef.current) {
+      lastTitleRef.current = title;
+      setContent((prev) => mergeFrontmatter(prev, title));
+    }
+  }, [title]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
