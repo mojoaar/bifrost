@@ -13,16 +13,24 @@ import { ThemeProvider } from "@/lib/themes/theme-context";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
+const WIDTH_MAP: Record<string, string> = {
+  narrow: "max-w-2xl",
+  wide: "max-w-4xl",
+};
+
 export default function DefaultLayout({
   children,
+  contentWidth,
 }: {
   children: React.ReactNode;
+  contentWidth?: string;
 }) {
+  const widthClass = WIDTH_MAP[contentWidth ?? ""] ?? "max-w-3xl";
   return (
     <ThemeProvider>
       <div className="flex min-h-screen flex-col bg-bg-0 text-text-1">
         <Header />
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">{children}</main>
+        <main className={`mx-auto w-full flex-1 px-4 py-8 ${widthClass}`}>{children}</main>
         <Footer />
       </div>
     </ThemeProvider>

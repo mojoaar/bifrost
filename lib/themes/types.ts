@@ -30,7 +30,7 @@ export interface PostData {
 }
 
 export interface ThemeComponents {
-  layout?: ComponentType<{ children: ReactNode }>;
+  layout?: ComponentType<{ children: ReactNode; contentWidth?: string }>;
   post?: ComponentType<{ post: PostData; isAdmin?: boolean }>;
   list?: ComponentType<{ posts: PostData[] }>;
 }

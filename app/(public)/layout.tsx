@@ -8,13 +8,36 @@
  */
 
 import type { ReactNode } from "react";
+import { db } from "@/lib/db";
+import { settings } from "@/lib/db/schema/settings";
+import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
+
+const WIDTH_MAP: Record<string, string> = {
+  narrow: "max-w-2xl",
+  wide: "max-w-4xl",
+};
 
 export default async function PublicLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  let contentWidth: string | undefined;
+
+  try {
+    const row = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "appearance.content_width"))
+      .get();
+    if (row) {
+      contentWidth = WIDTH_MAP[row.value] ?? "max-w-3xl";
+    }
+  } catch {
+    contentWidth = undefined;
+  }
+
   const theme = await loadTheme("bifrost-terminal");
   const ThemeLayout = theme.components.layout;
 
@@ -22,5 +45,5 @@ export default async function PublicLayout({
     return <>{children}</>;
   }
 
-  return <ThemeLayout>{children}</ThemeLayout>;
+  return <ThemeLayout contentWidth={contentWidth}>{children}</ThemeLayout>;
 }

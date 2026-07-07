@@ -183,6 +183,16 @@ export default function SettingsPage() {
                 ))}
               </Select>
             </Field>
+            <Field label="Content Width" helper="Narrow 672px · Default 768px · Wide 896px">
+              <Select
+                value={settings["appearance.content_width"] ?? "default"}
+                onChange={setValue("appearance.content_width")}
+              >
+                <option value="narrow">Narrow</option>
+                <option value="default">Default</option>
+                <option value="wide">Wide</option>
+              </Select>
+            </Field>
           </div>
         </Card>
 
