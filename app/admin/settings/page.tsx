@@ -137,7 +137,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="max-w-2xl space-y-6">
+      <form onSubmit={handleSave} className="space-y-6">
         <Card padding="md">
           <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Site</div>
           <div className="space-y-3">
@@ -288,7 +288,7 @@ export default function SettingsPage() {
         </div>
       </form>
 
-      <div className="mt-10 max-w-2xl">
+      <div className="mt-10">
         <Card padding="md" className="border-danger/40">
           <div className="mb-3 flex items-center gap-2">
             <AlertTriangle size={14} className="text-danger" />

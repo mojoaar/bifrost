@@ -8,6 +8,7 @@
  */
 
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
@@ -18,6 +19,9 @@ export default async function PublicLayout({
 }: {
   children: ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const theme = cookieStore.get("bifrost_theme")?.value === "light" ? "light" : "dark";
+
   let contentWidth: string | undefined;
 
   try {
@@ -33,12 +37,12 @@ export default async function PublicLayout({
     contentWidth = undefined;
   }
 
-  const theme = await loadTheme("bifrost-terminal");
-  const ThemeLayout = theme.components.layout;
+  const themeMod = await loadTheme("bifrost-terminal");
+  const ThemeLayout = themeMod.components.layout;
 
   if (!ThemeLayout) {
     return <>{children}</>;
   }
 
-  return <ThemeLayout contentWidth={contentWidth}>{children}</ThemeLayout>;
+  return <ThemeLayout contentWidth={contentWidth} theme={theme}>{children}</ThemeLayout>;
 }

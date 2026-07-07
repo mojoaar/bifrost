@@ -21,13 +21,15 @@ const WIDTH_MAP: Record<string, string> = {
 export default function DefaultLayout({
   children,
   contentWidth,
+  theme,
 }: {
   children: React.ReactNode;
   contentWidth?: string;
+  theme?: string;
 }) {
   const widthClass = WIDTH_MAP[contentWidth ?? ""] ?? "max-w-3xl";
   return (
-    <ThemeProvider>
+    <ThemeProvider initialMode={theme === "light" ? "light" : "dark"}>
       <div className="flex min-h-screen flex-col bg-bg-0 text-text-1">
         <Header widthClass={widthClass} />
         <main className={`mx-auto w-full flex-1 px-4 py-8 ${widthClass}`}>{children}</main>

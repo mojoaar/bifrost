@@ -146,8 +146,13 @@ function TopBar() {
 }
 
 function AdminShell({ children }: { children: React.ReactNode }) {
+  const initialMode: "light" | "dark" =
+    typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
+
   return (
-    <ThemeProvider initialMode="dark">
+    <ThemeProvider initialMode={initialMode}>
       <CommandPaletteProvider>
         <div className="flex min-h-screen bg-bg-0 text-text-1">
           <Sidebar />

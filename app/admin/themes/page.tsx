@@ -27,7 +27,7 @@ export default async function ThemesPage() {
           <p className="text-center font-mono text-sm text-text-3">no themes installed</p>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]">
           {themes.map((theme) => (
             <Card key={theme.manifest.name} padding="md">
               <div className="mb-2 flex items-center justify-between">
