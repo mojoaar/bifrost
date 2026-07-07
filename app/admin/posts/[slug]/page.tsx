@@ -159,7 +159,7 @@ export default function EditPostPage() {
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-md border border-border">
         <div className="flex w-1/2 flex-col border-r border-border">
           <EditorToolbar getEditorView={getEditorView} getSelection={getSelection} />
-          <div className="flex-1">
+          <div className="min-h-0 flex-1 overflow-auto">
             <Editor
               value={content}
               onChange={setContent}
