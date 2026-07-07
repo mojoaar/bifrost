@@ -60,6 +60,12 @@ export async function POST(request: NextRequest) {
     })
     .run();
 
+  const userId = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, "admin"))
+    .get()!.id;
+
   if (title) {
     db.insert(settings)
       .values({ key: "site.title", value: title })
@@ -71,6 +77,13 @@ export async function POST(request: NextRequest) {
       .values({ key: "site.description", value: description })
       .onConflictDoUpdate({ target: settings.key, set: { value: description } })
       .run();
+  }
+
+  try {
+    const { seedPosts } = await import("@/lib/seed");
+    await seedPosts(userId);
+  } catch {
+    // seed is best-effort
   }
 
   return apiSuccess({ setup: true }, undefined, 201);
