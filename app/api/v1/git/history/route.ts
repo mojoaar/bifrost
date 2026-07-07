@@ -8,7 +8,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/api/response";
+import { apiSuccess } from "@/lib/api/response";
 import { getHistory } from "@/lib/git/repo";
 
 export async function GET(request: NextRequest) {
@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const history = await getHistory(slug, limit);
-    return apiSuccess(history);
-  } catch (err) {
-    return apiError("Failed to get history", 500, String(err));
+    return apiSuccess(history ?? []);
+  } catch {
+    return apiSuccess([]);
   }
 }
