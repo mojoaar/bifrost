@@ -13,6 +13,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Save } from "lucide-react";
+import { authFetch } from "@/lib/auth/client";
 import AIAssistant from "@/lib/editor/AIAssistant";
 import EditorToolbar from "@/lib/editor/EditorToolbar";
 import type { EditorView } from "@codemirror/view";
@@ -81,13 +82,9 @@ export default function EditPostPage() {
     setError("");
     setSaving(true);
     try {
-      const token = localStorage.getItem("bifrost_token");
-      const res = await fetch(`/api/v1/posts/${params.slug}`, {
+      const res = await authFetch(`/api/v1/posts/${params.slug}`, {
         method: "PUT",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ title, content, status, frontmatter: {}, tagIds: [] }),
       });
       if (!res.ok) {

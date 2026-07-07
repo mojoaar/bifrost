@@ -13,6 +13,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Save } from "lucide-react";
+import { authFetch } from "@/lib/auth/client";
 import AIAssistant from "@/lib/editor/AIAssistant";
 import EditorToolbar from "@/lib/editor/EditorToolbar";
 import type { EditorView } from "@codemirror/view";
@@ -69,13 +70,9 @@ export default function NewPostPage() {
     setError("");
     setSaving(true);
     try {
-      const token = localStorage.getItem("bifrost_token");
-      const res = await fetch("/api/v1/posts", {
+      const res = await authFetch("/api/v1/posts", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           title, slug, content, status,
           frontmatter: {},
