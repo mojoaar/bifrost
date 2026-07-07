@@ -72,7 +72,8 @@ const processor = remark()
 export async function renderMarkdown(
   markdown: string
 ): Promise<{ html: string; excerpt: string }> {
-  const result = await processor.process(markdown);
+  const { body } = parseFrontmatter(markdown);
+  const result = await processor.process(body);
   let html = String(result);
 
   try {
