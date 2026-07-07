@@ -49,7 +49,7 @@ export default function NewPostPage() {
 
   function buildFrontmatter(t: string): string {
     const today = new Date().toISOString().slice(0, 10);
-    return `---\ntitle: "${t.replace(/"/g, '\\"')}"\ndate: ${today}\ntags: []\n---\n\n`;
+    return `---\ntitle: "${t.replace(/"/g, '\\"')}"\ndate: ${today}\ntags:\n---\n\n`;
   }
 
   function mergeFrontmatter(text: string, t: string): string {
