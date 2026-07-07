@@ -84,6 +84,29 @@ export default function SettingsPage() {
         </fieldset>
 
         <fieldset>
+          <legend className="mb-2 text-sm font-medium text-zinc-300">Appearance</legend>
+          <label className="block">
+            <span className="text-sm text-zinc-400">Monospace Font</span>
+            <select value={settings["appearance.font_mono"] ?? "JetBrains Mono"} onChange={setValue("appearance.font_mono")} className="mt-1 w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none">
+              {[
+                "JetBrains Mono",
+                "Fira Code",
+                "Source Code Pro",
+                "IBM Plex Mono",
+                "Inconsolata",
+                "Roboto Mono",
+                "Space Mono",
+                "Anonymous Pro",
+                "Cascadia Code",
+                "Victor Mono",
+              ].map((font) => (
+                <option key={font} value={font}>{font}</option>
+              ))}
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
           <legend className="mb-2 text-sm font-medium text-zinc-300">Theme</legend>
           <label className="block">
             <span className="text-sm text-zinc-400">Active Theme</span>

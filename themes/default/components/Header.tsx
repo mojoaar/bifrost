@@ -9,20 +9,37 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/themes/theme-context";
 
 export default function Header() {
   const { mode, toggle } = useTheme();
+  const [title, setTitle] = useState("Bifröst");
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/v1/settings");
+        const body = await res.json();
+        if (res.ok && body.data?.["site.title"]) {
+          setTitle(String(body.data["site.title"]));
+        }
+      } catch {
+        // use default title
+      }
+    }
+    load();
+  }, []);
 
   return (
     <header className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)]">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
         <Link
           href="/"
-          className="text-lg font-bold text-[var(--text-primary)]"
+          className="text-lg font-bold tracking-tight text-[var(--text-primary)]"
         >
-          Bifröst
+          {title}
         </Link>
         <nav className="flex items-center gap-4">
           <Link

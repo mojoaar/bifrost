@@ -26,18 +26,18 @@ export default function ListTemplate({ posts }: Props) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {posts.map((post) => {
         const date = post.publishedAt ?? post.createdAt;
         const tags = (post.frontmatter?.tags as string[]) ?? [];
 
         return (
-          <article key={post.slug}>
+          <article key={post.slug} className="border-b border-[var(--border-color)] pb-8">
             <Link href={`/${post.slug}`} className="group block">
-              <h2 className="text-xl font-semibold group-hover:text-[var(--accent)]">
+              <h2 className="text-2xl font-semibold tracking-tight group-hover:text-[var(--accent)]">
                 {post.title}
               </h2>
-              <time className="mt-1 block text-sm text-[var(--text-muted)]">
+              <time className="mt-1.5 block text-sm text-[var(--text-muted)]">
                 {new Date(date).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
@@ -45,18 +45,18 @@ export default function ListTemplate({ posts }: Props) {
                 })}
               </time>
               {post.excerpt && (
-                <p className="mt-2 text-[var(--text-secondary)]">
+                <p className="mt-3 text-[var(--text-secondary)] leading-relaxed">
                   {post.excerpt}
                 </p>
               )}
             </Link>
             {tags.length > 0 && (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {tags.map((tag: string) => (
                   <Link
                     key={tag}
                     href={`/tag/${tag}`}
-                    className="text-xs text-[var(--accent)] hover:underline"
+                    className="rounded bg-[var(--bg-secondary)] px-2 py-0.5 text-xs text-[var(--accent)] hover:underline"
                   >
                     #{tag}
                   </Link>

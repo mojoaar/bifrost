@@ -57,6 +57,20 @@ export default function AdminLayout({
           >
             Git
           </Link>
+          <Link
+            href="/admin/themes"
+            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
+          >
+            Themes
+          </Link>
+          <a
+            href="/api/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded px-3 py-2 text-sm hover:bg-zinc-800"
+          >
+            API Explorer
+          </a>
         </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>

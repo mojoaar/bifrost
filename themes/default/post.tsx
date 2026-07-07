@@ -19,12 +19,12 @@ export default function PostTemplate({ post }: Props) {
   const date = post.publishedAt ?? post.createdAt;
 
   return (
-    <article>
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-[var(--text-primary)]">
+    <article className="max-w-[65ch]">
+      <header className="mb-8 border-b border-[var(--border-color)] pb-6">
+        <h1 className="text-4xl font-bold tracking-tight text-[var(--text-primary)]">
           {post.title}
         </h1>
-        <time className="mt-2 block text-sm text-[var(--text-muted)]">
+        <time className="mt-3 block text-sm text-[var(--text-muted)]">
           {new Date(date).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
@@ -33,7 +33,7 @@ export default function PostTemplate({ post }: Props) {
         </time>
       </header>
       <div
-        className="prose max-w-none"
+        className="prose"
         dangerouslySetInnerHTML={{ __html: post.contentHtml }}
       />
     </article>

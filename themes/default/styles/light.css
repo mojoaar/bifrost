@@ -9,4 +9,6 @@
   --accent-hover: #1d4ed8;
   --code-bg: #f4f4f5;
   --code-border: #e4e4e7;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
