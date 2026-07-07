@@ -11,20 +11,43 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { monoFontStack } from "@/lib/fonts/registry";
 import "./globals.css";
 import "@/themes/bifrost-terminal/styles/light.css";
 import "@/themes/bifrost-terminal/styles/dark.css";
 
-export const metadata: Metadata = {
-  title: "Bifröst",
-  description: "A self-hosted blogging framework",
-};
-
 const THEME_COOKIE = "bifrost_theme";
 const FONT_KEY = "appearance.font_mono";
 const THEME_MODE_KEY = "appearance.theme_mode";
+const SITE_TITLE_KEY = "site.title";
+const SITE_DESCRIPTION_KEY = "site.description";
+
+export async function generateMetadata(): Promise<Metadata> {
+  let title = "Bifröst";
+  let description = "A self-hosted blogging framework";
+
+  try {
+    const rows = db
+      .select({ key: settings.key, value: settings.value })
+      .from(settings)
+      .where(
+        inArray(settings.key, [SITE_TITLE_KEY, SITE_DESCRIPTION_KEY])
+      )
+      .all();
+    for (const row of rows) {
+      if (row.key === SITE_TITLE_KEY && row.value) title = row.value;
+      if (row.key === SITE_DESCRIPTION_KEY && row.value) description = row.value;
+    }
+  } catch {
+    // use defaults
+  }
+
+  return {
+    title,
+    description,
+  };
+}
 
 export default async function RootLayout({
   children,
