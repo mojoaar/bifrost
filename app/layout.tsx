@@ -23,6 +23,8 @@ const THEME_MODE_KEY = "appearance.theme_mode";
 const SITE_TITLE_KEY = "site.title";
 const SITE_DESCRIPTION_KEY = "site.description";
 
+const SHOW_DESC_KEY = "appearance.show_desc_in_title";
+
 export async function generateMetadata(): Promise<Metadata> {
   let title = "Bifröst";
   let description = "A self-hosted blogging framework";
@@ -32,12 +34,17 @@ export async function generateMetadata(): Promise<Metadata> {
       .select({ key: settings.key, value: settings.value })
       .from(settings)
       .where(
-        inArray(settings.key, [SITE_TITLE_KEY, SITE_DESCRIPTION_KEY])
+        inArray(settings.key, [SITE_TITLE_KEY, SITE_DESCRIPTION_KEY, SHOW_DESC_KEY])
       )
       .all();
+    let showDesc = true;
     for (const row of rows) {
       if (row.key === SITE_TITLE_KEY && row.value) title = row.value;
       if (row.key === SITE_DESCRIPTION_KEY && row.value) description = row.value;
+      if (row.key === SHOW_DESC_KEY && row.value === "false") showDesc = false;
+    }
+    if (showDesc) {
+      return { title: `${title} | ${description}`, description };
     }
   } catch {
     // use defaults

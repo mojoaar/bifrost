@@ -77,7 +77,7 @@ function ThemeToggle() {
   );
 }
 
-function Sidebar() {
+function Sidebar({ navItems }: { navItems: NavItem[] }) {
   const pathname = usePathname();
   return (
     <aside className="sticky top-0 flex h-screen w-60 flex-col border-r border-border bg-bg-1 p-4">
@@ -90,11 +90,11 @@ function Sidebar() {
         </span>
       </Link>
       <nav className="flex flex-1 flex-col gap-0.5">
-        {NAV.map((item) => (
+        {navItems.map((item) => (
           <NavLink key={item.href} item={item} pathname={pathname} />
         ))}
       </nav>
-      <div className="border-t border-border pt-3 font-mono text-xs text-text-muted">v1.0.0</div>
+      <div className="border-t border-border pt-3 font-mono text-xs text-text-muted">v1.1.0</div>
     </aside>
   );
 }
@@ -139,16 +139,19 @@ function TopBar() {
 
 export default function AdminShell({
   initialMode,
+  gitEnabled = true,
   children,
 }: {
   initialMode: "light" | "dark";
+  gitEnabled?: boolean;
   children: React.ReactNode;
 }) {
+  const filteredNav = gitEnabled ? NAV : NAV.filter((item) => item.href !== "/admin/git");
   return (
     <ThemeProvider initialMode={initialMode}>
       <CommandPaletteProvider>
         <div className="flex min-h-screen bg-bg-0 text-text-1">
-          <Sidebar />
+          <Sidebar navItems={filteredNav} />
           <div className="flex min-h-screen flex-1 flex-col">
             <TopBar />
             <main className="flex-1 p-6">{children}</main>

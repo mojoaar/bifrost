@@ -32,5 +32,13 @@ export default async function AdminLayout({
   const cookieStore = await cookies();
   const theme = cookieStore.get("bifrost_theme")?.value === "light" ? "light" : "dark";
 
-  return <AdminShell initialMode={theme}>{children}</AdminShell>;
+  let gitEnabled = true;
+  try {
+    const row = db.select({ value: settings.value }).from(settings).where(eq(settings.key, "git.enabled")).get();
+    if (row?.value === "false") gitEnabled = false;
+  } catch {
+    // default enabled
+  }
+
+  return <AdminShell initialMode={theme} gitEnabled={gitEnabled}>{children}</AdminShell>;
 }

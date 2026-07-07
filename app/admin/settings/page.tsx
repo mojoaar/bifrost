@@ -160,7 +160,7 @@ export default function SettingsPage() {
         <Card padding="md">
           <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Appearance</div>
           <div className="space-y-3">
-            <Field label="Theme Mode" helper="System follows your OS preference. Light and dark override it.">
+            <Field label="Default Theme Mode" helper="What first-time visitors see before they choose their own. The toggle in the header always overrides this.">
               <Select
                 value={settings["appearance.theme_mode"] ?? "dark"}
                 onChange={setValue("appearance.theme_mode")}
@@ -212,6 +212,17 @@ export default function SettingsPage() {
                 <option value="24h">24h (13:00)</option>
               </Select>
             </Field>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["appearance.show_desc_in_title"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "appearance.show_desc_in_title": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Show description in page title</span>
+            </label>
           </div>
         </Card>
 
@@ -280,6 +291,17 @@ export default function SettingsPage() {
                 autoComplete="off"
               />
             </Field>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["git.enabled"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "git.enabled": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Git enabled</span>
+            </label>
             <label className="flex items-center gap-2 font-mono text-sm text-text-2">
               <input
                 type="checkbox"
