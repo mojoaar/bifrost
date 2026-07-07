@@ -10,8 +10,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Table, THead, TR, TH, TD } from "@/themes/default/components/ui/Table";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/ui/Table";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 interface User {
   id: string;

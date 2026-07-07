@@ -15,8 +15,8 @@ import dynamic from "next/dynamic";
 import AIAssistant from "@/lib/editor/AIAssistant";
 import EditorToolbar from "@/lib/editor/EditorToolbar";
 import type { EditorView } from "@codemirror/view";
-import { Button } from "@/themes/default/components/ui/Button";
-import { Field, Input, Select } from "@/themes/default/components/ui/Input";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 
 const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
 const Preview = dynamic(() => import("@/lib/editor/Preview"), { ssr: false });

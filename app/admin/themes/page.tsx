@@ -8,7 +8,7 @@
  */
 
 import { listThemes } from "@/lib/themes/registry";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 export default async function ThemesPage() {
   const themes = await listThemes();

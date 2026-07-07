@@ -11,9 +11,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/themes/default/components/ui/Button";
-import { Field, Input } from "@/themes/default/components/ui/Input";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { Field, Input } from "@/themes/bifrost-terminal/components/ui/Input";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 export default function SetupForm() {
   const router = useRouter();

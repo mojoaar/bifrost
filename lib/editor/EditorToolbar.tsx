@@ -10,6 +10,17 @@
 "use client";
 
 import { useCallback } from "react";
+import {
+  Bold,
+  Italic,
+  Heading2,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  List,
+  Code2,
+  Quote,
+  type LucideIcon,
+} from "lucide-react";
 
 interface Props {
   getEditorView: () => import("@codemirror/view").EditorView | null;
@@ -18,39 +29,46 @@ interface Props {
 
 interface Tool {
   label: string;
-  icon: string;
+  shortcut: string;
+  icon: LucideIcon;
   wrap: (selection: string) => { prefix: string; suffix: string };
 }
 
 const TOOLS: Tool[] = [
   {
     label: "Bold",
-    icon: "B",
+    shortcut: "⌘B",
+    icon: Bold,
     wrap: (s) => ({ prefix: "**" + s, suffix: "**" }),
   },
   {
     label: "Italic",
-    icon: "I",
+    shortcut: "⌘I",
+    icon: Italic,
     wrap: (s) => ({ prefix: "_" + s, suffix: "_" }),
   },
   {
     label: "Heading",
-    icon: "H",
+    shortcut: "⌘H",
+    icon: Heading2,
     wrap: (s) => ({ prefix: "\n## " + s, suffix: "" }),
   },
   {
     label: "Link",
-    icon: "L",
+    shortcut: "⌘K",
+    icon: LinkIcon,
     wrap: (s) => ({ prefix: "[" + (s || "text") + "](", suffix: ")" }),
   },
   {
     label: "Image",
-    icon: "IMG",
+    shortcut: "⌘⇧I",
+    icon: ImageIcon,
     wrap: (s) => ({ prefix: "![" + (s || "alt") + "](", suffix: ")" }),
   },
   {
     label: "List",
-    icon: "•",
+    shortcut: "⌘⇧L",
+    icon: List,
     wrap: (s) => {
       const lines = s
         .split("\n")
@@ -62,12 +80,14 @@ const TOOLS: Tool[] = [
   },
   {
     label: "Code",
-    icon: "</>",
+    shortcut: "⌘E",
+    icon: Code2,
     wrap: (s) => ({ prefix: s ? "\n```\n" + s + "\n```\n" : "\n```\n\n```\n", suffix: "" }),
   },
   {
     label: "Quote",
-    icon: '>"',
+    shortcut: "⌘>",
+    icon: Quote,
     wrap: (s) => ({ prefix: "\n> " + s, suffix: "" }),
   },
 ];
@@ -104,17 +124,21 @@ export default function EditorToolbar({ getEditorView, getSelection }: Props) {
   );
 
   return (
-    <div className="flex flex-wrap gap-0.5 border-b border-zinc-700 bg-zinc-900 px-2 py-1">
-      {TOOLS.map((tool) => (
-        <button
-          key={tool.label}
-          onClick={() => apply(tool)}
-          title={tool.label}
-          className="rounded px-2 py-1 text-xs font-medium text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
-        >
-          {tool.icon}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-0.5 border-b border-border bg-bg-1 px-2 py-1">
+      {TOOLS.map((tool) => {
+        const Icon = tool.icon;
+        return (
+          <button
+            key={tool.label}
+            onClick={() => apply(tool)}
+            title={`${tool.label} (${tool.shortcut})`}
+            aria-label={tool.label}
+            className="rounded-md p-1.5 text-text-2 transition hover:bg-bg-2 hover:text-text-1"
+          >
+            <Icon size={14} />
+          </button>
+        );
+      })}
     </div>
   );
 }

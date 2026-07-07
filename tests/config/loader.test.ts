@@ -23,7 +23,7 @@ describe("config loader", () => {
     expect(config.site.title).toBe("My Blog");
     expect(config.site.description).toBe("A blog powered by Bifröst");
     expect(config.site.language).toBe("en");
-    expect(config.theme).toBe("default");
+    expect(config.theme).toBe("bifrost-terminal");
     expect(config.ai.defaultProvider).toBe("opencode-zen");
     expect(config.ai.providers["opencode-zen"]?.model).toBe("deepseek-v4-pro");
     expect(config.git.enabled).toBe(true);

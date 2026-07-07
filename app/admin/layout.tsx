@@ -13,7 +13,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/themes/theme-context";
-import { Button } from "@/themes/default/components/ui/Button";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 
 interface NavItem {
   href: string;

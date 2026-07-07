@@ -14,8 +14,8 @@ import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
 import { monoFontStack } from "@/lib/fonts/registry";
 import "./globals.css";
-import "@/themes/default/styles/light.css";
-import "@/themes/default/styles/dark.css";
+import "@/themes/bifrost-terminal/styles/light.css";
+import "@/themes/bifrost-terminal/styles/dark.css";
 
 export const metadata: Metadata = {
   title: "Bifröst",

@@ -11,10 +11,11 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Table, THead, TR, TH, TD } from "@/themes/default/components/ui/Table";
-import { StatusPill } from "@/themes/default/components/ui/StatusPill";
-import { Button } from "@/themes/default/components/ui/Button";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/ui/Table";
+import { StatusPill } from "@/themes/bifrost-terminal/components/ui/StatusPill";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 interface Post {
   slug: string;
@@ -85,7 +86,10 @@ export default function PostsPage() {
           </p>
         </div>
         <Link href="/admin/posts/new">
-          <Button variant="primary">+ New Post</Button>
+          <Button variant="primary">
+            <Plus size={14} />
+            New Post
+          </Button>
         </Link>
       </div>
 
@@ -144,12 +148,22 @@ export default function PostsPage() {
                   {new Date(post.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                 </TD>
                 <TD className="text-right">
-                  <div className="flex justify-end gap-3 font-mono text-xs">
-                    <Link href={`/admin/posts/${post.slug}`} className="text-text-2 transition hover:text-text-1">
-                      edit
+                  <div className="flex justify-end gap-2">
+                    <Link
+                      href={`/admin/posts/${post.slug}`}
+                      className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-text-2 transition hover:bg-bg-1 hover:text-text-1"
+                      title="Edit"
+                      aria-label="Edit"
+                    >
+                      <Pencil size={14} />
                     </Link>
-                    <button onClick={() => handleDelete(post.slug)} className="text-text-3 transition hover:text-danger">
-                      delete
+                    <button
+                      onClick={() => handleDelete(post.slug)}
+                      className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-text-2 transition hover:bg-danger/10 hover:text-danger"
+                      title="Delete"
+                      aria-label="Delete"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </TD>

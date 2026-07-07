@@ -11,8 +11,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card } from "@/themes/default/components/ui/Card";
-import { Button } from "@/themes/default/components/ui/Button";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 
 interface AdminWidget {
   component: React.ComponentType;

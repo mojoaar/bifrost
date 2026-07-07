@@ -15,7 +15,7 @@ export default async function PublicLayout({
 }: {
   children: ReactNode;
 }) {
-  const theme = await loadTheme("default");
+  const theme = await loadTheme("bifrost-terminal");
   const ThemeLayout = theme.components.layout;
 
   if (!ThemeLayout) {

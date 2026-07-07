@@ -10,7 +10,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 interface MediaItem {
   id: string;

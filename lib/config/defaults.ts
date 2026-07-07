@@ -15,7 +15,7 @@ export const defaults: BifrostConfig = {
     description: "A blog powered by Bifröst",
     language: "en",
   },
-  theme: "default",
+  theme: "bifrost-terminal",
   content: {
     path: "./content",
     postsPerPage: 10,

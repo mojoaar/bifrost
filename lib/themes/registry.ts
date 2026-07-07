@@ -11,14 +11,14 @@ import fs from "fs";
 import path from "path";
 import type { LoadedTheme, ThemeManifest, ThemeComponents } from "./types";
 
-import DefaultLayout from "../../themes/default/layout";
-import DefaultPost from "../../themes/default/post";
-import DefaultList from "../../themes/default/list";
+import DefaultLayout from "../../themes/bifrost-terminal/layout";
+import DefaultPost from "../../themes/bifrost-terminal/post";
+import DefaultList from "../../themes/bifrost-terminal/list";
 
 const THEMES_DIR = path.resolve("themes");
 
 const STATIC_THEMES: Record<string, ThemeComponents> = {
-  default: {
+  "bifrost-terminal": {
     layout: DefaultLayout,
     post: DefaultPost,
     list: DefaultList,

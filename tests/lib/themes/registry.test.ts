@@ -11,10 +11,10 @@ import { describe, it, expect } from "vitest";
 import { loadTheme, listThemes } from "@/lib/themes/registry";
 
 describe("loadTheme", () => {
-  it("loads the default theme manifest", async () => {
-    const theme = await loadTheme("default");
+  it("loads the bifrost-terminal theme manifest", async () => {
+    const theme = await loadTheme("bifrost-terminal");
     expect(theme.manifest).toBeDefined();
-    expect(theme.manifest.name).toBe("default");
+    expect(theme.manifest.name).toBe("Bifröst Terminal");
   });
 
   it("throws for non-existent theme", async () => {
@@ -23,9 +23,9 @@ describe("loadTheme", () => {
 });
 
 describe("listThemes", () => {
-  it("includes default theme", async () => {
+  it("includes bifrost-terminal theme", async () => {
     const themes = await listThemes();
     expect(themes.length).toBeGreaterThanOrEqual(1);
-    expect(themes.find((t) => t.manifest.name === "default")).toBeDefined();
+    expect(themes.find((t) => t.manifest.name === "Bifröst Terminal")).toBeDefined();
   });
 });

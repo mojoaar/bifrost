@@ -10,9 +10,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "@/themes/default/components/ui/Card";
-import { Field, Input, Select } from "@/themes/default/components/ui/Input";
-import { Button } from "@/themes/default/components/ui/Button";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { FONT_NAMES } from "@/lib/fonts/registry";
 
 export default function SettingsPage() {
@@ -124,9 +124,9 @@ export default function SettingsPage() {
           <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Theme</div>
           <Field label="Active Theme">
             <Input
-              value={settings["theme"] ?? "default"}
+              value={settings["theme"] ?? "bifrost-terminal"}
               onChange={setValue("theme")}
-              placeholder="default"
+              placeholder="bifrost-terminal"
               className="font-mono"
             />
           </Field>

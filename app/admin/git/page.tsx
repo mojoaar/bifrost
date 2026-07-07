@@ -11,8 +11,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Button } from "@/themes/default/components/ui/Button";
-import { Card } from "@/themes/default/components/ui/Card";
+import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
+import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 interface Commit {
   sha: string;

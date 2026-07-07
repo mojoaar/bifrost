@@ -45,7 +45,7 @@ export default async function PostPage({ params }: Props) {
 
   if (!row) notFound();
 
-  const theme = await loadTheme("default");
+  const theme = await loadTheme("bifrost-terminal");
   const PostComponent = theme.components.post;
 
   const postData: PostData = {

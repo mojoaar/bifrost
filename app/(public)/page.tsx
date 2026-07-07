@@ -21,7 +21,7 @@ export default async function HomePage() {
     .orderBy(sql`${posts.publishedAt} DESC`)
     .all();
 
-  const theme = await loadTheme("default");
+  const theme = await loadTheme("bifrost-terminal");
   const ListComponent = theme.components.list;
 
   const postData: PostData[] = rows.map((row) => ({
