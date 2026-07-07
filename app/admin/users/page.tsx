@@ -215,6 +215,7 @@ export default function UsersPage() {
             <TH>Email</TH>
             <TH>Name</TH>
             <TH>Role</TH>
+            <TH>Password</TH>
             <TH>Joined</TH>
             <TH className="w-24">Actions</TH>
           </TR>
@@ -234,6 +235,7 @@ export default function UsersPage() {
                       </Select>
                     </TD>
                     <TD><Input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="new pw" className="font-mono text-xs" /></TD>
+                    <TD className="font-mono text-xs text-text-3">{formatDateShort(u.createdAt)}</TD>
                     <TD>
                       <div className="flex gap-1">
                         <button onClick={() => handleUpdate(u.id)} className="rounded p-1 text-success transition hover:bg-bg-2" title="Save">
@@ -250,6 +252,7 @@ export default function UsersPage() {
                     <TD className="font-mono text-text-2">{u.email}</TD>
                     <TD className="text-text-1">{u.displayName}</TD>
                     <TD><RolePill role={u.role} /></TD>
+                    <TD className="text-center font-mono text-xs text-text-muted">·</TD>
                     <TD className="font-mono text-xs text-text-3">{formatDateShort(u.createdAt)}</TD>
                     <TD>
                       <div className="flex gap-1">
