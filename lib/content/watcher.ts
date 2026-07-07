@@ -143,9 +143,21 @@ export function startWatcher(): void {
     awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
   });
 
-  watcher.on("add", (filePath: string) => processFile(filePath));
-  watcher.on("change", (filePath: string) => processFile(filePath));
-  watcher.on("unlink", deleteFromDb);
+  watcher.on("add", (filePath: string) => {
+    console.log(`[watcher] add: ${filePath}`);
+    processFile(filePath);
+  });
+  watcher.on("change", (filePath: string) => {
+    console.log(`[watcher] change: ${filePath}`);
+    processFile(filePath);
+  });
+  watcher.on("unlink", (filePath: string) => {
+    console.log(`[watcher] unlink: ${filePath}`);
+    deleteFromDb(filePath);
+  });
+  watcher.on("unlinkDir", (dirPath: string) => {
+    console.log(`[watcher] unlinkDir: ${dirPath}`);
+  });
 }
 
 export async function ingestAll(skipGit = false): Promise<void> {
