@@ -9,9 +9,10 @@
 
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { ArrowLeft, Save } from "lucide-react";
 import AIAssistant from "@/lib/editor/AIAssistant";
 import EditorToolbar from "@/lib/editor/EditorToolbar";
 import type { EditorView } from "@codemirror/view";
@@ -77,8 +78,25 @@ export default function NewPostPage() {
     }
   }
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        if (!saving) handleSave();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [saving, title, slug, content, status]);
+
   return (
     <div className="flex h-[calc(100vh-7rem)] flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/posts")}>
+          <ArrowLeft size={14} />
+          <span>back</span>
+        </Button>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_16rem_10rem_auto]">
         <Field label="Title">
           <Input
@@ -106,7 +124,8 @@ export default function NewPostPage() {
         </Field>
         <div className="flex items-end gap-2">
           <Button variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Create"}
+            <Save size={14} />
+            <span>{saving ? "Saving..." : "Create"}</span>
           </Button>
           <AIAssistant
             content={content}

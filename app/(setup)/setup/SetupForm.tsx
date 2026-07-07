@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
@@ -51,6 +52,9 @@ export default function SetupForm() {
     <div className="flex min-h-screen items-center justify-center bg-bg-0 p-4">
       <Card padding="lg" className="w-full max-w-md">
         <div className="mb-6">
+          <div className="mb-3 flex size-10 items-center justify-center rounded-md border border-border bg-bg-1 text-text-3">
+            <Sparkles size={18} />
+          </div>
           <p className="font-mono text-sm text-text-3">
             <span className="text-text-muted">$</span> bifröst init
           </p>

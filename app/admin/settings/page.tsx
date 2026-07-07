@@ -10,6 +10,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Save } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
@@ -146,7 +147,8 @@ export default function SettingsPage() {
 
         <div className="flex items-center gap-4">
           <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? "Saving..." : "Save Settings"}
+            <Save size={14} />
+            <span>{saving ? "Saving..." : "Save Settings"}</span>
           </Button>
           {message && (
             <span className={`font-mono text-xs ${message === "Saved" ? "text-success" : "text-danger"}`}>

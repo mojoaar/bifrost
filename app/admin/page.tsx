@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Plus, Upload, Settings as SettingsIcon, FileText } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 
@@ -79,7 +80,10 @@ export default function AdminDashboard() {
           </p>
         </div>
         <Link href="/admin/posts/new">
-          <Button variant="primary">+ New Post</Button>
+          <Button variant="primary">
+            <Plus size={14} />
+            <span>New Post</span>
+          </Button>
         </Link>
       </div>
 
@@ -111,17 +115,20 @@ export default function AdminDashboard() {
           <div className="mt-3 flex flex-col gap-2">
             <Link href="/admin/posts/new">
               <Button variant="ghost" className="w-full justify-start">
-                <span className="text-accent">+</span> New post
+                <FileText size={14} className="text-accent" />
+                <span>New post</span>
               </Button>
             </Link>
             <Link href="/admin/media">
               <Button variant="ghost" className="w-full justify-start">
-                <span className="text-accent">↑</span> Upload media
+                <Upload size={14} className="text-accent" />
+                <span>Upload media</span>
               </Button>
             </Link>
             <Link href="/admin/settings">
               <Button variant="ghost" className="w-full justify-start">
-                <span className="text-accent">⚙</span> Settings
+                <SettingsIcon size={14} className="text-accent" />
+                <span>Settings</span>
               </Button>
             </Link>
           </div>
@@ -136,7 +143,7 @@ export default function AdminDashboard() {
             </div>
             <div className="flex justify-between">
               <span className="text-text-3">theme</span>
-              <span>default</span>
+              <span>bifrost-terminal</span>
             </div>
             <div className="flex justify-between">
               <span className="text-text-3">git</span>

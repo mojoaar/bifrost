@@ -10,6 +10,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { UploadCloud, FileText, Image as ImageIcon, Copy, Check, Trash2 } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
 interface MediaItem {
@@ -118,17 +119,18 @@ export default function MediaPage() {
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`mb-6 rounded-md border-2 border-dashed p-10 text-center transition ${
+        className={`mb-6 flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-10 text-center transition ${
           dragOver ? "border-accent bg-accent/5" : "border-border bg-bg-1"
         }`}
       >
+        <UploadCloud size={28} className={dragOver ? "text-accent" : "text-text-3"} />
         <p className="font-mono text-sm text-text-2">
           {uploading ? "uploading…" : "drag and drop files here, or"}
         </p>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="mt-2 font-mono text-sm text-accent underline-offset-4 hover:underline disabled:opacity-50"
+          className="font-mono text-sm text-accent underline-offset-4 hover:underline disabled:opacity-50"
         >
           browse files
         </button>
@@ -156,25 +158,30 @@ export default function MediaPage() {
                   className="mb-3 h-32 w-full rounded border border-border object-cover"
                 />
               ) : (
-                <div className="mb-3 flex h-32 items-center justify-center rounded border border-border bg-bg-0 font-mono text-2xl text-text-muted">
-                  □
+                <div className="mb-3 flex h-32 items-center justify-center rounded border border-border bg-bg-0 text-text-muted">
+                  {item.mimeType.startsWith("image/") ? <ImageIcon size={32} /> : <FileText size={32} />}
                 </div>
               )}
               <p className="truncate font-mono text-xs text-text-2">{item.filename}</p>
               <p className="mt-0.5 font-mono text-xs text-text-3">{formatSize(item.sizeBytes)}</p>
-              <div className="mt-3 flex gap-3 font-mono text-xs">
+              <div className="mt-3 flex items-center gap-3 font-mono text-xs">
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(`/${item.path}`);
                     setCopied(item.id);
                     setTimeout(() => setCopied(null), 2000);
                   }}
-                  className="text-text-2 transition hover:text-text-1"
+                  className="flex items-center gap-1 text-text-2 transition hover:text-text-1"
                 >
-                  {copied === item.id ? "✓ copied" : "copy path"}
+                  {copied === item.id ? <Check size={12} /> : <Copy size={12} />}
+                  <span>{copied === item.id ? "copied" : "copy path"}</span>
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="text-text-3 transition hover:text-danger">
-                  delete
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="flex items-center gap-1 text-text-3 transition hover:text-danger"
+                >
+                  <Trash2 size={12} />
+                  <span>delete</span>
                 </button>
               </div>
             </div>

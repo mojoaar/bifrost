@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { GitBranch, GitCommit, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
@@ -91,17 +92,22 @@ export default function GitHistoryPage() {
     <div>
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Git History</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            <GitBranch size={20} className="mr-2 inline-block text-text-3" />
+            Git History
+          </h1>
           <p className="mt-1 font-mono text-sm text-text-3">
             <span className="text-text-muted">$</span> git log --oneline
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={handlePull} disabled={pulling}>
-            {pulling ? "pulling…" : "pull"}
+            <ArrowDownToLine size={14} />
+            <span>{pulling ? "pulling…" : "pull"}</span>
           </Button>
           <Button variant="primary" onClick={handlePush} disabled={pushing}>
-            {pushing ? "pushing…" : "push"}
+            <ArrowUpFromLine size={14} />
+            <span>{pushing ? "pushing…" : "push"}</span>
           </Button>
         </div>
       </div>
@@ -128,7 +134,10 @@ export default function GitHistoryPage() {
             <div key={commit.sha} className="rounded-md border border-border bg-bg-1 p-3">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text-1">{commit.message}</p>
+                  <p className="flex items-center gap-2 text-sm text-text-1">
+                    <GitCommit size={14} className="shrink-0 text-text-3" />
+                    <span>{commit.message}</span>
+                  </p>
                   <p className="mt-1 font-mono text-xs text-text-3">
                     {commit.author} · {new Date(commit.date).toLocaleString()}
                   </p>
