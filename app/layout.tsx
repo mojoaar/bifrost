@@ -14,12 +14,13 @@ import { settings } from "@/lib/db/schema/settings";
 import { eq, inArray } from "drizzle-orm";
 import { monoFontStack } from "@/lib/fonts/registry";
 import "./globals.css";
-import "@/themes/bifrost-terminal/styles/light.css";
-import "@/themes/bifrost-terminal/styles/dark.css";
+import "@/themes/bifrost-terminal/styles/palettes.css";
 
 const THEME_COOKIE = "bifrost_theme";
 const FONT_KEY = "appearance.font_mono";
 const THEME_MODE_KEY = "appearance.theme_mode";
+const COLOR_SCHEME_KEY = "appearance.color_scheme";
+const CUSTOM_CSS_KEY = "appearance.custom_css";
 const SITE_TITLE_KEY = "site.title";
 const SITE_DESCRIPTION_KEY = "site.description";
 
@@ -53,6 +54,33 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
+    metadataBase: new URL(
+      process.env.BIFROST_SITE_URL ??
+      `http://localhost:${process.env.PORT ?? 3000}`
+    ),
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: "Bifröst",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+    icons: {
+      icon: "/icon.svg",
+    },
+    alternates: {
+      types: {
+        "application/rss+xml": "/rss.xml",
+      },
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -67,6 +95,8 @@ export default async function RootLayout({
 
   let fontStack: string | undefined;
   let themeMode: "system" | "light" | "dark" = "dark";
+  let colorScheme = "default";
+  let customCss = "";
 
   try {
     const fontRow = db
@@ -88,6 +118,22 @@ export default async function RootLayout({
         themeMode = m;
       }
     }
+    const schemeRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, COLOR_SCHEME_KEY))
+      .get();
+    if (schemeRow?.value) {
+      colorScheme = schemeRow.value;
+    }
+    const cssRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, CUSTOM_CSS_KEY))
+      .get();
+    if (cssRow?.value) {
+      customCss = cssRow.value;
+    }
   } catch {
     fontStack = undefined;
   }
@@ -98,9 +144,13 @@ export default async function RootLayout({
     <html
       lang="en"
       data-theme={activeTheme}
+      data-palette={colorScheme}
       style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}
     >
-      <body className="bg-bg-0 text-text-1">{children}</body>
+      <body className="bg-bg-0 text-text-1">
+        {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
+        {children}
+      </body>
     </html>
   );
 }

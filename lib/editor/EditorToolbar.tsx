@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -25,8 +25,11 @@ import {
   Strikethrough,
   Minus,
   Table as TableIcon,
+  Smile,
+  Search,
   type LucideIcon,
 } from "lucide-react";
+import { DynamicIcon, iconNames, type IconName } from "lucide-react/dynamic";
 import type { EditorView } from "@codemirror/view";
 
 interface Props {
@@ -205,18 +208,33 @@ export default function EditorToolbar({ getEditorView, getSelection }: Props) {
 
       const { prefix, suffix } = tool.action;
       view.dispatch({
-        changes: { from: sel.from, to: sel.to, insert: prefix + suffix },
-        selection: selection
-          ? { anchor: sel.from + prefix.length, head: sel.from + prefix.length + selection.length }
-          : undefined,
+        changes: { from: sel.from, to: sel.to, insert: prefix + selection + suffix },
+        selection: {
+          anchor: sel.from + prefix.length,
+          head: sel.from + prefix.length + selection.length,
+        },
       });
       view.focus();
     },
     [getEditorView, getSelection]
   );
 
+  const insertText = useCallback(
+    (text: string) => {
+      const view = getEditorView();
+      if (!view) return;
+      const sel = view.state.selection.main;
+      view.dispatch({
+        changes: { from: sel.from, to: sel.to, insert: text },
+        selection: { anchor: sel.from + text.length },
+      });
+      view.focus();
+    },
+    [getEditorView]
+  );
+
   return (
-    <div className="flex flex-wrap gap-0.5 border-b border-border bg-bg-1 px-2 py-1">
+    <div className="relative flex flex-wrap gap-0.5 border-b border-border bg-bg-1 px-2 py-1">
       {TOOLS.map((tool) => {
         const Icon = tool.icon;
         return (
@@ -231,6 +249,96 @@ export default function EditorToolbar({ getEditorView, getSelection }: Props) {
           </button>
         );
       })}
+      <IconPicker onInsert={(name) => insertText(`:icon[${name}]`)} />
+    </div>
+  );
+}
+
+const ALL_ICON_NAMES = iconNames as IconName[];
+const MAX_RESULTS = 60;
+
+function IconPicker({ onInsert }: { onInsert: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const source = q ? ALL_ICON_NAMES.filter((n) => n.includes(q)) : ALL_ICON_NAMES;
+    return source.slice(0, MAX_RESULTS);
+  }, [query]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Insert icon"
+        aria-label="Insert icon"
+        aria-expanded={open}
+        className="rounded-md p-1.5 text-text-2 transition hover:bg-bg-2 hover:text-text-1"
+      >
+        <Smile size={14} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-20 mt-1 w-72 rounded-lg border border-border bg-bg-1 p-2 shadow-lg">
+          <div className="relative mb-2">
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-text-3"
+            />
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search icons…"
+              className="w-full rounded-md border border-border bg-bg-0 py-1.5 pl-7 pr-2 text-sm text-text-1 outline-none focus:border-accent"
+            />
+          </div>
+          {results.length === 0 ? (
+            <p className="px-1 py-4 text-center text-xs text-text-3">No icons found</p>
+          ) : (
+            <div className="grid max-h-56 grid-cols-6 gap-1 overflow-y-auto">
+              {results.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => {
+                    onInsert(name);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  title={name}
+                  aria-label={name}
+                  className="flex items-center justify-center rounded-md p-2 text-text-2 transition hover:bg-bg-2 hover:text-accent"
+                >
+                  <DynamicIcon name={name} size={16} />
+                </button>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 px-1 text-[10px] text-text-3">
+            Inserts <code>:icon[name]</code>
+          </p>
+        </div>
+      )}
     </div>
   );
 }

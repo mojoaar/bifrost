@@ -23,9 +23,9 @@ export const defaults: BifrostConfig = {
   ai: {
     defaultProvider: "opencode-zen",
     providers: {
-      "opencode-zen": { model: "deepseek-v4-pro" },
-      "opencode-go": { model: "deepseek-v4-flash" },
-      deepseek: { model: "deepseek-chat" },
+      "opencode-zen": { model: "deepseek-v4-pro", baseUrl: "https://opencode.ai/zen/v1" },
+      "opencode-go": { model: "deepseek-v4-flash", baseUrl: "https://opencode.ai/zen/go/v1" },
+      deepseek: { model: "deepseek-chat", baseUrl: "https://api.deepseek.com/v1" },
     },
   },
   git: {

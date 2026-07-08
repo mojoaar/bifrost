@@ -11,15 +11,20 @@ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { apiSuccess, apiError } from "@/lib/api/response";
+import { redactSecrets, SECRET_PLACEHOLDER, invalidateSettingsCache, isSecretKey } from "@/lib/settings";
+import { requireAdmin } from "@/lib/auth/require";
 
 export async function GET() {
   const rows = db.select().from(settings).all();
   const obj: Record<string, string> = {};
   for (const row of rows) obj[row.key] = row.value;
-  return apiSuccess(obj);
+  return apiSuccess(redactSecrets(obj));
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Admin authentication required", 401);
+
   let body: Record<string, string>;
   try {
     body = await request.json();
@@ -27,12 +32,15 @@ export async function PUT(request: NextRequest) {
     return apiError("Invalid JSON body", 400);
   }
 
-  for (const [key, value] of Object.entries(body)) {
+  for (const [key, rawValue] of Object.entries(body)) {
+    if (isSecretKey(key) && rawValue === SECRET_PLACEHOLDER) continue;
+    const value = typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue);
     db.insert(settings)
-      .values({ key, value: typeof value === "string" ? value : JSON.stringify(value) })
-      .onConflictDoUpdate({ target: settings.key, set: { value: typeof value === "string" ? value : JSON.stringify(value) } })
+      .values({ key, value })
+      .onConflictDoUpdate({ target: settings.key, set: { value } })
       .run();
   }
 
+  invalidateSettingsCache();
   return apiSuccess({ updated: true });
 }

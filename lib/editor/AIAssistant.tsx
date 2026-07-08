@@ -36,12 +36,14 @@ interface Props {
   content: string;
   onInsert: (text: string) => void;
   onReplace: (text: string) => void;
+  className?: string;
 }
 
-export default function AIAssistant({ content, onInsert, onReplace }: Props) {
+export default function AIAssistant({ content, onInsert, onReplace, className = "" }: Props) {
   const [open, setOpen] = useState(false);
   const [action, setAction] = useState("improve");
   const [provider, setProvider] = useState("");
+  const [enabled, setEnabled] = useState(false);
   const [actions, setActions] = useState<Action[]>([]);
   const [providers, setProviders] = useState<Model[]>([]);
   const [output, setOutput] = useState("");
@@ -58,6 +60,7 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
         if (!res.ok) return;
         const body = await res.json();
         if (cancelled) return;
+        setEnabled(body.data?.enabled === true);
         setActions(body.data?.actions ?? []);
         setProviders(body.data?.providers ?? []);
         if (body.data?.providers?.length > 0) {
@@ -164,20 +167,22 @@ export default function AIAssistant({ content, onInsert, onReplace }: Props) {
     }
   }
 
+  if (!enabled) return null;
+
   return (
     <div className="relative">
       <Button
         type="button"
         variant={open ? "primary" : "ghost"}
-        size="sm"
+        size="md"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label="AI assist"
+        className={className}
       >
         <Sparkles size={14} />
         <span>{open ? "Close AI" : "AI Assist"}</span>
       </Button>
-
       {open && (
         <div className="absolute right-0 top-10 z-20 w-96 rounded-md border border-border bg-bg-1 p-4 shadow-lg">
           <div className="mb-3 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-text-3">

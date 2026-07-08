@@ -9,12 +9,16 @@
 
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { pullFromRemote } from "@/lib/git/repo";
+import { requireAdmin } from "@/lib/auth/require";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Admin authentication required", 401);
+
   try {
     await pullFromRemote();
     return apiSuccess({ pulled: true });
-  } catch (err) {
-    return apiError("Failed to pull", 500, String(err));
+  } catch {
+    return apiError("Failed to pull", 500);
   }
 }

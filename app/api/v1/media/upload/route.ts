@@ -10,8 +10,14 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { saveMediaFile } from "@/lib/media/store";
+import { requireUser } from "@/lib/auth/require";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
   let formData: FormData;
   try {
     formData = await request.formData();

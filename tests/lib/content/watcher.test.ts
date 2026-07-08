@@ -14,20 +14,23 @@ import path from "path";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { users } from "@/lib/db/schema/users";
+import { tags } from "@/lib/db/schema/tags";
+import { postTags } from "@/lib/db/schema/post-tags";
+import { postsDir } from "@/lib/paths";
 import { eq } from "drizzle-orm";
 
-const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
-const TEST_DIR = path.resolve("content/posts/test-post");
+const TEST_AUTHOR_ID = "test-author";
+const TEST_DIR = path.join(postsDir(), "test-post");
 const TEST_FILE = path.join(TEST_DIR, "index.md");
 
 describe("content watcher ingestion", () => {
   beforeAll(async () => {
     db.insert(users)
       .values({
-        id: SYSTEM_USER_ID,
-        email: "system@bifrost.local",
+        id: TEST_AUTHOR_ID,
+        email: "test-author@example.test",
         passwordHash: "",
-        displayName: "System",
+        displayName: "Test Author",
         role: "admin",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
@@ -109,6 +112,32 @@ draft: true
       .where(eq(posts.slug, "test-post"))
       .get();
     expect(post!.status).toBe("draft");
+  });
+
+  it("materializes frontmatter tags into tags and post_tags", async () => {
+    await fs.writeFile(
+      TEST_FILE,
+      `---
+title: Tagged
+tags:
+  - Guide
+  - Dev Ops
+---
+# Tagged`
+    );
+    await ingestAll();
+
+    const guide = db.select().from(tags).where(eq(tags.slug, "guide")).get();
+    const devops = db.select().from(tags).where(eq(tags.slug, "dev-ops")).get();
+    expect(guide).toBeTruthy();
+    expect(devops).toBeTruthy();
+
+    const links = db.select().from(postTags).where(eq(postTags.postSlug, "test-post")).all();
+    expect(links).toHaveLength(2);
+
+    db.delete(postTags).where(eq(postTags.postSlug, "test-post")).run();
+    db.delete(tags).where(eq(tags.slug, "guide")).run();
+    db.delete(tags).where(eq(tags.slug, "dev-ops")).run();
   });
 });
 

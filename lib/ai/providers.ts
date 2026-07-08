@@ -8,6 +8,7 @@
  */
 
 import { loadConfig } from "@/lib/config/loader";
+import { getSetting } from "@/lib/settings";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -20,27 +21,64 @@ export interface ChatOptions {
   maxTokens?: number;
 }
 
-const CONFIG = loadConfig();
-
 function getProviderConfig(name: string) {
-  const provider = CONFIG.ai.providers[name];
+  const provider = loadConfig().ai.providers[name];
   if (!provider) {
     throw new Error(`AI provider "${name}" not configured`);
   }
   return provider;
 }
 
+export function getDefaultProvider(): string {
+  return getSetting("ai.default_provider") ?? loadConfig().ai.defaultProvider;
+}
+
+function resolveModel(name: string): string {
+  return getSetting(`ai.model.${name}`) ?? getProviderConfig(name).model;
+}
+
+function resolveApiKey(name: string): string {
+  const envKey = process.env[`BIFROST_${name.toUpperCase().replace(/-/g, "_")}_KEY`];
+  return getSetting(`ai.key.${name}`) ?? loadConfig().ai.providers[name]?.apiKey ?? envKey ?? "";
+}
+
+function getBaseUrl(name: string): string {
+  const baseUrl = getProviderConfig(name).baseUrl;
+  if (!baseUrl) throw new Error(`No baseUrl configured for provider "${name}"`);
+  return baseUrl;
+}
+
 function getEndpoint(provider: string): string {
-  if (provider === "opencode-zen") {
-    return "https://opencode.ai/zen/v1/chat/completions";
+  return `${getBaseUrl(provider)}/chat/completions`;
+}
+
+const modelsCache = new Map<string, { models: string[]; expires: number }>();
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+
+export async function fetchModels(providerName: string): Promise<string[]> {
+  getProviderConfig(providerName);
+
+  const cached = modelsCache.get(providerName);
+  if (cached && cached.expires > Date.now()) {
+    return cached.models;
   }
-  if (provider === "opencode-go") {
-    return "https://opencode.ai/zen/go/v1/chat/completions";
+
+  const baseUrl = getBaseUrl(providerName);
+  const apiKey = resolveApiKey(providerName);
+
+  try {
+    const res = await fetch(`${baseUrl}/models`, {
+      headers: apiKey ? { authorization: `Bearer ${apiKey}` } : {},
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as { data?: { id: string }[] };
+    const models = (body.data ?? []).map((m) => m.id).sort();
+    modelsCache.set(providerName, { models, expires: Date.now() + CACHE_TTL });
+    return models;
+  } catch {
+    const configModel = resolveModel(providerName);
+    return configModel ? [configModel] : [];
   }
-  if (provider === "deepseek") {
-    return "https://api.deepseek.com/v1/chat/completions";
-  }
-  throw new Error(`Unknown provider: ${provider}`);
 }
 
 export async function chatCompletion(
@@ -48,10 +86,10 @@ export async function chatCompletion(
   messages: ChatMessage[],
   options: ChatOptions = {}
 ): Promise<Response> {
-  const config = getProviderConfig(providerName);
+  getProviderConfig(providerName);
   const endpoint = getEndpoint(providerName);
-  const model = options.model ?? config.model;
-  const apiKey = config.apiKey ?? process.env[`BIFROST_${providerName.toUpperCase().replace(/-/g, "_")}_KEY`] ?? "";
+  const model = options.model ?? resolveModel(providerName);
+  const apiKey = resolveApiKey(providerName);
 
   return fetch(endpoint, {
     method: "POST",
@@ -120,8 +158,8 @@ export async function* streamChatCompletion(
 }
 
 export function listModels(): { provider: string; model: string }[] {
-  return Object.entries(CONFIG.ai.providers).map(([name, config]) => ({
+  return Object.entries(loadConfig().ai.providers).map(([name]) => ({
     provider: name,
-    model: config.model,
+    model: resolveModel(name),
   }));
 }

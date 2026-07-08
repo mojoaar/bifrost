@@ -10,9 +10,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken, verifyRefreshToken } from "./token";
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "no-referrer-when-downgrade",
+  "x-frame-options": "DENY",
+};
+
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
 const PROTECTED_API_METHODS = new Set(["POST", "PUT", "DELETE", "PATCH"]);
 
-const WRITE_API_PATTERNS = [/^\/api\/v1\/posts/, /^\/api\/v1\/media/];
+const WRITE_API_PATTERNS = [
+  /^\/api\/v1\/posts/,
+  /^\/api\/v1\/pages/,
+  /^\/api\/v1\/media/,
+  /^\/api\/v1\/ai\//,
+  /^\/api\/v1\/users/,
+  /^\/api\/v1\/tags/,
+  /^\/api\/v1\/settings/,
+  /^\/api\/v1\/git\//,
+  /^\/api\/v1\/profile/,
+  /^\/api\/v1\/api-keys/,
+  /^\/api\/v1\/admin\//,
+  /^\/api\/v1\/themes\/files/,
+  /^\/api\/v1\/post-templates/,
+];
 
 function isProtectedApiRoute(pathname: string, method: string): boolean {
   if (!PROTECTED_API_METHODS.has(method)) return false;
@@ -45,13 +72,21 @@ async function getTokenPayload(
 
 async function getTokenPayloadForApi(
   request: NextRequest
-): Promise<{ sub: string; role: string } | { type: "no-token" } | { type: "invalid-token" }> {
+): Promise<
+  | { sub: string; role: string }
+  | { type: "no-token" }
+  | { type: "invalid-token" }
+  | { type: "api-key" }
+> {
   const authHeader = request.headers.get("authorization");
   const bearerToken = authHeader?.startsWith("Bearer ")
     ? authHeader.slice(7)
     : null;
 
   if (bearerToken) {
+    // API keys are verified in the route handler (needs DB access, not
+    // available in the edge middleware runtime). Let them pass through.
+    if (bearerToken.startsWith("bfk_")) return { type: "api-key" };
     const payload = await verifyAccessToken(bearerToken);
     if (payload) return payload;
     return { type: "invalid-token" };
@@ -73,33 +108,46 @@ export async function authMiddleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     const payload = await getTokenPayload(request);
     if (!payload) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return withSecurityHeaders(NextResponse.redirect(new URL("/login", request.url)));
     }
 
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-user-id", payload.sub);
+    requestHeaders.set("x-user-role", payload.role);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("x-user-id", payload.sub);
     response.headers.set("x-user-role", payload.role);
-    return response;
+    return withSecurityHeaders(response);
   }
 
   if (isProtectedApiRoute(pathname, method)) {
     const result = await getTokenPayloadForApi(request);
+
+    if ("type" in result && result.type === "api-key") {
+      return withSecurityHeaders(NextResponse.next());
+    }
+
     if (!("sub" in result)) {
       const message =
         result.type === "invalid-token"
           ? "Invalid or expired token"
           : "Authentication required";
-      return NextResponse.json(
-        { data: null, error: { message }, meta: null },
-        { status: 401 }
+      return withSecurityHeaders(
+        NextResponse.json(
+          { data: null, error: { message }, meta: null },
+          { status: 401 }
+        )
       );
     }
 
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-user-id", result.sub);
+    requestHeaders.set("x-user-role", result.role);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("x-user-id", result.sub);
     response.headers.set("x-user-role", result.role);
-    return response;
+    return withSecurityHeaders(response);
   }
 
-  return NextResponse.next();
+  return withSecurityHeaders(NextResponse.next());
 }

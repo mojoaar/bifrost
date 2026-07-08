@@ -11,11 +11,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import DiffViewer from "@/components/DiffViewer";
 
 export default function DiffPage() {
   const params = useParams<{ sha: string }>();
   const router = useRouter();
   const [diff, setDiff] = useState("");
+  const [commitMessage, setCommitMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -34,6 +36,7 @@ export default function DiffPage() {
         }
 
         setDiff(body.data?.diff ?? "");
+        setCommitMessage(body.data?.message ?? "");
       } catch {
         setError("Network error");
       } finally {
@@ -43,23 +46,21 @@ export default function DiffPage() {
     load();
   }, [params.sha]);
 
-  if (loading) return <p className="text-zinc-400">Loading...</p>;
-  if (error) return <p className="text-red-400">{error}</p>;
+  if (loading) return <p className="text-text-3 font-mono text-sm">loading diff…</p>;
+  if (error) return <p className="text-red-400 font-mono text-sm">{error}</p>;
 
   return (
     <div>
       <button
         onClick={() => router.back()}
-        className="mb-4 text-sm text-zinc-400 hover:text-zinc-200"
+        className="mb-4 inline-flex items-center gap-1 font-mono text-sm text-text-3 transition hover:text-text-1"
       >
         &larr; Back
       </button>
-      <h2 className="mb-4 text-lg font-semibold">
-        Diff — {params.sha.slice(0, 7)}
-      </h2>
-      <pre className="overflow-auto rounded border border-zinc-800 bg-zinc-900 p-4 font-mono text-xs text-zinc-300">
-        {diff}
-      </pre>
+      <p className="mb-4 font-mono text-xs text-text-muted">
+        {params.sha.slice(0, 7)} {commitMessage && `— ${commitMessage}`}
+      </p>
+      <DiffViewer diff={diff} />
     </div>
   );
 }

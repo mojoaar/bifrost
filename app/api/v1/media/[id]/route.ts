@@ -10,11 +10,17 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { deleteMedia } from "@/lib/media/store";
+import { requireUser } from "@/lib/auth/require";
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
   const { id } = await params;
   try {
     const deleted = await deleteMedia(id);

@@ -14,17 +14,14 @@ import { Copy, Check } from "lucide-react";
 
 export function useCodeCopyButtons(html: string) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const applied = useRef(false);
 
   useEffect(() => {
-    if (applied.current) return;
-    applied.current = true;
-
     const container = containerRef.current;
     if (!container) return;
 
-    const preBlocks = container.querySelectorAll<HTMLPreElement>("pre");
-    preBlocks.forEach((pre) => {
+    let observer: MutationObserver | null = null;
+
+    const wrapPre = (pre: HTMLPreElement) => {
       if (pre.dataset.copyWrapped === "true") return;
       pre.dataset.copyWrapped = "true";
 
@@ -52,7 +49,22 @@ export function useCodeCopyButtons(html: string) {
       pre.parentNode?.insertBefore(wrapper, pre);
       wrapper.appendChild(pre);
       wrapper.appendChild(btn);
-    });
+    };
+
+    const apply = () => {
+      observer?.disconnect();
+      container
+        .querySelectorAll<HTMLPreElement>("pre")
+        .forEach(wrapPre);
+      observer?.observe(container, { childList: true, subtree: true });
+    };
+
+    apply();
+
+    observer = new MutationObserver(apply);
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer?.disconnect();
   }, [html]);
 
   return containerRef;

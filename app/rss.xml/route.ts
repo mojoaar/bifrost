@@ -10,10 +10,16 @@
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { eq, sql } from "drizzle-orm";
-import { loadConfig } from "@/lib/config/loader";
+import { getSetting } from "@/lib/settings";
 
-export async function GET() {
-  const config = loadConfig();
+export async function GET(request: Request) {
+  let siteUrl = getSetting("site.url");
+  if (!siteUrl) {
+    const url = new URL(request.url);
+    siteUrl = `${url.protocol}//${url.host}`;
+  } else {
+    siteUrl = siteUrl.replace(/\/$/, "");
+  }
 
   const rows = db
     .select()
@@ -28,8 +34,8 @@ export async function GET() {
       (post) => `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>https://localhost/${post.slug}</link>
-      <guid isPermaLink="true">https://localhost/${post.slug}</guid>
+      <link>${siteUrl}/${post.slug}</link>
+      <guid isPermaLink="true">${siteUrl}/${post.slug}</guid>
       <description><![CDATA[${post.excerpt ?? ""}]]></description>
       <pubDate>${new Date(post.publishedAt ?? post.createdAt).toUTCString()}</pubDate>
     </item>`
@@ -39,12 +45,12 @@ export async function GET() {
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${config.site.title}</title>
-    <description>${config.site.description}</description>
-    <link>https://localhost</link>
-    <language>${config.site.language}</language>
+    <title>${getSetting("site.title") ?? "Bifröst"}</title>
+    <description>${getSetting("site.description") ?? "A self-hosted blogging framework"}</description>
+    <link>${siteUrl}</link>
+    <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="https://localhost/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${siteUrl}/rss.xml" rel="self" type="application/rss+xml"/>
 ${items}
   </channel>
 </rss>`;

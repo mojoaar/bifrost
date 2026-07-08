@@ -23,6 +23,6 @@ export async function GET(request: NextRequest) {
     const diff = await getDiff(sha);
     return apiSuccess({ diff });
   } catch (err) {
-    return apiError("Failed to get diff", 500, String(err));
+    return apiError("Failed to get diff", 500);
   }
 }

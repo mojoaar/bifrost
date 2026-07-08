@@ -29,8 +29,8 @@ const THEME = `
   --accent-hover: #60a5fa;
   --code-bg: #18181b;
   --code-border: #27272a;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'JetBrains Mono Variable', 'Fira Code', ui-monospace, monospace;
+  --font-sans: 'JetBrains Mono', 'JetBrains Mono Variable', ui-monospace, monospace;
 }
 
 .swagger-ui { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans); }
@@ -101,6 +101,9 @@ const HTML = (specUrl: string) => `<!DOCTYPE html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bifröst API Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet" />
   <style>${SWAGGER_CSS}${THEME}</style>
 </head>
 <body>

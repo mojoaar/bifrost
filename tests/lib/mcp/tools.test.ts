@@ -11,9 +11,9 @@ import { describe, it, expect } from "vitest";
 import { createToolDefinitions } from "@/lib/mcp/tools";
 
 describe("mcp tools", () => {
-  it("registers all 12 tools", () => {
+  it("registers all 17 tools", () => {
     const tools = createToolDefinitions();
-    expect(tools.length).toBe(12);
+    expect(tools.length).toBe(17);
 
     const names = tools.map((t: { name: string }) => t.name);
     expect(names).toContain("list_posts");
@@ -28,6 +28,11 @@ describe("mcp tools", () => {
     expect(names).toContain("search_posts");
     expect(names).toContain("list_tags");
     expect(names).toContain("ai_assist");
+    expect(names).toContain("list_pages");
+    expect(names).toContain("get_page");
+    expect(names).toContain("create_page");
+    expect(names).toContain("update_page");
+    expect(names).toContain("delete_page");
   });
 
   it("every tool has a name, description, and inputSchema", () => {

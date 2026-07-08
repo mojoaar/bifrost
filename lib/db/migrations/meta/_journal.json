@@ -8,6 +8,48 @@
       "when": 1783351859794,
       "tag": "0000_aberrant_daredevil",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783486072812,
+      "tag": "0001_round_beyonder",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783491117366,
+      "tag": "0002_quiet_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783492645942,
+      "tag": "0003_goofy_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783494444555,
+      "tag": "0004_smiling_lady_ursula",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783507656800,
+      "tag": "0005_kind_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783512541212,
+      "tag": "0006_real_shockwave",
+      "breakpoints": true
     }
   ]
 }

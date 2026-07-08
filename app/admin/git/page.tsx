@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { GitBranch, GitCommit, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
@@ -24,6 +25,8 @@ interface Commit {
 }
 
 export default function GitHistoryPage() {
+  const searchParams = useSearchParams();
+  const slug = searchParams.get("slug") ?? "";
   const { formatDate } = useDateTimeFormat();
   const [commits, setCommits] = useState<Commit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,8 @@ export default function GitHistoryPage() {
     (async () => {
       try {
         const token = localStorage.getItem("bifrost_token");
-        const res = await fetch("/api/v1/git/history", {
+        const query = slug ? `?slug=${encodeURIComponent(slug)}` : "";
+        const res = await fetch(`/api/v1/git/history${query}`, {
           headers: token ? { authorization: `Bearer ${token}` } : {},
         });
         const body = await res.json();
@@ -54,7 +58,7 @@ export default function GitHistoryPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [slug]);
 
   async function handlePush() {
     setPushing(true);
@@ -79,7 +83,8 @@ export default function GitHistoryPage() {
         method: "POST",
         headers: token ? { authorization: `Bearer ${token}` } : {},
       });
-      const histRes = await fetch("/api/v1/git/history", {
+      const query = slug ? `?slug=${encodeURIComponent(slug)}` : "";
+      const histRes = await fetch(`/api/v1/git/history${query}`, {
         headers: token ? { authorization: `Bearer ${token}` } : {},
       });
       const histBody = await histRes.json();
@@ -105,6 +110,7 @@ export default function GitHistoryPage() {
           </h1>
           <p className="mt-1 font-mono text-sm text-text-3">
             <span className="text-text-muted">$</span> git log --oneline
+            {slug && <> -- content/<span className="text-accent">{slug}</span>/index.md</>}
           </p>
         </div>
         <div className="flex gap-2">

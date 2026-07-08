@@ -11,6 +11,8 @@
 
 import Link from "next/link";
 import type { PostData } from "@/lib/themes/types";
+import { useDateTimeFormat } from "@/lib/format-date";
+import { readingTime } from "@/lib/reading-time";
 
 interface Props {
   posts: PostData[];
@@ -35,6 +37,21 @@ function groupByYear(posts: PostData[]): Group[] {
 }
 
 export default function ListTemplate({ posts }: Props) {
+  const { format } = useDateTimeFormat();
+
+  const formatDayMonth = (dateStr: string): string => {
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const monthShort = d.toLocaleDateString("en-US", { month: "short" });
+    if (format.date === "EU") return `${day} ${monthShort}`;
+    if (format.date === "ISO") {
+      return `${(d.getMonth() + 1).toString().padStart(2, "0")}-${day
+        .toString()
+        .padStart(2, "0")}`;
+    }
+    return `${monthShort} ${day}`;
+  };
+
   if (posts.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-border bg-surface-sunken py-16 text-center">
@@ -69,6 +86,14 @@ export default function ListTemplate({ posts }: Props) {
                   key={post.slug}
                   className="group relative rounded-md border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-raised hover:shadow-sm"
                 >
+                  {!!post.frontmatter?.featuredImage && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={String(post.frontmatter.featuredImage)}
+                      alt=""
+                      className="-mx-[calc(1.25rem_+_1px)] -mt-[calc(1.25rem_+_1px)] mb-4 h-40 w-[calc(100%_+_2.5rem_+_2px)] max-w-none object-cover rounded-t-md"
+                    />
+                  )}
                   <Link
                     href={`/${post.slug}`}
                     aria-label={post.title}
@@ -84,15 +109,17 @@ export default function ListTemplate({ posts }: Props) {
                       dateTime={post.createdAt}
                       className="shrink-0 font-mono text-xs text-text-3"
                     >
-                      {new Date(post.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {formatDayMonth(post.createdAt)}
                     </time>
                   </div>
                   {post.excerpt && (
                     <p className="pointer-events-none relative z-0 text-sm leading-relaxed text-text-2">
                       {post.excerpt}
+                    </p>
+                  )}
+                  {post.showReadingTime !== false && (
+                    <p className="pointer-events-none relative z-0 mt-1 font-mono text-xs text-text-3">
+                      {readingTime(post.contentHtml)} min read
                     </p>
                   )}
                   {tags.length > 0 && (

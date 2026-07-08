@@ -27,6 +27,6 @@ export async function POST(request: NextRequest) {
     const { html } = await renderMarkdown(body.source);
     return apiSuccess({ html });
   } catch (err) {
-    return apiError("Failed to render markdown", 500, String(err));
+    return apiError("Failed to render markdown", 500);
   }
 }

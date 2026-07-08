@@ -17,13 +17,14 @@ export const posts = sqliteTable("posts", {
   contentHtml: text("content_html").notNull().default(""),
   excerpt: text("excerpt"),
   frontmatter: text("frontmatter").notNull().default("{}"),
-  status: text("status", { enum: ["draft", "published"] })
+  status: text("status", { enum: ["draft", "published", "scheduled"] })
     .notNull()
     .default("draft"),
   authorId: text("author_id")
     .notNull()
     .references(() => users.id),
   publishedAt: text("published_at"),
+  scheduledAt: text("scheduled_at"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

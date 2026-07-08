@@ -41,19 +41,26 @@ export function CommandPalette() {
     closeRef.current = close;
   });
 
-  if (isOpen !== prevOpen) {
-    setPrevOpen(isOpen);
-    if (isOpen) {
-      setQuery("");
-      setActiveIndex(0);
-      if (commands.length === 0) {
-        setLoading(true);
-        getCommands()
-          .then((c) => setCommands(c))
-          .finally(() => setLoading(false));
+  useEffect(() => {
+    if (isOpen === prevOpen) return;
+    Promise.resolve().then(() => {
+      setPrevOpen(isOpen);
+      if (isOpen) {
+        setQuery("");
+        setActiveIndex(0);
+        if (commands.length === 0) {
+          setLoading(true);
+          getCommands()
+            .then((c) => {
+              Promise.resolve().then(() => setCommands(c));
+            })
+            .finally(() => {
+              Promise.resolve().then(() => setLoading(false));
+            });
+        }
       }
-    }
-  }
+    });
+  }, [isOpen, prevOpen, commands.length]);
 
   const filtered = useMemo(() => {
     const trimmed = query.trim();

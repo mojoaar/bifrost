@@ -13,7 +13,7 @@ export async function logout(): Promise<void> {
   }
   if (typeof document !== "undefined") {
     document.cookie = "bifrost_token=; path=/; max-age=0";
-    document.cookie = "bifrost_refresh_token=; path=/; max-age=0";
+    document.cookie = "bifrost_refresh=; path=/; max-age=0";
   }
   if (typeof window !== "undefined") {
     window.location.href = "/login";

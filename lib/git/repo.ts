@@ -13,9 +13,11 @@ import fs from "fs";
 import path from "path";
 import { loadConfig } from "@/lib/config/loader";
 import { getSetting } from "@/lib/settings";
+import { contentDir } from "@/lib/paths";
 
-const CONTENT_DIR = path.resolve("content");
-const DIR = CONTENT_DIR;
+function DIR(): string {
+  return contentDir();
+}
 
 export interface CommitEntry {
   sha: string;
@@ -36,7 +38,9 @@ interface GitRuntimeConfig {
 function loadGitConfig(): GitRuntimeConfig {
   const file = loadConfig().git;
   return {
-    enabled: file.enabled,
+    enabled:
+      getSetting("git.enabled") === "true" ||
+      (getSetting("git.enabled") === undefined && file.enabled),
     autoCommit: getSetting("git.autoCommit") === "true" || (getSetting("git.autoCommit") === undefined && file.autoCommit),
     remote: getSetting("git.remote") ?? file.remote,
     branch: getSetting("git.branch") ?? "main",
@@ -46,10 +50,10 @@ function loadGitConfig(): GitRuntimeConfig {
 }
 
 export async function initContentRepo(): Promise<void> {
-  const gitDir = path.join(DIR, ".git");
+  const gitDir = path.join(DIR(), ".git");
   if (fs.existsSync(gitDir)) return;
 
-  await git.init({ fs, dir: DIR, defaultBranch: "main" });
+  await git.init({ fs, dir: DIR(), defaultBranch: "main" });
 }
 
 export async function commitPost(
@@ -63,15 +67,15 @@ export async function commitPost(
   await initContentRepo();
 
   const filePath = `${slug}/index.md`;
-  const absPath = path.join(DIR, filePath);
+  const absPath = path.join(DIR(), filePath);
 
   if (!fs.existsSync(absPath)) return null;
 
-  await git.add({ fs, dir: DIR, filepath: filePath });
+  await git.add({ fs, dir: DIR(), filepath: filePath });
 
   const status = await git.statusMatrix({
     fs,
-    dir: DIR,
+    dir: DIR(),
     filepaths: [filePath],
   });
   const hasChanges = status.some(([, , staging]) => staging !== 1);
@@ -84,7 +88,7 @@ export async function commitPost(
 
   const sha = await git.commit({
     fs,
-    dir: DIR,
+    dir: DIR(),
     message,
     author: { name: "Bifröst", email: "bifrost@localhost" },
   });
@@ -102,7 +106,7 @@ export async function getHistory(slug?: string, limit?: number): Promise<CommitE
 
   const log = await git.log({
     fs,
-    dir: DIR,
+    dir: DIR(),
     filepath,
     depth,
   });
@@ -118,7 +122,7 @@ export async function getHistory(slug?: string, limit?: number): Promise<CommitE
 export async function getDiff(sha: string): Promise<string> {
   await initContentRepo();
 
-  const commits = await git.log({ fs, dir: DIR, depth: 50 });
+  const commits = await git.log({ fs, dir: DIR(), depth: 50 });
   const commitIndex = commits.findIndex(
     (c) => c.oid === sha || c.oid.startsWith(sha)
   );
@@ -139,8 +143,8 @@ async function diffBetweenOids(
   oldOid: string,
   newOid: string
 ): Promise<string> {
-  const oldFiles = await git.listFiles({ fs, dir: DIR, ref: oldOid });
-  const newFiles = await git.listFiles({ fs, dir: DIR, ref: newOid });
+  const oldFiles = await git.listFiles({ fs, dir: DIR(), ref: oldOid });
+  const newFiles = await git.listFiles({ fs, dir: DIR(), ref: newOid });
   const allFiles = [...new Set([...oldFiles, ...newFiles])];
 
   const diffs: string[] = [];
@@ -152,7 +156,7 @@ async function diffBetweenOids(
         try {
           const result = await git.readBlob({
             fs,
-            dir: DIR,
+            dir: DIR(),
             oid: oldOid,
             filepath: file,
           });
@@ -167,7 +171,7 @@ async function diffBetweenOids(
         try {
           const result = await git.readBlob({
             fs,
-            dir: DIR,
+            dir: DIR(),
             oid: newOid,
             filepath: file,
           });
@@ -198,7 +202,7 @@ export async function pushToRemote(): Promise<void> {
   await git.push({
     fs,
     http,
-    dir: DIR,
+    dir: DIR(),
     remote: "origin",
     ref: config.branch,
     onAuth: () => ({
@@ -215,7 +219,7 @@ export async function pullFromRemote(): Promise<void> {
   await git.pull({
     fs,
     http,
-    dir: DIR,
+    dir: DIR(),
     remote: "origin",
     ref: config.branch,
     singleBranch: true,

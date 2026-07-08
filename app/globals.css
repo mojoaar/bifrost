@@ -64,6 +64,35 @@
   --radius-lg: var(--radius-lg);
 }
 
+:root {
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code Variable', 'IBM Plex Mono', 'Source Code Pro Variable', 'Roboto Mono', Inconsolata, ui-monospace, monospace;
+  --font-body: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code Variable', 'IBM Plex Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-display: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  --transition-fast: 100ms ease;
+  --transition-base: 200ms ease;
+}
+
 * {
   border-color: var(--border);
 }
@@ -125,44 +154,6 @@ pre code {
   border: none;
   padding: 0;
   font-size: inherit;
-}
-
-pre:has(span[style*="--shiki"]) {
-  position: relative;
-  background: var(--code-bg);
-  border: 1px solid var(--code-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  overflow-x: auto;
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  margin: var(--space-5) 0;
-}
-
-:root[data-theme="dark"] pre:has(span[style*="--shiki"]) {
-  color: var(--shiki-dark);
-  background-color: var(--shiki-dark-bg);
-}
-
-:root[data-theme="light"] pre:has(span[style*="--shiki"]) {
-  color: var(--shiki-light);
-  background-color: var(--shiki-light-bg);
-}
-
-pre:has(span[style*="--shiki"]) code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  font-size: inherit;
-  color: inherit;
-}
-
-pre:has(span[style*="--shiki"]) span {
-  color: var(--shiki-light);
-}
-
-:root[data-theme="dark"] pre:has(span[style*="--shiki"]) span {
-  color: var(--shiki-dark);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -284,4 +275,9 @@ li {
 
 .code-block-wrapper pre {
   margin: 0;
+}
+
+.lucide-icon {
+  display: inline-block;
+  vertical-align: -0.125em;
 }

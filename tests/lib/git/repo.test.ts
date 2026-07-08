@@ -7,17 +7,25 @@
  * See the LICENSE file for details.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "fs/promises";
 import path from "path";
+
+vi.mock("@/lib/settings", () => ({
+  getSetting: () => undefined,
+  getAllSettings: () => ({}),
+  invalidateSettingsCache: () => {},
+}));
+
 import {
   initContentRepo,
   commitPost,
   getHistory,
   getDiff,
 } from "@/lib/git/repo";
+import { contentDir } from "@/lib/paths";
 
-const TEST_DIR = path.resolve("content/test-git");
+const TEST_DIR = path.join(contentDir(), "test-git");
 const POST_FILE = path.join(TEST_DIR, "test-post/index.md");
 const SLUG = "test-git/test-post";
 
@@ -32,7 +40,7 @@ describe("git repo", () => {
   });
 
   it("initializes a git repo in content/", async () => {
-    const stat = await fs.stat(path.join("content", ".git"));
+    const stat = await fs.stat(path.join(contentDir(), ".git"));
     expect(stat.isDirectory()).toBe(true);
   });
 

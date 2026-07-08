@@ -15,6 +15,7 @@ import { settings } from "@/lib/db/schema/settings";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
 import { generateId } from "@/lib/id";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   const admin = db
@@ -27,13 +28,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.role, "admin"))
-    .get();
-
-  if (admin) return apiError("Setup already completed", 409);
+  const limited = rateLimit(request, "setup", 3, 60_000);
+  if (limited) return limited;
 
   let body: { email?: string; password?: string; name?: string; title?: string; description?: string };
   try {
@@ -44,27 +40,49 @@ export async function POST(request: NextRequest) {
 
   const { email, password, name, title, description } = body;
   if (!email || !password) return apiError("Email and password are required", 400);
+  if (password.length < 8) return apiError("Password must be at least 8 characters", 400);
 
   const passwordHash = await hashPassword(password);
   const now = new Date().toISOString();
 
-  db.insert(users)
-    .values({
-      id: generateId(),
-      email: email.toLowerCase().trim(),
-      passwordHash,
-      displayName: (name?.trim() || email.split("@")[0] || "Admin"),
-      role: "admin",
-      createdAt: now,
-      updatedAt: now,
-    })
-    .run();
+  const adminId = db.transaction(() => {
+    const admin = db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, "admin"))
+      .get();
 
-  const userId = db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.role, "admin"))
-    .get()!.id;
+    if (admin) return null;
+
+    const id = generateId();
+    db.insert(users)
+      .values({
+        id,
+        email: email.toLowerCase().trim(),
+        passwordHash,
+        displayName: (name?.trim() || email.split("@")[0] || "Admin"),
+        role: "admin",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+
+    return id;
+  });
+
+  if (!adminId) return apiError("Setup already completed", 409);
+
+  const defaultSettings: Record<string, string> = {
+    "appearance.date_format": "EU",
+    "appearance.time_format": "24h",
+    "appearance.color_scheme": "default",
+    "git.enabled": "false",
+    "ai.enabled": "false",
+    "sharing.enabled": "false",
+  };
+  for (const [key, value] of Object.entries(defaultSettings)) {
+    db.insert(settings).values({ key, value }).onConflictDoNothing().run();
+  }
 
   if (title) {
     db.insert(settings)
@@ -80,8 +98,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { seedPosts } = await import("@/lib/seed");
-    await seedPosts(userId);
+    const { seedPosts, seedPages } = await import("@/lib/seed");
+    await seedPosts(adminId);
+    await seedPages(adminId);
   } catch {
     // seed is best-effort
   }

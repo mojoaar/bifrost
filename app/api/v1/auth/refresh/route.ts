@@ -10,8 +10,13 @@
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { createAccessToken, verifyRefreshToken } from "@/lib/auth/token";
+import { validateCsrf } from "@/lib/auth/csrf";
 
 export async function POST(request: NextRequest) {
+  if (!validateCsrf(request)) {
+    return apiError("Invalid request origin", 403);
+  }
+
   const cookie = request.cookies.get("bifrost_refresh");
 
   if (!cookie?.value) {

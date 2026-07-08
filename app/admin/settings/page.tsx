@@ -17,6 +17,7 @@ import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { FONT_NAMES } from "@/lib/fonts/registry";
+import { PALETTES } from "@/lib/themes/palettes";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -29,22 +30,30 @@ export default function SettingsPage() {
   const [resetConfirm, setResetConfirm] = useState("");
   const [resetting, setResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState("");
+  const [hasDemo, setHasDemo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [settingsRes, themesRes] = await Promise.all([
+        const [settingsRes, themesRes, demoRes] = await Promise.all([
           fetch("/api/v1/settings"),
           fetch("/api/v1/themes"),
+          authFetch("/api/v1/admin/reset"),
         ]);
-        const [settingsBody, themesBody] = await Promise.all([
+        const [settingsBody, themesBody, demoBody] = await Promise.all([
           settingsRes.json(),
           themesRes.json(),
+          demoRes.json().catch(() => ({})),
         ]);
         if (cancelled) return;
-        if (settingsRes.ok) setSettings(settingsBody.data ?? {});
+        if (settingsRes.ok) {
+          const data: Record<string, string> = settingsBody.data ?? {};
+          delete data["git.token"];
+          setSettings(data);
+        }
         if (themesRes.ok) setThemes(themesBody.data ?? []);
+        setHasDemo((demoBody.data?.demoCount ?? 0) > 0);
       } catch {
         // silent
       } finally {
@@ -67,6 +76,7 @@ export default function SettingsPage() {
       });
       if (res.ok) {
         applyTheme(settings["appearance.theme_mode"]);
+        applyPalette(settings["appearance.color_scheme"]);
         setMessage("Saved");
         router.refresh();
       }
@@ -88,6 +98,10 @@ export default function SettingsPage() {
     document.cookie = `bifrost_theme=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
   }
 
+  function applyPalette(scheme: string | undefined) {
+    document.documentElement.setAttribute("data-palette", scheme ?? "default");
+  }
+
   function setValue(key: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setSettings((s) => ({ ...s, [key]: e.target.value }));
@@ -98,18 +112,17 @@ export default function SettingsPage() {
     if (resetConfirm !== "RESET") return;
     setResetting(true);
     setResetMessage("");
-    const token = localStorage.getItem("bifrost_token");
     try {
-      const res = await fetch("/api/v1/admin/reset", {
+      const res = await authFetch("/api/v1/admin/reset", {
         method: "POST",
-        headers: token ? { authorization: `Bearer ${token}` } : {},
       });
       const body = await res.json();
       if (!res.ok) {
         setResetMessage(body.error?.message ?? "Reset failed");
         return;
       }
-      setResetMessage("All content removed. Reloading...");
+      setResetMessage("Demo data removed. Reloading...");
+      setHasDemo(false);
       setTimeout(() => router.push("/admin"), 800);
     } catch {
       setResetMessage("Network error");
@@ -210,6 +223,19 @@ export default function SettingsPage() {
                 <option value="24h">24h (13:00)</option>
               </Select>
             </Field>
+            <Field label="Color Scheme" helper="Choose a palette for both light and dark mode.">
+              <Select
+                value={settings["appearance.color_scheme"] ?? "default"}
+                onChange={(e) => {
+                  setSettings((s) => ({ ...s, "appearance.color_scheme": e.target.value }));
+                  applyPalette(e.target.value);
+                }}
+              >
+                {PALETTES.map((p) => (
+                  <option key={p.slug} value={p.slug}>{p.name}</option>
+                ))}
+              </Select>
+            </Field>
             <label className="flex items-center gap-2 font-mono text-sm text-text-2">
               <input
                 type="checkbox"
@@ -220,6 +246,53 @@ export default function SettingsPage() {
                 className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
               />
               <span>Show description in page title</span>
+            </label>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["appearance.show_author"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "appearance.show_author": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Show author information on posts</span>
+            </label>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["appearance.show_author_bio"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "appearance.show_author_bio": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>
+                Show author bio on post pages
+                <span className="ml-2 text-text-muted">(gated by &ldquo;Show author information&rdquo; above)</span>
+              </span>
+            </label>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["appearance.show_featured_images"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "appearance.show_featured_images": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Show featured images on posts</span>
+            </label>
+            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={settings["appearance.show_reading_time"] !== "false"}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, "appearance.show_reading_time": e.target.checked ? "true" : "false" }))
+                }
+                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+              />
+              <span>Show reading time</span>
             </label>
           </div>
         </Card>
@@ -245,75 +318,6 @@ export default function SettingsPage() {
           </Field>
         </Card>
 
-        <Card padding="md">
-          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Git</div>
-          <div className="space-y-3">
-            <Field label="Remote URL" helper="Optional. Leave empty to disable push/pull.">
-              <Input
-                value={settings["git.remote"] ?? ""}
-                onChange={setValue("git.remote")}
-                placeholder="git@github.com:user/repo.git"
-                className="font-mono"
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Branch">
-                <Input
-                  value={settings["git.branch"] ?? "main"}
-                  onChange={setValue("git.branch")}
-                  placeholder="main"
-                  className="font-mono"
-                />
-              </Field>
-              <Field label="History Limit" helper="Max commits shown in /admin/git">
-                <Input
-                  type="number"
-                  min="1"
-                  max="500"
-                  value={settings["git.history_limit"] ?? "50"}
-                  onChange={setValue("git.history_limit")}
-                  className="font-mono"
-                />
-              </Field>
-            </div>
-            <Field
-              label="Auth Token"
-              helper="Personal access token, deploy key, or password. Overrides BIFROST_GIT_TOKEN env var. Stored in the database."
-            >
-              <Input
-                type="password"
-                value={settings["git.token"] ?? ""}
-                onChange={setValue("git.token")}
-                placeholder="ghp_•••••••"
-                className="font-mono"
-                autoComplete="off"
-              />
-            </Field>
-            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
-              <input
-                type="checkbox"
-                checked={settings["git.enabled"] !== "false"}
-                onChange={(e) =>
-                  setSettings((s) => ({ ...s, "git.enabled": e.target.checked ? "true" : "false" }))
-                }
-                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
-              />
-              <span>Git enabled</span>
-            </label>
-            <label className="flex items-center gap-2 font-mono text-sm text-text-2">
-              <input
-                type="checkbox"
-                checked={settings["git.autoCommit"] !== "false"}
-                onChange={(e) =>
-                  setSettings((s) => ({ ...s, "git.autoCommit": e.target.checked ? "true" : "false" }))
-                }
-                className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
-              />
-              <span>Auto-commit on post save</span>
-            </label>
-          </div>
-        </Card>
-
         <div className="flex items-center gap-4">
           <Button type="submit" variant="primary" disabled={saving}>
             <Save size={14} />
@@ -328,6 +332,7 @@ export default function SettingsPage() {
       </form>
 
       <div className="mt-10">
+        {hasDemo && (
         <Card padding="md" className="border-danger/40">
           <div className="mb-3 flex items-center gap-2">
             <AlertTriangle size={14} className="text-danger" />
@@ -336,8 +341,8 @@ export default function SettingsPage() {
             </span>
           </div>
           <p className="mb-4 text-sm text-text-2">
-            Remove all posts, media, tags, and the git history. This will not
-            affect the database schema, themes, or installed plugins.
+            Remove the demo posts that ship with Bifröst. Your own posts, media,
+            tags, and Git history are left untouched.
           </p>
 
           {!resetOpen ? (
@@ -390,13 +395,14 @@ export default function SettingsPage() {
                 </Button>
               </div>
               {resetMessage && (
-                <p className={`font-mono text-xs ${resetMessage.includes("All content") ? "text-success" : "text-danger"}`}>
+                <p className={`font-mono text-xs ${resetMessage.includes("removed") ? "text-success" : "text-danger"}`}>
                   {resetMessage}
                 </p>
               )}
             </div>
           )}
         </Card>
+        )}
       </div>
     </div>
   );

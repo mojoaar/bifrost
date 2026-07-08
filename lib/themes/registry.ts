@@ -14,6 +14,7 @@ import type { LoadedTheme, ThemeManifest, ThemeComponents } from "./types";
 import DefaultLayout from "../../themes/bifrost-terminal/layout";
 import DefaultPost from "../../themes/bifrost-terminal/post";
 import DefaultList from "../../themes/bifrost-terminal/list";
+import DefaultPage from "../../themes/bifrost-terminal/page";
 
 const THEMES_DIR = path.resolve("themes");
 
@@ -22,6 +23,7 @@ const STATIC_THEMES: Record<string, ThemeComponents> = {
     layout: DefaultLayout,
     post: DefaultPost,
     list: DefaultList,
+    page: DefaultPage,
   },
 };
 

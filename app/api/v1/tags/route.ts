@@ -10,17 +10,32 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { tags } from "@/lib/db/schema/tags";
+import { postTags } from "@/lib/db/schema/post-tags";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { tagCreateSchema } from "@/lib/validation/tags";
 import { generateId } from "@/lib/id";
 import { eq, sql } from "drizzle-orm";
+import { requireUser } from "@/lib/auth/require";
 
 export async function GET() {
-  const rows = db.select().from(tags).orderBy(sql`${tags.name} ASC`).all();
+  const rows = db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      slug: tags.slug,
+      count: sql<number>`count(${postTags.postSlug})`,
+    })
+    .from(tags)
+    .leftJoin(postTags, eq(postTags.tagId, tags.id))
+    .groupBy(tags.id)
+    .orderBy(sql`${tags.name} ASC`)
+    .all();
   return apiSuccess(rows);
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Authentication required", 401);
   let body: unknown;
   try {
     body = await request.json();

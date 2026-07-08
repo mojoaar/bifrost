@@ -22,6 +22,6 @@ export async function GET() {
     }));
     return apiSuccess(items);
   } catch (err) {
-    return apiError("Failed to list themes", 500, String(err));
+    return apiError("Failed to list themes", 500);
   }
 }

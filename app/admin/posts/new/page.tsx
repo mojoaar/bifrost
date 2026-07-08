@@ -11,28 +11,34 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Copy } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
+import { generateSlug, mergeFrontmatter } from "@/lib/editor/utils";
+import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
+import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
+
 import AIAssistant from "@/lib/editor/AIAssistant";
-import EditorToolbar from "@/lib/editor/EditorToolbar";
+import AdminEditorShell from "@/components/AdminEditorShell";
+import { TagInput, type TagItem } from "@/components/TagInput";
+import ImagePicker from "@/components/ImagePicker";
 import type { EditorView } from "@codemirror/view";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
-
-const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
-const Preview = dynamic(() => import("@/lib/editor/Preview"), { ssr: false });
 
 export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [status, setStatus] = useState<"draft" | "published" | "scheduled">("draft");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [tags, setTags] = useState<TagItem[]>([]);
+  const [featuredImage, setFeaturedImage] = useState("");
+  const [template, setTemplate] = useState("");
+  const [templates, setTemplates] = useState<{ name: string; title: string; content: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const editorViewRef = useRef<EditorView | null>(null);
-  const lastTitleRef = useRef("");
 
   const getEditorView = useCallback(() => editorViewRef.current, []);
   const getSelection = useCallback(() => {
@@ -41,26 +47,17 @@ export default function NewPostPage() {
     return view.state.sliceDoc(view.state.selection.main.from, view.state.selection.main.to);
   }, []);
 
-  function generateSlug(t: string) {
-    return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  }
-
-  const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n*/;
-
-  function buildFrontmatter(t: string): string {
-    const today = new Date().toISOString().slice(0, 10);
-    return `---\ntitle: "${t.replace(/"/g, '\\"')}"\ndate: ${today}\ntags:\n---\n\n`;
-  }
-
-  function mergeFrontmatter(text: string, t: string): string {
-    if (!t) return text;
-    const newFm = buildFrontmatter(t);
-    if (!text || text.trim() === "") return newFm;
-    const match = text.match(FRONTMATTER_RE);
-    if (!match) return newFm + text.replace(/^\n+/, "");
-    const after = text.slice(match[0].length);
-    return newFm + after.replace(/^\n+/, "");
-  }
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await authFetch("/api/v1/post-templates");
+        const body = await res.json();
+        if (body.data) setTemplates(body.data);
+      } catch {
+        setTemplates([{ name: "Standard post", title: "", content: "" }]);
+      }
+    })();
+  }, []);
 
   async function handleSave() {
     if (!title || !slug) {
@@ -74,10 +71,11 @@ export default function NewPostPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          title, slug, content, status,
-          frontmatter: {},
+          title, slug, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name)), status,
+          scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined,
+          frontmatter: featuredImage ? { featuredImage } : {},
           authorId: "00000000-0000-0000-0000-000000000000",
-          tagIds: [],
+          tagIds: tags.map((t) => t.id),
         }),
       });
       if (!res.ok) {
@@ -93,31 +91,50 @@ export default function NewPostPage() {
     }
   }
 
-  useEffect(() => {
-    if (title.trim() && title !== lastTitleRef.current) {
-      lastTitleRef.current = title;
-      setContent((prev) => mergeFrontmatter(prev, title));
-    }
-  }, [title]);
+  useSaveShortcut(handleSave, [saving, title, slug, content, status]);
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        if (!saving) handleSave();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [saving, title, slug, content, status]);
+  const isDirty = title !== "" || content !== "";
+  useUnsavedChanges(isDirty);
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col gap-4">
+    <AdminEditorShell
+      content={content}
+      onChange={setContent}
+      onViewReady={(v) => { editorViewRef.current = v; }}
+      getEditorView={getEditorView}
+      getSelection={getSelection}
+    >
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => router.push("/admin/posts")}>
           <ArrowLeft size={14} />
           <span>back</span>
         </Button>
+      </div>
+      <div className="flex items-end gap-4">
+        <Field label="Template">
+          <Select
+            value={template}
+            onChange={(e) => {
+              const t = templates.find((tp) => tp.name === e.target.value);
+              if (t) {
+                setTemplate(t.name);
+                if (t.title) setTitle(t.title);
+                if (t.content) {
+                  setContent(t.content);
+                  if (t.title) setSlug(generateSlug(t.title));
+                }
+              }
+            }}
+          >
+            {templates.map((t) => (
+              <option key={t.name} value={t.name}>{t.name}</option>
+            ))}
+          </Select>
+        </Field>
+        <TagInput selected={tags} onChange={setTags} />
+        <Field label="Featured">
+          <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
+        </Field>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_16rem_10rem_auto]">
         <Field label="Title">
@@ -131,21 +148,41 @@ export default function NewPostPage() {
           />
         </Field>
         <Field label="Slug">
-          <Input
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            placeholder="my-post"
-            className="font-mono"
-          />
+          <div className="relative">
+            <Input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="my-post"
+              className="font-mono pr-8"
+            />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(slug)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-3 hover:text-text-1"
+              title="Copy slug"
+            >
+              <Copy size={14} />
+            </button>
+          </div>
         </Field>
         <Field label="Status">
-          <Select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")}>
+          <Select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published" | "scheduled")}>
             <option value="draft">draft</option>
             <option value="published">published</option>
+            <option value="scheduled">scheduled</option>
           </Select>
         </Field>
+        {status === "scheduled" && (
+          <Field label="Publish at">
+            <Input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+            />
+          </Field>
+        )}
         <div className="flex items-end gap-2">
-          <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
+          <Button variant="primary" size="md" onClick={handleSave} disabled={saving} className="h-[2.375rem]">
             <Save size={14} />
             <span>{saving ? "Saving..." : "Create"}</span>
           </Button>
@@ -153,31 +190,13 @@ export default function NewPostPage() {
             content={content}
             onInsert={(text) => setContent((prev) => prev + text)}
             onReplace={(text) => setContent(text)}
+            className="h-[2.375rem]"
           />
         </div>
       </div>
-
       {error && (
-        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error}
-        </div>
+        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
       )}
-
-      <div className="flex min-h-0 flex-1 overflow-hidden rounded-md border border-border">
-        <div className="flex w-1/2 flex-col border-r border-border">
-          <EditorToolbar getEditorView={getEditorView} getSelection={getSelection} />
-          <div className="min-h-0 flex-1 overflow-auto">
-            <Editor
-              value={content}
-              onChange={setContent}
-              onViewReady={(v) => { editorViewRef.current = v; }}
-            />
-          </div>
-        </div>
-        <div className="w-1/2 bg-bg-0">
-          <Preview source={content} />
-        </div>
-      </div>
-    </div>
+    </AdminEditorShell>
   );
 }

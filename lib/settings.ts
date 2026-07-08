@@ -10,6 +10,20 @@
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 
+export const SECRET_PLACEHOLDER = "__SET__";
+
+export function isSecretKey(key: string): boolean {
+  return key === "git.token" || key.startsWith("ai.key.");
+}
+
+export function redactSecrets(map: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(map)) {
+    out[key] = isSecretKey(key) ? (value ? SECRET_PLACEHOLDER : "") : value;
+  }
+  return out;
+}
+
 const CACHE_MS = 5_000;
 let cache: { at: number; data: Record<string, string> } | null = null;
 

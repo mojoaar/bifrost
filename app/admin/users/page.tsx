@@ -132,6 +132,7 @@ export default function UsersPage() {
   }
 
   async function handleDelete(id: string) {
+    if (!confirm("Delete this user? This cannot be undone.")) return;
     setError("");
     const res = await fetch(`/api/v1/users/${id}`, {
       method: "DELETE",

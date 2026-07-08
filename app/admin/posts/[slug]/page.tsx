@@ -11,24 +11,27 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import dynamic from "next/dynamic";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, ExternalLink, History } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
+import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
+import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
 import AIAssistant from "@/lib/editor/AIAssistant";
-import EditorToolbar from "@/lib/editor/EditorToolbar";
+import AdminEditorShell from "@/components/AdminEditorShell";
+import { TagInput, type TagItem } from "@/components/TagInput";
+import ImagePicker from "@/components/ImagePicker";
 import type { EditorView } from "@codemirror/view";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 
-const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
-const Preview = dynamic(() => import("@/lib/editor/Preview"), { ssr: false });
-
 interface Post {
   slug: string;
   title: string;
   contentMd: string;
-  status: "draft" | "published";
+  frontmatter?: string;
+  status: "draft" | "published" | "scheduled";
+  scheduledAt?: string | null;
+  tags?: TagItem[];
 }
 
 export default function EditPostPage() {
@@ -37,7 +40,13 @@ export default function EditPostPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [status, setStatus] = useState<"draft" | "published" | "scheduled">("draft");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [tags, setTags] = useState<TagItem[]>([]);
+  const [featuredImage, setFeaturedImage] = useState("");
+  const [initialTitle, setInitialTitle] = useState("");
+  const [initialContent, setInitialContent] = useState("");
+  const [initialStatus, setInitialStatus] = useState<"draft" | "published" | "scheduled">("draft");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const editorViewRef = useRef<EditorView | null>(null);
@@ -66,6 +75,15 @@ export default function EditPostPage() {
         setTitle(p.title);
         setContent(p.contentMd);
         setStatus(p.status);
+        setScheduledAt(p.scheduledAt ? p.scheduledAt.slice(0, 16) : "");
+        setTags(p.tags ?? []);
+        try {
+          const fm = JSON.parse(p.frontmatter ?? "{}");
+          setFeaturedImage((fm.featuredImage as string) ?? "");
+        } catch { /* noop */ }
+        setInitialTitle(p.title);
+        setInitialContent(p.contentMd);
+        setInitialStatus(p.status);
       } catch {
         if (!cancelled) setError("Network error");
       }
@@ -85,7 +103,7 @@ export default function EditPostPage() {
       const res = await authFetch(`/api/v1/posts/${params.slug}`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, content, status, frontmatter: {}, tagIds: [] }),
+        body: JSON.stringify({ title, content, status, scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined, frontmatter: featuredImage ? { featuredImage } : {}, tagIds: tags.map((t) => t.id) }),
       });
       if (!res.ok) {
         const body = await res.json();
@@ -100,16 +118,10 @@ export default function EditPostPage() {
     }
   }
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        if (!saving && post) handleSave();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [saving, title, content, status, post]);
+  useSaveShortcut(handleSave, [saving, title, content, status, post]);
+
+  const isDirty = title !== initialTitle || content !== initialContent || status !== initialStatus;
+  useUnsavedChanges(isDirty);
 
   if (!post) {
     return (
@@ -120,25 +132,57 @@ export default function EditPostPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col gap-4">
+    <AdminEditorShell
+      content={content}
+      onChange={setContent}
+      onViewReady={(v) => { editorViewRef.current = v; }}
+      getEditorView={getEditorView}
+      getSelection={getSelection}
+    >
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => router.push("/admin/posts")}>
           <ArrowLeft size={14} />
           <span>back</span>
         </Button>
+        <a
+          href={`/${post.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+        >
+          <ExternalLink size={14} />
+          <span>{status === "draft" ? "Preview" : "View"}</span>
+        </a>
+        <a
+          href={`/admin/git?slug=${encodeURIComponent(post.slug)}`}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+        >
+          <History size={14} />
+          <span>History</span>
+        </a>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_10rem_auto]">
         <Field label="Title">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </Field>
         <Field label="Status">
-          <Select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")}>
+          <Select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published" | "scheduled")}>
             <option value="draft">draft</option>
             <option value="published">published</option>
+            <option value="scheduled">scheduled</option>
           </Select>
         </Field>
+        {status === "scheduled" && (
+          <Field label="Publish at">
+            <Input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+            />
+          </Field>
+        )}
         <div className="flex items-end gap-2">
-          <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
+          <Button variant="primary" size="md" onClick={handleSave} disabled={saving} className="h-[2.375rem]">
             <Save size={14} />
             <span>{saving ? "Saving..." : "Save"}</span>
           </Button>
@@ -146,31 +190,15 @@ export default function EditPostPage() {
             content={content}
             onInsert={(text) => setContent((prev) => prev + text)}
             onReplace={(text) => setContent(text)}
+            className="h-[2.375rem]"
           />
         </div>
       </div>
-
+      <TagInput selected={tags} onChange={setTags} />
+      <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
       {error && (
-        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error}
-        </div>
+        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
       )}
-
-      <div className="flex min-h-0 flex-1 overflow-hidden rounded-md border border-border">
-        <div className="flex w-1/2 flex-col border-r border-border">
-          <EditorToolbar getEditorView={getEditorView} getSelection={getSelection} />
-          <div className="min-h-0 flex-1 overflow-auto">
-            <Editor
-              value={content}
-              onChange={setContent}
-              onViewReady={(v) => { editorViewRef.current = v; }}
-            />
-          </div>
-        </div>
-        <div className="w-1/2 bg-bg-0">
-          <Preview source={content} />
-        </div>
-      </div>
-    </div>
+    </AdminEditorShell>
   );
 }

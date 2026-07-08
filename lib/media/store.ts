@@ -13,8 +13,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema/media";
 import { generateId } from "@/lib/id";
-
-const MEDIA_DIR = path.resolve("content/media");
+import { contentDir, mediaDir } from "@/lib/paths";
 
 export interface MediaRecord {
   id: string;
@@ -48,7 +47,7 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
   }
 
   const id = generateId();
-  const dir = path.join(MEDIA_DIR, id);
+  const dir = path.join(mediaDir(), id);
   await fs.mkdir(dir, { recursive: true });
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -56,7 +55,7 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
   await fs.writeFile(filePath, buffer);
 
   const now = new Date().toISOString();
-  const relativePath = path.relative(path.resolve("content"), filePath);
+  const relativePath = path.relative(contentDir(), filePath);
 
   db.insert(media)
     .values({
@@ -88,7 +87,7 @@ export async function deleteMedia(id: string): Promise<boolean> {
 
   if (!record) return false;
 
-  const fsPath = path.resolve("content", record.path);
+  const fsPath = path.join(contentDir(), record.path);
   await fs.unlink(fsPath).catch(() => {});
 
   db.delete(media).where(eq(media.id, id)).run();

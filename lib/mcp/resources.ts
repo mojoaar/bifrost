@@ -12,6 +12,7 @@ import { posts } from "@/lib/db/schema/posts";
 import { media } from "@/lib/db/schema/media";
 import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
+import { redactSecrets } from "@/lib/settings";
 
 interface ResourceDef {
   uriPattern: string;
@@ -83,16 +84,10 @@ export function createResourceDefinitions(): ResourceDef[] {
       uriPattern: "bifrost://settings",
       handler: async () => {
         const rows = db.select().from(settings).all();
-        const obj: Record<string, unknown> = {};
-        for (const row of rows) {
-          try {
-            obj[row.key] = JSON.parse(row.value);
-          } catch {
-            obj[row.key] = row.value;
-          }
-        }
+        const raw: Record<string, string> = {};
+        for (const row of rows) raw[row.key] = row.value;
         return {
-          contents: [{ uri: "bifrost://settings", mimeType: "application/json", text: JSON.stringify(obj, null, 2) }],
+          contents: [{ uri: "bifrost://settings", mimeType: "application/json", text: JSON.stringify(redactSecrets(raw), null, 2) }],
         };
       },
     },

@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
+import { PageViewBeacon } from "@/components/PageViewBeacon";
 
 export default async function PublicLayout({
   children,
@@ -44,5 +45,5 @@ export default async function PublicLayout({
     return <>{children}</>;
   }
 
-  return <ThemeLayout contentWidth={contentWidth} theme={theme}>{children}</ThemeLayout>;
+  return <ThemeLayout contentWidth={contentWidth} theme={theme}><PageViewBeacon />{children}</ThemeLayout>;
 }

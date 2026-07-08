@@ -9,7 +9,10 @@
 
 export { users } from "./users";
 export { posts } from "./posts";
+export { pages } from "./pages";
 export { tags } from "./tags";
 export { postTags } from "./post-tags";
 export { media } from "./media";
 export { settings } from "./settings";
+export { apiKeys } from "./api-keys";
+export { pageViews } from "./page-views";

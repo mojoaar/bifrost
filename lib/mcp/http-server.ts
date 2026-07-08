@@ -11,13 +11,43 @@ import express from "express";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createMcpServer } from "./server";
 import { loadConfig } from "@/lib/config/loader";
+import { getSetting } from "@/lib/settings";
+import { verifyAccessToken } from "@/lib/auth/token";
+import { verifyApiKey } from "@/lib/auth/api-key";
 
 const app = express();
 app.use(express.json());
 
+async function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Authorization required" });
+    return;
+  }
+  const token = header.slice(7);
+  if (token.startsWith("bfk_")) {
+    const key = await verifyApiKey(token);
+    if (!key) {
+      res.status(401).json({ error: "Invalid or expired API key" });
+      return;
+    }
+  } else {
+    const payload = await verifyAccessToken(token);
+    if (!payload) {
+      res.status(401).json({ error: "Invalid or expired token" });
+      return;
+    }
+  }
+  next();
+}
+
 const transports = new Map<string, SSEServerTransport>();
 
-app.get("/sse", async (_req, res) => {
+app.get("/sse", authMiddleware, async (_req, res) => {
+  if (getSetting("mcp.enabled") === "false") {
+    res.status(503).json({ error: "MCP server is disabled" });
+    return;
+  }
   const mcpServer = createMcpServer();
   const transport = new SSEServerTransport("/messages", res);
   transports.set(transport.sessionId, transport);

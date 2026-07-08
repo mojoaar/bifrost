@@ -5,6 +5,325 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] — 2026-07-08
+
+### Added
+
+- **Mobile-responsive admin sidebar** with hamburger toggle, slide-over drawer, backdrop, and Escape-key dismiss
+- **Git History link** on post and page editors for per-content revision history
+- **Diff highlighting** on the git diff page with color-coded additions/removals via `DiffViewer`
+- **Custom CSS editor** at `/admin/themes/css` with CodeMirror and live injection into all pages
+- **Theme display settings** at `/admin/themes` — toggles for featured images, reading time, and author bio
+- **Theme file editor** at `/admin/themes/files` with file tree, CodeMirror editor, and restart warning
+- **Git History** link in admin sidebar (previously missing from nav)
+
+### Security
+
+- **API key toBase62:** Replaced modulo-biased encoding with rejection sampling for uniform distribution
+- **bcrypt → bcryptjs:** Swapped native bcrypt binding for pure-JS bcryptjs (zero native deps)
+- **CSRF protection:** Added Origin/Referer validation on the refresh endpoint (defense-in-depth with SameSite=Lax)
+- **Setup TOCTOU:** Wrapped initial setup check-and-insert in a transaction to prevent double-admin creation
+- **Settings __SET__ scope:** The placeholder skip now only applies to secret keys (git.token, ai.key.*), not all settings
+- **OpenAPI docs gate:** `/api/v1/openapi.json` and `/api/docs` now require `BIFROST_API_DOCS_ENABLED=true`
+
+### Changed
+
+- **Git history filter:** History API now accepts `?slug=` param for per-file commit filtering
+- **Editor header row:** Added History button alongside Preview/View in post and page editors
+
+### Fixed
+
+- **Featured image gap:** CSS calc() spacing fixed in list card hero image (browser was ignoring malformed calc expression)
+
+## [1.17.0] — 2026-07-08
+
+### Added
+
+- **Tag input** in post editor with autocomplete from existing tags, token pills, and YAML round-trip
+- **Bulk delete** on posts and pages lists with select-all checkbox and bulk actions bar
+- **Copy slug** button in new post and new page editors
+- **Unsaved changes warning** (beforeunload) on all 4 editor pages
+- **Post templates** dropdown (Standard, Tutorial, Review, Quick tip) in new post editor
+- **Scheduled posts** status with datetime picker (migration 0006: `scheduledAt` column)
+- **Featured images** — image picker modal with media grid + upload, stored in frontmatter, rendered in post detail + list cards + OpenGraph metadata
+
+### Changed
+
+- `GET /api/v1/posts/[slug]` now includes tags array via join
+- `buildFrontmatter` / `mergeFrontmatter` accept optional `tags` parameter for YAML serialization
+
+## [1.16.0] — 2026-07-08
+
+### Changed
+
+- **Editor deduplication**: extracted `generateSlug`, `buildFrontmatter`, and `mergeFrontmatter` into `lib/editor/utils.ts`
+- **`useSaveShortcut` hook** (`lib/editor/use-save-shortcut.ts`) shared between all 4 editor pages
+- **`AdminEditorShell`** component for the editor/preview split pane with toolbar
+- **`AdminContentList`** generic list component used by both posts and pages admin pages
+- Eliminated ~500 lines of duplicated code across 6 admin editor/list files
+
+## [1.15.1] — 2026-07-08
+
+### Fixed
+
+- Added missing AGPL-3.0 license headers to 3 CSS files (dark.css, light.css, palettes.css)
+- Added Simple Icons attribution (CC0) in SocialIcon.tsx
+- Added `"license": "AGPL-3.0"` to package.json
+
+## [1.15.0] — 2026-07-08
+
+### Added
+
+- **Custom 404 page** with Bifröst/Norse mythology theme (Heimdall, rainbow bridge, nine realms)
+- **Pagination** on public homepage (10 posts per page, Previous/Next navigation)
+- **Sitemap** at `/sitemap.xml` — dynamic route serving published posts and pages
+- **Favicon** (`/icon.svg`) — rainbow bridge SVG icon
+- **SEO metadata** — OpenGraph, Twitter cards, `metadataBase`, RSS alternates, `robots` directives on all pages
+- **Reading time** on post list items (homepage + tag pages)
+- **Tags admin page** at `/admin/tags` — create, rename, delete tags with post counts
+- **Site URL setting** (`site.url`) — used by RSS and sitemap, falls back to request host if unset
+- **User delete confirmation** dialog
+
+### Changed
+
+- Tag page now uses `post_tags` join table (fixed inefficient `LIKE '%tag%'` on JSON blob)
+- RSS feed reads `site.url` setting or falls back to request URL (no more hardcoded `https://localhost`)
+- Post detail OpenGraph/Twitter metadata includes title, description, article type
+
+### Fixed
+
+- CommandPalette `setState`-in-effect regression re-fixed
+
+## [1.14.3] — 2026-07-08
+
+### Fixed
+
+- **CommandPalette `setState` in render body**: moved state resets from render function into `useEffect` (React anti-pattern that caused double-renders)
+- **Analytics view route now uses `apiSuccess`/`apiError` envelope** instead of bare `NextResponse.json`
+- **Analytics DB insert wrapped in try/catch** — failures no longer crash the route handler
+
+### Changed
+
+- **Removed unused `swagger-ui-react` and `@types/swagger-ui-react`** from dependencies (138 packages removed); Swagger UI page uses `swagger-ui-dist` directly
+- **Added `console.error` to silent catch blocks** in admin dashboard (plugin load, stats, settings, admin stats) for easier debugging
+
+## [1.14.2] — 2026-07-08
+
+### Security
+
+- **`requireUser` now verifies the Bearer token directly** instead of trusting `x-user-id` headers (H1)
+- **Password minimum 8 characters** enforced on setup and user creation routes, not just profile (H3)
+- **Logout cookie name fixed**: now clears `bifrost_refresh` (was `bifrost_refresh_token`, which never matched) (H6)
+- **Security headers added**: `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer-when-downgrade`, `X-Frame-Options: DENY` on all responses (M2)
+
+## [1.14.1] — 2026-07-08
+
+### Security
+
+- **Middleware now covers all `/api/v1/` write routes**: users, tags, settings, git, profile, api-keys, admin/routes are now protected by `WRITE_API_PATTERNS` (C6)
+- **Settings endpoint now requires admin auth**: `PUT /api/v1/settings` guarded by `requireAdmin()` (C1)
+- **User management now requires admin auth**: `POST /api/v1/users`, `PUT|DELETE /api/v1/users/[id]` guarded by `requireAdmin()` (C2)
+- **Tag management now requires auth**: `POST /api/v1/tags`, `PUT|DELETE /api/v1/tags/[id]` guarded by `requireUser()` (C3)
+- **Git push/pull now require admin auth**: both endpoints guarded by `requireAdmin()` (C4)
+- **JWT dev-secret warning on startup**: `instrumentation.ts` now logs a prominent console error when default dev secrets are in use (C5)
+- **Drafts filtered from public API**: `GET /api/v1/posts` and `GET /api/v1/pages` now only return published posts to unauthenticated clients; admins can pass `?status=draft` with a valid token (C9)
+- **MCP settings now redact secrets**: `get_settings` tool and `bifrost://settings` resource call `redactSecrets()` (C7)
+- **MCP HTTP server now requires auth**: `authMiddleware` verifies Bearer JWT or `bfk_` API key before `/sse` access (C8)
+- **AI chat requires auth**: `POST /api/v1/ai/chat` now guarded by `requireUser()` (H2)
+- **Rate limiting added**: login (5/min), setup (3/min), AI chat (20/min), analytics (100/min) — IP-based sliding window (H4)
+- **Error details no longer leaked**: removed `String(err)` from all 10 500 responses — only user-safe messages returned (H5)
+
+## [1.14.0] — 2026-07-08
+
+### Added
+
+- **Server stats** on admin dashboard: uptime, Node.js version, platform, memory usage, DB table counts
+- **Visitor analytics**: privacy-first page view tracking with referrer logging via `page_views` table (no cookies, no IPs, no fingerprints)
+- **View beacon** on every public page (`POST /api/v1/analytics/view`, fire-and-forget)
+- **Dashboard visitor stats**: views today, views this week, most viewed pages
+- **Color scheme picker** on `/admin/themes` page (previously only in Settings)
+- `GET /api/v1/admin/stats` endpoint (admin-only, returns server + DB + view stats)
+
+### Changed
+
+- Dashboard System card merged into a new Server card with server stats and feature toggles
+
+## [1.13.0] — 2026-07-08
+
+### Added
+- Six color palettes for the Bifröst Terminal theme: Default, GitHub, Dracula, Nord, Cyberpunk, and Catppuccin. Each palette has both light and dark variants — switch in Settings under Appearance > Color Scheme.
+- Code syntax highlighting now uses a CSS-variables theme, so code blocks inherit the active palette's colors (keyword, string, function, etc.) automatically — no dual-theme re-rendering.
+- The markdown editor preview now respects the active palette and toggles live when you change the scheme.
+
+### Changed
+- Theme colour tokens move from dedicated `light.css`/`dark.css` files into a single `palettes.css` generated from the palette data module. Structural tokens (fonts, spacing, radius) live in a base `:root` block in `globals.css`.
+- **Re-ingest required for existing code blocks**: Published posts rendered before this change use the old dual-theme Shiki spans. They will still display but code highlighting won't pick up the new palette colours until the content is re-rendered. Restart the dev server (instrumentation boots `ingestAll`), or re-save the post in the editor.
+
+## [1.12.0] — 2026-07-08
+
+### Added
+- Insert any of the ~2000 Lucide icons into posts and pages with `:icon[name]` markdown syntax. Icons render as inline SVG (server-side), inheriting the surrounding text size and color, and appear in the editor preview, published posts, and pages alike.
+- The markdown editor toolbar gains a searchable icon picker that inserts the chosen `:icon[name]` at the cursor.
+
+## [1.11.0] — 2026-07-08
+
+### Added
+- `GET /api/v1/tags` now includes a `count` field for each tag, reflecting how many posts use it across the site.
+
+## [1.10.4] — 2026-07-08
+
+### Fixed
+- Revoking an API key in the admin UI now removes it from the list. The key was correctly revoked in the database, but `GET /api/v1/api-keys` still returned revoked keys, so the row never disappeared and the action appeared to do nothing. The list now excludes revoked keys, and revoking asks for confirmation first.
+
+## [1.10.3] — 2026-07-08
+
+### Fixed
+- Applying an inline format (bold, italic, etc.) to selected text in the markdown editor no longer throws `RangeError: Selection points outside of document`. The toolbar replaced the selection with just the wrapping markers instead of wrapping the selected text; it now inserts `prefix + selection + suffix` and re-selects the wrapped text.
+
+## [1.10.2] — 2026-07-08
+
+### Fixed
+- Creating an API key in the admin UI now shows the full key with a copy button. The create endpoint returned the plaintext under a `plaintext` field while the UI expected `key`, so the "new key" panel never appeared and only the truncated prefix was visible.
+
+## [1.10.1] — 2026-07-08
+
+### Fixed
+- Tags from post frontmatter are now materialized into the `tags` and `post_tags` tables during content ingestion, so `GET /api/v1/tags` (and the admin API Explorer) no longer returns an empty list. Existing tags are backfilled on the next ingest.
+
+## [1.10.0] — 2026-07-08
+
+### Added
+- **Social sharing plugin**: optional share buttons on blog posts for Bluesky, Facebook, Reddit, LinkedIn, and Email. Share links are built client-side from the current page URL, so no site base URL configuration is required.
+- Admin **Plugins** page gains a "Social Sharing" card with an enable toggle and per-network checkboxes; the plugin is disabled by default (including on fresh installs).
+- The dashboard System panel now shows the Social Sharing enabled/disabled state, and social sharing is registered as a feature module.
+
+### Fixed
+- API Explorer (`/admin/api`): wide JSON responses no longer overflow past the right edge — the response and code-sample panes now scroll internally.
+
+## [1.9.0] — 2026-07-08
+
+### Added
+- **Pages**: markdown-authored standalone pages (About, Projects, etc.) as a first-class content type alongside posts. Pages are authored in the same editor (with live preview, toolbar, and AI assistant) at `/admin/pages`, stored as markdown on disk under `content/pages/<slug>/index.md`, ingested by the content watcher, and versioned in Git like posts.
+- Pages render at clean top-level URLs (`/<slug>`) with a dedicated theme template that omits author byline, date, and tags. Slugs are unique across both posts and pages.
+- **Site navigation integration**: each page has "Show in navigation" and "Nav order" controls; published nav pages appear in the public site header, ordered by nav order.
+- **REST API** for pages: `GET`/`POST /api/v1/pages` and `GET`/`PUT`/`DELETE /api/v1/pages/{slug}` (writes require authentication).
+- **MCP tools** for pages: `list_pages`, `get_page`, `create_page`, `update_page`, `delete_page`.
+- An example **About** page is now seeded for new sites and removed by the "Remove demo data" action.
+
+## [1.8.3] — 2026-07-08
+
+### Changed
+- The Plugins page now lays out plugin cards in a responsive two-column (50/50) masonry layout on large screens, so more plugins fit in view and a taller card on one side no longer leaves a gap on the other.
+
+## [1.8.2] — 2026-07-08
+
+### Fixed
+- MCP `create_post` now resolves a real author via `resolveAuthorId` (falling back to the first admin) instead of inserting a placeholder `00000000-…` author id, matching the REST posts route. Posts created through the MCP server without an explicit author are now attributed to a genuine user.
+- Removed the placeholder-author default (`00000000-…`) from the post validation schema; `authorId` is now simply optional and resolved by the caller.
+- Removed a stray `system@bifrost.local` admin account that could be left in the database by an older, pre-isolation test run, and reattributed any posts that referenced it. The content watcher test fixture now uses an obviously non-production identity.
+
+## [1.8.1] — 2026-07-08
+
+### Fixed
+- Admin sidebar no longer shrinks/collapses when a page renders wide content (e.g. a long JSON response in the API explorer). The sidebar is now `shrink-0` and the main column `min-w-0`, so overflowing content scrolls within its panel instead of squashing the navigation.
+
+## [1.8.0] — 2026-07-08
+
+### Added
+- **Social links on profiles**: authors can configure links for Bluesky, Mastodon, Lemmy, Reddit, LinkedIn, GitHub, GitLab, Codeberg, and a personal website from `/admin/profile`. Links are stored per user and rendered as brand icons in the post author card (respecting the existing "show author information" setting).
+
+## [1.7.0] — 2026-07-08
+
+### Added
+- **Custom API explorer** (`/admin/api`): an interactive, theme-aware REST reference that replaces the raw Swagger link in the admin nav. Browse operations grouped by tag, fill in path/query parameters and JSON bodies, choose an authorization (current session or an API key), and **send live requests** with a formatted response viewer (status, timing, pretty JSON).
+- Generated **code samples** for every operation in **cURL**, **JavaScript** (`fetch`), **PowerShell** (`Invoke-RestMethod`), and **Python** (`requests`), syntax-highlighted with Shiki and copyable in one click (`lib/api/samples.ts`).
+
+### Changed
+- The OpenAPI spec (`generateOpenApiSpec`) now documents **all** REST endpoints (users, tags, profile, API keys, media, AI, settings, themes, git, MCP, setup, admin) and reports the live application version. This also completes the existing Swagger UI at `/api/docs`.
+- The admin sidebar's external **API Explorer ↗** (Swagger) link is replaced by **API** → `/admin/api`; Swagger remains reachable from within the explorer.
+
+## [1.6.0] — 2026-07-08
+
+### Added
+- **API keys** (`/admin/api-keys`): create long-lived, revocable bearer tokens (`bfk_…`) to authenticate REST API requests without logging in. Keys are shown once on creation, stored only as a bcrypt hash, inherit the creating user's role, and track a **last used** timestamp.
+- `GET`/`POST /api/v1/api-keys` (list / create) and `DELETE /api/v1/api-keys/{id}` (revoke), admin-only.
+
+### Changed
+- Protected write routes (`posts`, `media`) now accept either a session JWT or an API key via a shared `requireUser` helper. The auth middleware passes `bfk_`-prefixed bearer tokens through to route handlers, which verify them against the database.
+
+## [1.5.1] — 2026-07-08
+
+### Added
+- The dashboard **System** panel now shows the enabled/disabled state of the **MCP** server and the **AI Assistant** alongside Git.
+
+## [1.5.0] — 2026-07-08
+
+### Added
+- **Draft preview:** the post editor now has a **Preview** link (labelled **View** for published posts) that opens the post on the public site in a new tab. Admins can review a draft exactly as it will appear before publishing.
+- A **draft** badge is shown next to the title on the public post page when an admin is viewing an unpublished post.
+
+### Security
+- Draft posts are no longer readable by anonymous visitors via their direct URL. A draft now returns **404** for anyone who is not a signed-in admin (previously the page rendered for anyone who knew the slug). Post titles/excerpts for drafts are likewise withheld from page metadata.
+
+## [1.4.0] — 2026-07-08
+
+### Added
+- **Plugins page** (`/admin/plugins`): Git Sync, AI Assistant, and the MCP Server are now managed as first-class plugins, each with its own enable/disable toggle and settings panel.
+- `mcp.enabled` setting with a runtime toggle. The MCP HTTP server returns `503` on `/sse` while disabled, so it can be turned off without restarting the process.
+- Admin-only `GET /api/v1/mcp/status` returning the MCP enabled state, transport mode, and port.
+- Feature-module registry (`lib/modules/registry.ts`) describing the built-in plugins.
+
+### Changed
+- Git and AI configuration moved out of **Settings** into the new **Plugins** page. Settings now covers Site, Appearance, Theme, and the demo-data controls only.
+- The top-level "Git" nav item was removed; Git history is reached from the Git Sync plugin card.
+
+## [1.3.1] — 2026-07-08
+
+### Fixed
+- **Data loss:** running the test suite could permanently delete real posts. The content tests wrote to the real `content/` directory and `data/bifrost.db`, hard-coding slugs (`test-post`, `test-sync`) and removing them in cleanup — so `npm test` deleted any real post that shared those slugs. Tests now run against a throwaway temp content directory and database via a new `BIFROST_CONTENT_DIR` environment variable, leaving real content and the database untouched.
+
+### Changed
+- Deleting a post now moves its folder to `content/.trash/<slug>-<timestamp>/` instead of permanently removing it, so deletions (via the API or the MCP `delete_post` tool) are recoverable. `content/.trash/` is ignored by the content Git repo.
+- Content, media, and Git paths are now resolved through a shared helper honoring `BIFROST_CONTENT_DIR` (default `content`); production behavior is unchanged.
+
+## [1.3.0] — 2026-07-08
+
+### Added
+- AI assist can now be enabled/disabled from **Settings → AI Assistant** (disabled by default). The editor "AI Assist" button is hidden while disabled, and `POST /api/v1/ai/chat` returns `403` when disabled.
+- Provider configuration in Settings: per-provider model overrides and API keys (opencode-zen, opencode-go, deepseek) plus a default-provider selector, stored in the database and resolved at request time (falling back to config file / env).
+- Dedicated admin-only `GET`/`PUT /api/v1/ai/settings` endpoint. API keys are write-only — they are never returned to the client (only a `hasKey` flag), and a blank field keeps the existing key.
+
+### Security
+- Secret settings are now redacted from the public `GET /api/v1/settings` response. This closes a pre-existing leak where `git.token` was readable by unauthenticated visitors; the token field is now write-only in Settings.
+- `/api/v1/ai/*` write requests now require authentication (added to the middleware's protected API patterns).
+
+### Fixed
+- New blogs seed `ai.enabled=false` so AI assist stays off until a key is configured.
+
+### Changed
+- "Remove demo data" now deletes only the seed posts that ship with Bifröst (matched by slug); your own posts, media, tags, and Git history are left untouched. The section is hidden entirely once no demo posts remain.
+
+## [1.2.0] — 2026-07-08
+
+### Added
+- User profiles: uploadable round avatar, bio, and a `/admin/profile` page to edit display name, email, avatar, bio, and password.
+- `bio` column on the users table (migration `0001`).
+- Author byline on public posts (name in the meta line, plus a footer author card with avatar and bio), gated by a new **Show author information on posts** setting (`appearance.show_author`).
+- Media serving route (`/media/[...path]`) that streams files from `content/media` with content-type detection and path-traversal protection — fixes broken image previews and serves avatars.
+- MCP guide post now documents connecting opencode, Claude Code, and Kilo Code to the SSE endpoint.
+- Three new seed posts explaining Bifröst: content storage model, admin tour, and the REST API.
+
+### Fixed
+- "Remove demo data" in settings now uses `authFetch`, so an expired access token is transparently refreshed instead of failing with "Invalid or expired token".
+- Frontmatter no longer leaks into rendered post body: `writePostToFilesystem` now strips any existing frontmatter from content before prepending the authoritative YAML block, preventing duplicate frontmatter on disk.
+- Content watcher now detects live file changes: switched chokidar from an unsupported glob path (removed in chokidar v4+) to watching the `content/posts` directory recursively, so post edits re-ingest without a server restart.
+- Post creation no longer fails with a foreign-key error on a fresh database: author IDs are resolved to a real user (falling back to the first admin) in both the API and the file watcher.
+- Auth middleware now forwards the authenticated user id/role to route handlers (via request headers), not just the response.
+- Public post dates now respect the configured date format (EU/ISO/US) instead of always rendering US format.
+- Copy-code button no longer disappears after settings load: a `MutationObserver` re-injects the buttons when the rendered content re-mounts.
+- New blogs now seed sensible defaults (EU date, 24h time, Git disabled), and the `git.enabled` setting is actually honored by the Git layer.
+- Admin dashboard System panel and sidebar now report the real version, active theme, and Git status instead of hardcoded values.
+
 ## [1.1.0] — 2026-07-07
 
 ### Added

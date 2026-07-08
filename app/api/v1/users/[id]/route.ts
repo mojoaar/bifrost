@@ -13,11 +13,15 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema/users";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
+import { requireAdmin } from "@/lib/auth/require";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Admin authentication required", 401);
+
   const { id } = await params;
 
   const existing = db.select({ id: users.id }).from(users).where(eq(users.id, id)).get();
@@ -51,9 +55,11 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Admin authentication required", 401);
   const { id } = await params;
 
   const existing = db.select({ id: users.id }).from(users).where(eq(users.id, id)).get();

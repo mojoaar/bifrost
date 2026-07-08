@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { postTags } from "@/lib/db/schema/post-tags";
+import { tags } from "@/lib/db/schema/tags";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { postUpdateSchema } from "@/lib/validation/posts";
 import {
@@ -18,6 +19,7 @@ import {
   deletePostFromFilesystem,
 } from "@/lib/content/sync";
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
+import { requireUser } from "@/lib/auth/require";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -31,13 +33,25 @@ export async function GET(
     return apiError("Post not found", 404);
   }
 
-  return apiSuccess(post);
+  const postTagRows = db
+    .select({ id: tags.id, name: tags.name })
+    .from(tags)
+    .innerJoin(postTags, eq(postTags.tagId, tags.id))
+    .where(eq(postTags.postSlug, slug))
+    .all();
+
+  return apiSuccess({ ...post, tags: postTagRows });
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
   const { slug } = await params;
 
   const existing = db.select().from(posts).where(eq(posts.slug, slug)).get();
@@ -68,6 +82,7 @@ export async function PUT(
   if (update.title !== undefined) updateData.title = update.title;
   if (update.status !== undefined) updateData.status = update.status;
   if (update.authorId !== undefined) updateData.authorId = update.authorId;
+  if (update.scheduledAt !== undefined) updateData.scheduledAt = update.scheduledAt;
 
   if (update.content !== undefined) {
     updateData.frontmatter = JSON.stringify(mergedFm);
@@ -77,7 +92,7 @@ export async function PUT(
       updateData.contentHtml = html;
       updateData.excerpt = excerpt;
     } catch (err) {
-      return apiError("Failed to render markdown", 500, String(err));
+      return apiError("Failed to render markdown", 500);
     }
   }
 
@@ -86,6 +101,15 @@ export async function PUT(
     (update.status === undefined && existing.status === "published")
   ) {
     updateData.publishedAt = existing.publishedAt ?? now;
+  } else if (update.status === "scheduled") {
+    updateData.scheduledAt = update.scheduledAt ?? now;
+  }
+
+  if (update.status === "published" && existing.status === "scheduled") {
+    updateData.publishedAt = now;
+    updateData.scheduledAt = null;
+  } else if (update.status !== "scheduled" && update.status !== undefined) {
+    updateData.scheduledAt = null;
   }
 
   db.update(posts).set(updateData).where(eq(posts.slug, slug)).run();
@@ -118,9 +142,14 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
   const { slug } = await params;
 
   const existing = db.select().from(posts).where(eq(posts.slug, slug)).get();

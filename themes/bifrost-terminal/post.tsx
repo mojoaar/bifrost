@@ -11,26 +11,28 @@
 
 import type { PostData } from "@/lib/themes/types";
 import { useCodeCopyButtons } from "@/components/CodeCopyButton";
+import { useDateTimeFormat } from "@/lib/format-date";
+import { SOCIAL_PLATFORMS } from "@/lib/social";
+import { SocialIcon } from "@/components/SocialIcon";
+import ShareBar from "@/components/ShareBar";
+import { readingTime } from "@/lib/reading-time";
 
 interface Props {
   post: PostData;
   isAdmin?: boolean;
+  sharing?: { networks: string[] } | null;
 }
 
-function wordCount(html: string): number {
-  const text = html.replace(/<[^>]*>/g, " ");
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-function readingTime(html: string): number {
-  return Math.max(1, Math.round(wordCount(html) / 220));
-}
-
-export default function PostTemplate({ post, isAdmin = false }: Props) {
+export default function PostTemplate({ post, isAdmin = false, sharing = null }: Props) {
   const date = post.publishedAt ?? post.createdAt;
   const tags = (post.frontmatter?.tags as string[] | undefined) ?? [];
   const minutes = readingTime(post.contentHtml);
   const containerRef = useCodeCopyButtons(post.contentHtml);
+  const { formatDateShort } = useDateTimeFormat();
+  const author = post.author;
+  const social = author?.socialLinks
+    ? SOCIAL_PLATFORMS.filter((p) => author.socialLinks?.[p.key])
+    : [];
 
   return (
     <article>
@@ -39,25 +41,34 @@ export default function PostTemplate({ post, isAdmin = false }: Props) {
           <h1 className="text-3xl font-bold tracking-tight text-text-1 sm:text-display">
             {post.title}
           </h1>
-          {isAdmin && (
-            <a
-              href={`/admin/posts/${post.slug}`}
-              className="shrink-0 rounded-md border border-border bg-bg-1 px-2 py-1 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
-            >
-              edit
-            </a>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {isAdmin && post.status === "draft" && (
+              <span className="rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-xs text-warning">
+                draft
+              </span>
+            )}
+            {isAdmin && (
+              <a
+                href={`/admin/posts/${post.slug}`}
+                className="rounded-md border border-border bg-bg-1 px-2 py-1 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+              >
+                edit
+              </a>
+            )}
+          </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs text-text-3">
+          {author && <span className="text-text-2">{author.displayName}</span>}
+          {author && <span className="text-text-muted">·</span>}
           <time dateTime={date}>
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
+            {formatDateShort(date)}
           </time>
-          <span className="text-text-muted">·</span>
-          <span>{minutes} min read</span>
+          {post.showReadingTime !== false && (
+            <>
+              <span className="text-text-muted">·</span>
+              <span>{minutes} min read</span>
+            </>
+          )}
           {tags.length > 0 && (
             <>
               <span className="text-text-muted">·</span>
@@ -76,11 +87,57 @@ export default function PostTemplate({ post, isAdmin = false }: Props) {
           )}
         </div>
       </header>
+      {!!post.frontmatter?.featuredImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={String(post.frontmatter.featuredImage)}
+          alt=""
+          className="mb-6 w-full max-h-96 rounded-md object-cover"
+        />
+      )}
       <div
         ref={containerRef}
         className="text-text-1"
         dangerouslySetInnerHTML={{ __html: post.contentHtml }}
       />
+      {sharing && sharing.networks.length > 0 && (
+        <ShareBar title={post.title} networks={sharing.networks} />
+      )}
+      {author && post.showAuthorBio !== false && (author.bio || author.avatarUrl || social.length > 0) && (
+        <footer className="mt-10 flex items-start gap-4 border-t border-border pt-6">
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-bg-1">
+            {author.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={author.avatarUrl} alt={author.displayName} className="size-full object-cover" />
+            ) : (
+              <span className="font-mono text-sm text-text-muted">
+                {author.displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div>
+            <div className="font-mono text-sm text-text-1">{author.displayName}</div>
+            {author.bio && <p className="mt-1 text-sm text-text-3">{author.bio}</p>}
+            {social.length > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {social.map((p) => (
+                  <a
+                    key={p.key}
+                    href={author.socialLinks![p.key]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={p.label}
+                    title={p.label}
+                    className="text-text-muted transition hover:text-text-1"
+                  >
+                    <SocialIcon platform={p.key} size={18} />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </footer>
+      )}
     </article>
   );
 }

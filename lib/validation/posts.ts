@@ -18,12 +18,9 @@ export const postCreateSchema = z.object({
   title: z.string().min(1).max(500),
   content: z.string().min(1),
   frontmatter: z.record(z.string(), z.unknown()).optional().default({}),
-  status: z.enum(["draft", "published"]).optional().default("draft"),
-  authorId: z
-    .string()
-    .uuid()
-    .optional()
-    .default("00000000-0000-0000-0000-000000000000"),
+  status: z.enum(["draft", "published", "scheduled"]).optional().default("draft"),
+  scheduledAt: z.string().datetime().optional(),
+  authorId: z.string().uuid().optional(),
   tagIds: z.array(z.string().uuid()).optional().default([]),
 });
 

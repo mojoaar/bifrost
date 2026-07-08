@@ -7,13 +7,22 @@
  * See the LICENSE file for details.
  */
 
-import { apiSuccess } from "@/lib/api/response";
-import { listModels } from "@/lib/ai/providers";
-import { listActions } from "@/lib/ai/actions";
+import { NextRequest } from "next/server";
+import { apiSuccess, apiError } from "@/lib/api/response";
+import { fetchModels } from "@/lib/ai/providers";
 
-export async function GET() {
-  return apiSuccess({
-    providers: listModels(),
-    actions: listActions(),
-  });
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const provider = searchParams.get("provider");
+
+  if (!provider) {
+    return apiError("provider query parameter is required", 400);
+  }
+
+  try {
+    const models = await fetchModels(provider);
+    return apiSuccess(models);
+  } catch (err) {
+    return apiError(err instanceof Error ? err.message : "Failed to fetch models", 500);
+  }
 }

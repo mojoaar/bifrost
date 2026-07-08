@@ -9,14 +9,23 @@
 
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
+import { pages } from "@/lib/db/schema/pages";
 import { renderMarkdown } from "@/lib/md/parser";
-import { writePostToFilesystem } from "@/lib/content/sync";
+import { writePostToFilesystem, writePageToFilesystem } from "@/lib/content/sync";
 import { sql } from "drizzle-orm";
 
 interface SeedPost {
   slug: string;
   title: string;
   tags: string[];
+  content: string;
+}
+
+interface SeedPage {
+  slug: string;
+  title: string;
+  showInNav: boolean;
+  navOrder: number;
   content: string;
 }
 
@@ -222,8 +231,55 @@ Environment=PORT=3000
 
 ## Transport Modes
 
-- **stdio**: For local CLI use. Run \`npm run mcp:start\` to start the server.
-- **HTTP/SSE**: On a configurable port (default: 3456). Enable in \`bifrost.config.ts\`.
+- **HTTP/SSE**: Run \`npm run mcp:start\` to serve the MCP endpoint at \`http://localhost:3456/sse\`. The port is configurable via \`mcp.port\` in \`bifrost.config.ts\`.
+- **stdio**: For local CLI use, the server can be launched over stdio (set \`mcp.mode\` in \`bifrost.config.ts\`).
+
+## Connecting AI Agents
+
+Start the server first with \`npm run mcp:start\`, then point your agent at \`http://localhost:3456/sse\`.
+
+### opencode
+
+Add Bifröst to your \`opencode.json\`:
+
+\`\`\`json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "bifrost": {
+      "type": "remote",
+      "url": "http://localhost:3456/sse",
+      "enabled": true
+    }
+  }
+}
+\`\`\`
+
+### Claude Code
+
+Register the server from the CLI:
+
+\`\`\`bash
+claude mcp add --transport sse bifrost http://localhost:3456/sse
+\`\`\`
+
+### Kilo Code
+
+Use the **MCP Servers** tab in the extension settings, or add it under the \`mcp\` key in \`kilo.jsonc\` (project root, or \`~/.config/kilo/kilo.jsonc\` for all projects):
+
+\`\`\`json
+{
+  "mcp": {
+    "bifrost": {
+      "type": "remote",
+      "url": "http://localhost:3456/sse",
+      "enabled": true
+    }
+  }
+}
+\`\`\`
+
+Once connected, the agent can call any of the tools below.
 
 ## Available Tools
 
@@ -254,7 +310,137 @@ Environment=PORT=3000
 Connect your AI agent to Bifröst and let it manage your blog content programmatically.
 `,
   },
+  {
+    slug: "how-bifrost-stores-content",
+    title: "How Bifröst Stores Your Content",
+    tags: ["guide", "content", "git"],
+    content: `Bifröst is markdown-native: every post is a real file on disk, not a row hidden inside a database. Understanding this model is the key to working with Bifröst effectively.
+
+## Files First
+
+Each post lives at:
+
+\`\`\`
+content/posts/<slug>/index.md
+\`\`\`
+
+The file is plain Markdown with a YAML frontmatter block:
+
+\`\`\`markdown
+---
+title: My First Post
+date: 2026-07-08
+tags: [guide, welcome]
+---
+
+Your post body goes here.
+\`\`\`
+
+You can edit these files with any editor, commit them with Git, or generate them from a script. Bifröst treats the filesystem as the source of truth.
+
+## The Database Mirror
+
+A SQLite database (\`data/bifrost.db\`) mirrors your content for fast queries, full-text search, and tag lookups. You never edit it directly — Bifröst keeps it in sync automatically:
+
+- **Disk → DB**: A file watcher notices when a \`.md\` file changes and re-ingests it.
+- **DB → Disk**: Saving from the admin editor or API writes the file back out.
+
+Because the file is authoritative, you can delete the database and rebuild it from your content at any time.
+
+## Version Control Built In
+
+Your \`content/\` directory is its own Git repository. When Git integration is enabled, Bifröst auto-commits every change, giving you a full history of every post — who changed what, and when. Point it at a remote and your writing is backed up with a \`git push\`.
+
+## Drafts vs. Published
+
+A post's \`status\` controls visibility. Drafts are hidden from the public site but visible in the admin. Flip a post to \`published\` when it is ready for the world.
+`,
+  },
+  {
+    slug: "touring-the-admin",
+    title: "Touring the Bifröst Admin",
+    tags: ["guide", "admin"],
+    content: `The Bifröst admin lives at \`/admin\` and is where you manage everything without touching a terminal.
+
+## Dashboard
+
+The landing page shows post counts, recent activity, and a System panel reporting your version, active theme, and Git status at a glance.
+
+## The Editor
+
+Writing happens in a CodeMirror 6 editor with:
+
+- Syntax-highlighted Markdown
+- A live preview beside your text
+- Frontmatter fields for title, tags, and status
+- Inline media uploads
+
+Head to \`/admin/posts/new\` to start writing, or open any existing post to edit it.
+
+## Media Library
+
+Upload images and files under \`/admin/media\`. Each upload is stored in \`content/media/\` and served at a stable URL you can drop into any post.
+
+## Profile
+
+Manage your own account at \`/admin/profile\` — set a display name, upload a round avatar, write a short bio, and change your password. Your name, avatar, and bio appear on the posts you publish.
+
+## Settings
+
+\`/admin/settings\` controls the whole site: title and description, light/dark appearance, date and time formats, and Git synchronization options.
+`,
+  },
+  {
+    slug: "the-rest-api",
+    title: "The Bifröst REST API",
+    tags: ["guide", "api"],
+    content: `Everything you can do in the admin, you can do over HTTP. Bifröst exposes a versioned REST API under \`/api/v1\`.
+
+## Interactive Explorer
+
+The full [OpenAPI 3.1](/api/docs) specification is browsable with Swagger UI. Try requests live, inspect schemas, and copy ready-made \`curl\` commands.
+
+## Response Envelope
+
+Every endpoint returns a consistent JSON envelope:
+
+\`\`\`json
+{
+  "data": { "...": "..." },
+  "error": null,
+  "meta": { "...": "..." }
+}
+\`\`\`
+
+On failure, \`data\` is \`null\` and \`error\` carries a message.
+
+## Authentication
+
+Protected endpoints expect a bearer token:
+
+\`\`\`bash
+curl http://localhost:3000/api/v1/posts \\
+  -H "Authorization: Bearer <access-token>"
+\`\`\`
+
+Log in via \`/api/v1/auth/login\` to receive a short-lived access token and a refresh token. When the access token expires, exchange the refresh token at \`/api/v1/auth/refresh\` for a new one.
+
+## Managing Posts
+
+\`\`\`bash
+# Create a post
+curl -X POST http://localhost:3000/api/v1/posts \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer <access-token>" \\
+  -d '{"slug":"hello","title":"Hello","content":"## My first post"}'
+\`\`\`
+
+The same routes support reading, updating, and deleting posts — and because writes flow back to disk, an API call and a Git commit produce the same result.
+`,
+  },
 ];
+
+export const SEED_SLUGS: string[] = SEED_POSTS.map((p) => p.slug);
 
 export async function seedPosts(authorId: string): Promise<void> {
   const now = new Date().toISOString();
@@ -288,6 +474,69 @@ export async function seedPosts(authorId: string): Promise<void> {
         authorId,
         publishedAt: date,
         createdAt: date,
+        updatedAt: now,
+      })
+      .run();
+  }
+}
+
+const SEED_PAGES: SeedPage[] = [
+  {
+    slug: "about",
+    title: "About",
+    showInNav: true,
+    navOrder: 1,
+    content: `This is an example **page** — standalone content that lives outside your blog feed.
+
+## What are pages?
+
+Unlike posts, pages are not part of the chronological blog stream. They are perfect for evergreen content such as an About page, a Projects list, a Contact page, or anything else that deserves its own permanent home.
+
+Pages are authored in Markdown with the same editor you use for posts, and they can be shown in the site navigation with a configurable order.
+
+## Editing this page
+
+Head to **Admin → Pages**, open this page, and make it your own. You can toggle whether it appears in the navigation and set its position, or delete it entirely.
+`,
+  },
+];
+
+export const SEED_PAGE_SLUGS: string[] = SEED_PAGES.map((p) => p.slug);
+
+export async function seedPages(authorId: string): Promise<void> {
+  const now = new Date().toISOString();
+
+  for (const page of SEED_PAGES) {
+    const existing = db
+      .select({ slug: pages.slug })
+      .from(pages)
+      .where(sql`${pages.slug} = ${page.slug}`)
+      .get();
+
+    if (existing) continue;
+
+    const { html, excerpt } = await renderMarkdown(page.content);
+    const frontmatter: Record<string, unknown> = {
+      title: page.title,
+      nav: page.showInNav,
+      navOrder: page.navOrder,
+    };
+
+    await writePageToFilesystem(page.slug, page.content, frontmatter);
+
+    db.insert(pages)
+      .values({
+        slug: page.slug,
+        title: page.title,
+        contentMd: page.content,
+        contentHtml: html,
+        excerpt,
+        frontmatter: JSON.stringify(frontmatter),
+        status: "published",
+        showInNav: page.showInNav,
+        navOrder: page.navOrder,
+        authorId,
+        createdAt: now,
         updatedAt: now,
       })
       .run();

@@ -21,6 +21,7 @@ export interface ContentConfig {
 export interface AIProviderConfig {
   apiKey?: string;
   model: string;
+  baseUrl?: string;
 }
 
 export interface AIConfig {

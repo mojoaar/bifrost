@@ -15,6 +15,8 @@ import { apiSuccess, apiError } from "@/lib/api/response";
 import { tagUpdateSchema } from "@/lib/validation/tags";
 import { eq } from "drizzle-orm";
 
+import { requireUser } from "@/lib/auth/require";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,6 +33,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Authentication required", 401);
+
   const { id } = await params;
   const existing = db.select().from(tags).where(eq(tags.id, id)).get();
   if (!existing) {
@@ -63,9 +68,11 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Authentication required", 401);
   const { id } = await params;
   const existing = db.select().from(tags).where(eq(tags.id, id)).get();
   if (!existing) {

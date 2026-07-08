@@ -14,6 +14,7 @@ import { users } from "@/lib/db/schema/users";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
 import { generateId } from "@/lib/id";
+import { requireAdmin } from "@/lib/auth/require";
 
 export async function GET() {
   const rows = db.select({
@@ -28,6 +29,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Admin authentication required", 401);
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -43,6 +46,7 @@ export async function POST(request: NextRequest) {
     : "author";
 
   if (!email || !password) return apiError("Email and password are required", 400);
+  if (password.length < 8) return apiError("Password must be at least 8 characters", 400);
   if (!displayName) return apiError("Display name is required", 400);
 
   const existing = db.select({ id: users.id }).from(users).where(eq(users.email, email)).get();

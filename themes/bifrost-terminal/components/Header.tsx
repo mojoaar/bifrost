@@ -17,6 +17,7 @@ import { useTheme } from "@/lib/themes/theme-context";
 export default function Header({ widthClass = "max-w-3xl" }: { widthClass?: string }) {
   const { mode, toggle } = useTheme();
   const [title, setTitle] = useState("Bifröst");
+  const [navPages, setNavPages] = useState<{ slug: string; title: string }[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -30,7 +31,23 @@ export default function Header({ widthClass = "max-w-3xl" }: { widthClass?: stri
         // use default title
       }
     }
+    async function loadNav() {
+      try {
+        const res = await fetch("/api/v1/pages?status=published&limit=100");
+        const body = await res.json();
+        if (res.ok && Array.isArray(body.data)) {
+          const items = (body.data as { slug: string; title: string; showInNav: boolean; navOrder: number }[])
+            .filter((p) => p.showInNav)
+            .sort((a, b) => a.navOrder - b.navOrder || a.title.localeCompare(b.title))
+            .map((p) => ({ slug: p.slug, title: p.title }));
+          setNavPages(items);
+        }
+      } catch {
+        // no nav pages
+      }
+    }
     load();
+    loadNav();
   }, []);
 
   return (
@@ -49,6 +66,15 @@ export default function Header({ widthClass = "max-w-3xl" }: { widthClass?: stri
           >
             Home
           </Link>
+          {navPages.map((p) => (
+            <Link
+              key={p.slug}
+              href={`/${p.slug}`}
+              className="text-text-2 transition hover:text-text-1"
+            >
+              {p.title}
+            </Link>
+          ))}
           <button
             onClick={toggle}
             className="rounded-md border border-border bg-bg-1 p-1.5 text-text-2 transition hover:border-border-strong hover:text-text-1"

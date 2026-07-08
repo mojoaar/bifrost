@@ -8,11 +8,22 @@
  */
 
 import { NextRequest } from "next/server";
-import { streamChatCompletion } from "@/lib/ai/providers";
+import { streamChatCompletion, getDefaultProvider } from "@/lib/ai/providers";
 import { buildMessages } from "@/lib/ai/actions";
-import { loadConfig } from "@/lib/config/loader";
+import { getSetting } from "@/lib/settings";
+import { requireUser } from "@/lib/auth/require";
+import { apiError } from "@/lib/api/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, "ai:chat", 20, 60_000);
+  if (limited) return limited;
+
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
   let body: {
     action?: string;
     content?: string;
@@ -24,31 +35,20 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return new Response(
-      JSON.stringify({
-        data: null,
-        error: { message: "Invalid JSON body" },
-        meta: null,
-      }),
-      { status: 400, headers: { "content-type": "application/json" } }
-    );
+    return apiError("Invalid JSON body", 400);
   }
 
   const { action = "improve", content = "", provider, model, customPrompt } = body;
 
-  if (!content) {
-    return new Response(
-      JSON.stringify({
-        data: null,
-        error: { message: "content is required" },
-        meta: null,
-      }),
-      { status: 400, headers: { "content-type": "application/json" } }
-    );
+  if (getSetting("ai.enabled") !== "true") {
+    return apiError("AI assist is disabled", 403);
   }
 
-  const config = loadConfig();
-  const providerName = provider ?? config.ai.defaultProvider;
+  if (!content) {
+    return apiError("content is required", 400);
+  }
+
+  const providerName = provider ?? getDefaultProvider();
 
   const messages = buildMessages(action, content, customPrompt);
 

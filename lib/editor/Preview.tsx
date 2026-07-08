@@ -10,31 +10,19 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { PALETTE_MAP } from "@/lib/themes/palettes";
 
 interface Props {
   source: string;
 }
 
-const DARK_TOKENS = `:root[data-theme="dark"] {
-  --bg-0: #09090b; --bg-1: #18181b; --bg-2: #1f1f23; --bg-3: #27272a;
-  --surface: #18181b; --surface-raised: #1f1f23; --surface-sunken: #0c0c0e;
-  --text-1: #fafafa; --text-2: #a1a1aa; --text-3: #71717a; --text-muted: #52525b;
-  --border: #27272a; --border-strong: #3f3f46;
-  --accent: #3b82f6; --accent-hover: #60a5fa; --accent-fg: #ffffff; --accent-subtle: #1e3a8a;
-  --code-bg: #0c0c0e; --code-border: #27272a;
+const BASE_TOKENS = `:root {
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code Variable', 'IBM Plex Mono', 'Source Code Pro Variable', 'Roboto Mono', Inconsolata, ui-monospace, monospace;
   --font-body: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
-}`;
-
-const LIGHT_TOKENS = `:root[data-theme="light"] {
-  --bg-0: #ffffff; --bg-1: #fafafa; --bg-2: #f4f4f5; --bg-3: #e4e4e7;
-  --surface: #ffffff; --surface-raised: #fafafa; --surface-sunken: #f4f4f5;
-  --text-1: #18181b; --text-2: #52525b; --text-3: #71717a; --text-muted: #a1a1aa;
-  --border: #e4e4e7; --border-strong: #d4d4d8;
-  --accent: #2563eb; --accent-hover: #1d4ed8; --accent-fg: #ffffff; --accent-subtle: #dbeafe;
-  --code-bg: #f4f4f5; --code-border: #e4e4e7;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.9375rem;
+  --text-lg: 1.0625rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem; --text-display: 2.5rem;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-full: 9999px;
 }`;
 
 const PREVIEW_STYLES = `
@@ -84,8 +72,6 @@ pre {
   margin: 20px 0;
 }
 pre code { background: transparent; border: none; padding: 0; font-size: inherit; }
-pre:has(span[style*="--shiki"]) { color: var(--shiki-dark); background-color: var(--shiki-dark-bg); }
-:root[data-theme="light"] pre:has(span[style*="--shiki"]) { color: var(--shiki-light); background-color: var(--shiki-light-bg); }
 blockquote {
   border-left: 3px solid var(--accent);
   padding: 4px 16px;
@@ -102,7 +88,21 @@ th { background: var(--bg-1); font-weight: 600; color: var(--text-1); }
 ul, ol { margin: 0 0 16px 24px; }
 li { margin-bottom: 4px; }
 img { max-width: 100%; height: auto; border-radius: 6px; }
+.lucide-icon { display: inline-block; vertical-align: -0.125em; }
 `;
+
+function buildPaletteCSS(slug: string): string {
+  const p = PALETTE_MAP.get(slug) ?? PALETTE_MAP.get("default")!;
+  const parts: string[] = [];
+  for (const mode of ["light", "dark"] as const) {
+    const tokens = p[mode];
+    const lines = Object.entries(tokens)
+      .map(([k, v]) => `${k}: ${v};`)
+      .join(" ");
+    parts.push(`:root[data-theme="${mode}"] { ${lines} }`);
+  }
+  return parts.join("\n");
+}
 
 export default function Preview({ source }: Props) {
   const [html, setHtml] = useState("");
@@ -140,8 +140,11 @@ export default function Preview({ source }: Props) {
     const doc = iframe.contentDocument;
     if (!doc) return;
 
+    const parentPalette = document.documentElement.getAttribute("data-palette") ?? "default";
     const parentTheme = document.documentElement.getAttribute("data-theme") ?? "dark";
-    const fullDoc = `<!DOCTYPE html><html data-theme="${parentTheme}"><head><meta charset="utf-8"><style>${DARK_TOKENS}${LIGHT_TOKENS}${PREVIEW_STYLES}</style></head><body>${html}</body></html>`;
+    const paletteCSS = buildPaletteCSS(parentPalette);
+
+    const fullDoc = `<!DOCTYPE html><html data-theme="${parentTheme}"><head><meta charset="utf-8"><style>${BASE_TOKENS}${paletteCSS}${PREVIEW_STYLES}</style></head><body>${html}</body></html>`;
 
     doc.open();
     doc.write(fullDoc);
@@ -162,11 +165,19 @@ export default function Preview({ source }: Props) {
       if (current !== parentTheme) {
         doc.documentElement.setAttribute("data-theme", parentTheme);
       }
+
+      const parentPalette = document.documentElement.getAttribute("data-palette") ?? "default";
+      const currentPalette = doc.documentElement.getAttribute("data-palette");
+      if (currentPalette !== parentPalette) {
+        doc.documentElement.setAttribute("data-palette", parentPalette);
+        const paletteCSS = buildPaletteCSS(parentPalette);
+        doc.documentElement.querySelector("style")!.textContent = `${BASE_TOKENS}${paletteCSS}${PREVIEW_STYLES}`;
+      }
     });
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-theme"],
+      attributeFilter: ["data-theme", "data-palette"],
     });
 
     return () => observer.disconnect();

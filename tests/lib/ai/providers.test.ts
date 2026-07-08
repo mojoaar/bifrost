@@ -7,9 +7,15 @@
  * See the LICENSE file for details.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { listModels } from "@/lib/ai/providers";
 import { listActions, buildMessages } from "@/lib/ai/actions";
+
+vi.mock("@/lib/settings", () => ({
+  getSetting: () => undefined,
+  getAllSettings: () => ({}),
+  invalidateSettingsCache: () => {},
+}));
 
 describe("listModels", () => {
   it("returns configured providers with models", () => {

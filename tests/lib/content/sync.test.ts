@@ -11,9 +11,12 @@ import { describe, it, expect, afterAll } from "vitest";
 import { writePostToFilesystem, deletePostFromFilesystem } from "@/lib/content/sync";
 import { fs } from "@/lib/fs";
 import path from "path";
+import { postsDir, trashDir } from "@/lib/paths";
+
 describe("filesystem sync", () => {
   afterAll(async () => {
-    await fs.rm(path.resolve("content/posts/test-sync"), { recursive: true, force: true });
+    await fs.rm(path.join(postsDir(), "test-sync"), { recursive: true, force: true });
+    await fs.rm(trashDir(), { recursive: true, force: true });
   });
 
   it("writes a post to the filesystem with frontmatter", async () => {
@@ -23,7 +26,7 @@ describe("filesystem sync", () => {
     });
 
     const raw = await fs.readFile(
-      path.resolve("content/posts/test-sync/index.md"),
+      path.join(postsDir(), "test-sync/index.md"),
       "utf-8"
     );
 
@@ -32,12 +35,15 @@ describe("filesystem sync", () => {
     expect(raw).toContain("# Hello World");
   });
 
-  it("writes and deletes a post", async () => {
+  it("moves a deleted post to the trash instead of removing it", async () => {
     await writePostToFilesystem("test-sync", "# Temp", { title: "Temp" });
     await deletePostFromFilesystem("test-sync");
 
     await expect(
-      fs.access(path.resolve("content/posts/test-sync"))
+      fs.access(path.join(postsDir(), "test-sync"))
     ).rejects.toThrow();
+
+    const trashed = await fs.readdir(trashDir());
+    expect(trashed.some((name) => name.startsWith("test-sync-"))).toBe(true);
   });
 });

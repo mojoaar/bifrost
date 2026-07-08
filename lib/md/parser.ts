@@ -15,9 +15,11 @@ import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeShiki from "@shikijs/rehype";
+import { createCssVariablesTheme } from "shiki";
 import type { Schema } from "hast-util-sanitize";
 import type { ParsedMarkdown } from "./types";
 import { runHook } from "@/lib/plugins/registry";
+import rehypeLucide from "./rehype-lucide";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
@@ -48,11 +50,32 @@ export function parseFrontmatter(content: string): {
 
 const shikiSchema: Schema = {
   ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames ?? []),
+    "svg",
+    "path",
+    "circle",
+    "ellipse",
+    "line",
+    "polygon",
+    "polyline",
+    "rect",
+    "g",
+  ],
   attributes: {
     ...defaultSchema.attributes,
     code: [...(defaultSchema.attributes?.code ?? []), ["className", /^language-./, "shiki"]],
     pre: [...(defaultSchema.attributes?.pre ?? []), ["className", /^shiki/, "shiki-wrapper"]],
     span: [...(defaultSchema.attributes?.span ?? []), ["style"], ["className", /^(line|token).*$/]],
+    svg: ["xmlns", "viewBox", "width", "height", "fill", "stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin", "className", "ariaHidden", "role"],
+    path: ["d", "fill", "stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin"],
+    circle: ["cx", "cy", "r"],
+    ellipse: ["cx", "cy", "rx", "ry"],
+    line: ["x1", "y1", "x2", "y2"],
+    polygon: ["points"],
+    polyline: ["points"],
+    rect: ["x", "y", "width", "height", "rx", "ry"],
+    g: [],
     "*": [...(defaultSchema.attributes?.["*"] ?? []), ["className"]],
   },
 };
@@ -62,10 +85,14 @@ const processor = remark()
   .use(remarkGfm)
   .use(remarkRehype, { allowDangerousHtml: false })
   .use(rehypeShiki, {
-    themes: { light: "github-light", dark: "github-dark" },
+    theme: createCssVariablesTheme({
+      name: "bifrost-css-variables",
+      variablePrefix: "--shiki-",
+      fontStyle: true,
+    }),
     defaultColor: false,
-    cssVariablePrefix: "--shiki-",
   })
+  .use(rehypeLucide)
   .use(rehypeSanitize, shikiSchema)
   .use(rehypeStringify);
 

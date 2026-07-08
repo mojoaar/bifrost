@@ -10,14 +10,25 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { TokenPayload } from "./types";
 
+const DEV_ACCESS_SECRET = "bifrost-dev-access-secret-change-me";
+const DEV_REFRESH_SECRET = "bifrost-dev-refresh-secret-change-me";
+
 const ACCESS_SECRET = new TextEncoder().encode(
-  process.env.BIFROST_JWT_SECRET ?? "bifrost-dev-access-secret-change-me"
+  process.env.BIFROST_JWT_SECRET ?? DEV_ACCESS_SECRET
 );
 
 const REFRESH_SECRET = new TextEncoder().encode(
-  process.env.BIFROST_JWT_REFRESH_SECRET ??
-    "bifrost-dev-refresh-secret-change-me"
+  process.env.BIFROST_JWT_REFRESH_SECRET ?? DEV_REFRESH_SECRET
 );
+
+export function isUsingDevSecrets(): boolean {
+  return (
+    !process.env.BIFROST_JWT_SECRET ||
+    !process.env.BIFROST_JWT_REFRESH_SECRET ||
+    process.env.BIFROST_JWT_SECRET === DEV_ACCESS_SECRET ||
+    process.env.BIFROST_JWT_REFRESH_SECRET === DEV_REFRESH_SECRET
+  );
+}
 
 const ACCESS_EXPIRES = "1h";
 const REFRESH_EXPIRES = "7d";

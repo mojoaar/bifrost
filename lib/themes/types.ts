@@ -17,6 +17,13 @@ export interface ThemeManifest {
   screenshots?: string[];
 }
 
+export interface PostAuthor {
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  socialLinks?: Record<string, string> | null;
+}
+
 export interface PostData {
   slug: string;
   title: string;
@@ -27,12 +34,28 @@ export interface PostData {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  author?: PostAuthor | null;
+  showReadingTime?: boolean;
+  showAuthorBio?: boolean;
+}
+
+export interface PageData {
+  slug: string;
+  title: string;
+  contentHtml: string;
+  excerpt: string | null;
+  frontmatter: Record<string, unknown>;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  showReadingTime?: boolean;
 }
 
 export interface ThemeComponents {
   layout?: ComponentType<{ children: ReactNode; contentWidth?: string; theme?: string }>;
-  post?: ComponentType<{ post: PostData; isAdmin?: boolean }>;
+  post?: ComponentType<{ post: PostData; isAdmin?: boolean; sharing?: { networks: string[] } | null }>;
   list?: ComponentType<{ posts: PostData[] }>;
+  page?: ComponentType<{ page: PageData; isAdmin?: boolean }>;
 }
 
 export interface LoadedTheme {
