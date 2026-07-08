@@ -12,18 +12,22 @@ import { posts } from "@/lib/db/schema/posts";
 import { eq, sql } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 import { getSetting } from "@/lib/settings";
+import { renderMarkdown } from "@/lib/md/parser";
+import { parseShareNetworks } from "@/lib/sharing";
 import type { PostData } from "@/lib/themes/types";
 import Link from "next/link";
+import fs from "fs";
+import path from "path";
 
 interface Props {
   searchParams: Promise<{ page?: string }>;
 }
 
-const POSTS_PER_PAGE = 10;
-
 export default async function HomePage({ searchParams }: Props) {
   const { page: pageParam } = await searchParams;
   const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
+  const postsPerPage = Math.max(1, Math.min(100, parseInt(getSetting("appearance.posts_per_page") ?? "10", 10) || 10));
 
   const total =
     db
@@ -32,20 +36,46 @@ export default async function HomePage({ searchParams }: Props) {
       .where(eq(posts.status, "published"))
       .get()?.count ?? 0;
 
-  const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
-  const offset = (currentPage - 1) * POSTS_PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(total / postsPerPage));
+  const offset = (currentPage - 1) * postsPerPage;
 
   const rows = db
     .select()
     .from(posts)
     .where(eq(posts.status, "published"))
     .orderBy(sql`${posts.createdAt} DESC`)
-    .limit(POSTS_PER_PAGE)
+    .limit(postsPerPage)
     .offset(offset)
     .all();
 
-  const theme = await loadTheme("bifrost-terminal");
+  const themeName = getSetting("theme") ?? "bifrost-terminal";
+  const theme = await loadTheme(themeName);
   const ListComponent = theme.components.list;
+
+  const contentWidth = getSetting("appearance.content_width") ?? "";
+  const siteTitle = getSetting("appearance.show_site_title") !== "false"
+    ? getSetting("site.title") ?? "Bifröst"
+    : "";
+  const siteDescription = getSetting("appearance.show_site_description") !== "false"
+    ? getSetting("site.description") ?? ""
+    : "";
+
+  let heroHtml: string | undefined;
+  try {
+    const heroPath = path.resolve(`themes/${themeName}/hero.md`);
+    if (fs.existsSync(heroPath)) {
+      const heroMd = fs.readFileSync(heroPath, "utf-8");
+      const result = await renderMarkdown(heroMd);
+      heroHtml = result.html;
+    }
+  } catch {
+    // hero is optional
+  }
+
+  const sharingEnabled = getSetting("sharing.enabled") === "true";
+  const shareNetworks = sharingEnabled
+    ? parseShareNetworks(getSetting("sharing.networks"))
+    : [];
 
   const showFeatured = getSetting("appearance.show_featured_images") !== "false";
   const showReadingTime = getSetting("appearance.show_reading_time") !== "false";
@@ -93,7 +123,7 @@ export default async function HomePage({ searchParams }: Props) {
           ))}
         </div>
       ) : (
-        <ListComponent posts={postData} />
+        <ListComponent posts={postData} siteTitle={siteTitle} siteDescription={siteDescription} heroHtml={heroHtml} contentWidth={contentWidth} sharing={shareNetworks} />
       )}
 
       {totalPages > 1 && (

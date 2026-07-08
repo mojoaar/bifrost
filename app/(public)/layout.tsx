@@ -24,26 +24,41 @@ export default async function PublicLayout({
   const theme = cookieStore.get("bifrost_theme")?.value === "light" ? "light" : "dark";
 
   let contentWidth: string | undefined;
+  let themeName = "bifrost-terminal";
 
   try {
-    const row = db
+    const cwRow = db
       .select()
       .from(settings)
       .where(eq(settings.key, "appearance.content_width"))
       .get();
-    if (row) {
-      contentWidth = row.value;
+    if (cwRow) {
+      contentWidth = cwRow.value;
+    }
+
+    const themeRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "theme"))
+      .get();
+    if (themeRow?.value) {
+      themeName = themeRow.value;
     }
   } catch {
     contentWidth = undefined;
   }
 
-  const themeMod = await loadTheme("bifrost-terminal");
+  const themeMod = await loadTheme(themeName);
   const ThemeLayout = themeMod.components.layout;
 
   if (!ThemeLayout) {
     return <>{children}</>;
   }
 
-  return <ThemeLayout contentWidth={contentWidth} theme={theme}><PageViewBeacon />{children}</ThemeLayout>;
+  return (
+    <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
+      <PageViewBeacon />
+      {children}
+    </ThemeLayout>
+  );
 }

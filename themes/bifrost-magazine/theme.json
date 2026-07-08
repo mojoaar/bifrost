@@ -1,0 +1,8 @@
+{
+  "name": "Bifröst Magazine",
+  "slug": "bifrost-magazine",
+  "version": "1.0.0",
+  "author": "Bifröst",
+  "description": "A magazine-style theme with a top bar, tag pills on cards, and a rich sidebar.",
+  "font": "Inter Variable, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, system-ui, sans-serif"
+}

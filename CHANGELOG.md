@@ -5,6 +5,42 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] — 2026-07-08
+
+### Added
+
+- **Bifröst Read theme** — hero section with editable markdown, 3-col grid, social sharing on cards, top nav, font config via theme.json
+- **Bifröst Magazine theme** — sidebar with tags + pages, tag pills on cards, social icons in header, 2-col layout
+- **Documentation** at `/admin/docs` — 10 thorough docs covering all areas (Getting Started, Content, Themes, Admin, Settings, API, MCP, Git, Plugins, Deployment) with search, sidebar nav, full-width layout
+- **Theme-level font** — `font` field on `theme.json`, each theme declares its preferred font stack
+- **Posts-per-page** setting (1–100, default 10) in Settings → Appearance
+- **Inline hero editor** on `/admin/themes` for Read theme's hero.md
+- **Post template create/delete** — `POST`/`DELETE` on `/api/v1/post-templates` + New/Delete buttons on editor page
+- **Theme activation** — click a theme card to select, "Activate theme" to apply (only on `/admin/themes`)
+- **Display toggles for hero** — "Show site title" / "Show site description" on Themes page (Read-specific)
+- **Social link config** for Magazine theme — Facebook, Bluesky, GitHub, LinkedIn URLs on Themes page
+- **`sharedFacebook` and `bluesky` sharers** for social sharing on cards
+
+### Changed
+
+- **Theme field on Settings page removed** — theme selection is now exclusively on `/admin/themes`
+- **Read header**: home left-aligned, pages on the right (with nav toggle to show)
+- **Magazine header**: site title left-aligned, social icons + dark/light toggle on the right
+- **API Explorer**: removed env gate from `/api/v1/openapi.json` (docs gate kept on `/api/docs` only)
+- **Nav order**: Tags → Profile → Users in admin sidebar
+- **Post Templates** removed from admin sidebar (accessible via "Edit Templates" on Posts list)
+- **Theme descriptions** updated — removed "inspired by" references
+
+### Fixed
+
+- **Tags wiped on post edit** — `mergeFrontmatter` now called at save time on both new and edit post pages
+- **Hydration mismatch** after nav changes — fixed by restarting dev server to clear Turbopack cache
+- **Magazine header missing dark/light toggle** — added back with social icons
+- **Read list cards not clickable to share** — share icon stacking context fixed
+- **Featured image gap** — added `max-w-none` override for Tailwind base reset
+- **Themes page showed all themes as active** — now reads `theme` setting to determine active
+- **Layout hardcoded to Terminal** — now reads `theme` setting and loads correct theme
+
 ## [1.18.0] — 2026-07-08
 
 ### Added

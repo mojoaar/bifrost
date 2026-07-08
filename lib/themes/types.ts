@@ -15,6 +15,7 @@ export interface ThemeManifest {
   author: string;
   description: string;
   screenshots?: string[];
+  font?: string;
 }
 
 export interface PostAuthor {
@@ -52,9 +53,9 @@ export interface PageData {
 }
 
 export interface ThemeComponents {
-  layout?: ComponentType<{ children: ReactNode; contentWidth?: string; theme?: string }>;
+  layout?: ComponentType<{ children: ReactNode; contentWidth?: string; theme?: string; font?: string }>;
   post?: ComponentType<{ post: PostData; isAdmin?: boolean; sharing?: { networks: string[] } | null }>;
-  list?: ComponentType<{ posts: PostData[] }>;
+  list?: ComponentType<{ posts: PostData[]; siteTitle?: string; siteDescription?: string; heroHtml?: string; contentWidth?: string; sharing?: string[] }>;
   page?: ComponentType<{ page: PageData; isAdmin?: boolean }>;
 }
 

@@ -109,7 +109,13 @@ export async function PUT(request: NextRequest) {
     }
 
     fs.writeFileSync(resolved, content, "utf-8");
-    return apiSuccess({ saved: true, message: "File saved. Restart required for changes to take effect." });
+    const needsRestart = /\.(tsx?|jsx?|mjs|cjs)$/i.test(file);
+    return apiSuccess({
+      saved: true,
+      message: needsRestart
+        ? "File saved. Restart required for changes to take effect."
+        : "File saved.",
+    });
   } catch (err) {
     if (err instanceof Error && err.message === "Invalid theme name") {
       return apiError(err.message, 400);

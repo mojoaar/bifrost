@@ -16,6 +16,7 @@ import { authFetch } from "@/lib/auth/client";
 import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
 import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
 import AIAssistant from "@/lib/editor/AIAssistant";
+import { mergeFrontmatter } from "@/lib/editor/utils";
 import AdminEditorShell from "@/components/AdminEditorShell";
 import { TagInput, type TagItem } from "@/components/TagInput";
 import ImagePicker from "@/components/ImagePicker";
@@ -103,7 +104,7 @@ export default function EditPostPage() {
       const res = await authFetch(`/api/v1/posts/${params.slug}`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, content, status, scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined, frontmatter: featuredImage ? { featuredImage } : {}, tagIds: tags.map((t) => t.id) }),
+        body: JSON.stringify({ title, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name)), status, scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined, frontmatter: featuredImage ? { featuredImage } : {}, tagIds: tags.map((t) => t.id) }),
       });
       if (!res.ok) {
         const body = await res.json();

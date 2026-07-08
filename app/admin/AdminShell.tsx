@@ -39,6 +39,7 @@ const NAV: NavItem[] = [
   { href: "/admin/settings", label: "Settings" },
   { href: "/admin/git", label: "Git" },
   { href: "/admin/api", label: "API Explorer" },
+  { href: "/admin/docs", label: "Docs" },
 ];
 
 function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string; onClick?: () => void }) {

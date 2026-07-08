@@ -15,6 +15,7 @@ export interface SocialPlatform {
 
 export const SOCIAL_PLATFORMS: SocialPlatform[] = [
   { key: "bluesky", label: "Bluesky", placeholder: "https://bsky.app/profile/you.bsky.social" },
+  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/you" },
   { key: "mastodon", label: "Mastodon", placeholder: "https://mastodon.social/@you" },
   { key: "lemmy", label: "Lemmy", placeholder: "https://lemmy.world/u/you" },
   { key: "reddit", label: "Reddit", placeholder: "https://reddit.com/user/you" },

@@ -16,6 +16,16 @@ import DefaultPost from "../../themes/bifrost-terminal/post";
 import DefaultList from "../../themes/bifrost-terminal/list";
 import DefaultPage from "../../themes/bifrost-terminal/page";
 
+import ReadLayout from "../../themes/bifrost-read/layout";
+import ReadPost from "../../themes/bifrost-read/post";
+import ReadList from "../../themes/bifrost-read/list";
+import ReadPage from "../../themes/bifrost-read/page";
+
+import MagazineLayout from "../../themes/bifrost-magazine/layout";
+import MagazinePost from "../../themes/bifrost-magazine/post";
+import MagazineList from "../../themes/bifrost-magazine/list";
+import MagazinePage from "../../themes/bifrost-magazine/page";
+
 const THEMES_DIR = path.resolve("themes");
 
 const STATIC_THEMES: Record<string, ThemeComponents> = {
@@ -24,6 +34,18 @@ const STATIC_THEMES: Record<string, ThemeComponents> = {
     post: DefaultPost,
     list: DefaultList,
     page: DefaultPage,
+  },
+  "bifrost-read": {
+    layout: ReadLayout,
+    post: ReadPost,
+    list: ReadList,
+    page: ReadPage,
+  },
+  "bifrost-magazine": {
+    layout: MagazineLayout,
+    post: MagazinePost,
+    list: MagazineList,
+    page: MagazinePage,
   },
 };
 

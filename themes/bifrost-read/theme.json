@@ -1,0 +1,8 @@
+{
+  "name": "Bifröst Read",
+  "slug": "bifrost-read",
+  "version": "1.0.0",
+  "author": "Bifröst",
+  "description": "A clean, magazine-style theme with a hero section, grid layout, and social sharing.",
+  "font": "Inter Variable, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, system-ui, sans-serif"
+}

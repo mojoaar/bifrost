@@ -22,7 +22,6 @@ import { PALETTES } from "@/lib/themes/palettes";
 export default function SettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<Record<string, string>>({});
-  const [themes, setThemes] = useState<{ slug: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -36,14 +35,12 @@ export default function SettingsPage() {
     let cancelled = false;
     async function load() {
       try {
-        const [settingsRes, themesRes, demoRes] = await Promise.all([
+        const [settingsRes, demoRes] = await Promise.all([
           fetch("/api/v1/settings"),
-          fetch("/api/v1/themes"),
           authFetch("/api/v1/admin/reset"),
         ]);
-        const [settingsBody, themesBody, demoBody] = await Promise.all([
+        const [settingsBody, demoBody] = await Promise.all([
           settingsRes.json(),
-          themesRes.json(),
           demoRes.json().catch(() => ({})),
         ]);
         if (cancelled) return;
@@ -52,7 +49,6 @@ export default function SettingsPage() {
           delete data["git.token"];
           setSettings(data);
         }
-        if (themesRes.ok) setThemes(themesBody.data ?? []);
         setHasDemo((demoBody.data?.demoCount ?? 0) > 0);
       } catch {
         // silent
@@ -204,6 +200,15 @@ export default function SettingsPage() {
                 <option value="wide">Wide</option>
               </Select>
             </Field>
+            <Field label="Posts per Page" helper="Number of posts on the homepage (1–100)">
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={settings["appearance.posts_per_page"] ?? "10"}
+                onChange={setValue("appearance.posts_per_page")}
+              />
+            </Field>
             <Field label="Date Format" helper="US 12/31 · EU 31/12 · ISO 2026-12-31">
               <Select
                 value={settings["appearance.date_format"] ?? "US"}
@@ -292,30 +297,9 @@ export default function SettingsPage() {
                 }
                 className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
               />
-              <span>Show reading time</span>
-            </label>
-          </div>
-        </Card>
-
-        <Card padding="md">
-          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Theme</div>
-          <Field label="Active Theme">
-            <Select
-              value={settings["theme"] ?? "bifrost-terminal"}
-              onChange={setValue("theme")}
-              className="font-mono"
-            >
-              {themes.length === 0 ? (
-                <option value="bifrost-terminal">bifrost-terminal</option>
-              ) : (
-                themes.map((t) => (
-                  <option key={t.slug} value={t.slug}>
-                    {t.name}
-                  </option>
-                ))
-              )}
-            </Select>
-          </Field>
+               <span>Show reading time</span>
+             </label>
+           </div>
         </Card>
 
         <div className="flex items-center gap-4">

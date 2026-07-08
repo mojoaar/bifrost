@@ -1,0 +1,68 @@
+/**
+ * Copyright (C) 2026 Bifröst Contributors
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * See the LICENSE file for details.
+ */
+
+:root[data-theme="dark"] {
+  --bg-0: #0d1117;
+  --bg-1: #161b22;
+  --bg-2: #21262d;
+  --bg-3: #30363d;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --surface-sunken: #0d1117;
+
+  --text-1: #e6edf3;
+  --text-2: #8b949e;
+  --text-3: #6e7681;
+  --text-muted: #484f58;
+
+  --border: #30363d;
+  --border-strong: #484f58;
+
+  --accent: #58a6ff;
+  --accent-hover: #79c0ff;
+  --accent-fg: #ffffff;
+  --accent-subtle: #1f2937;
+
+  --success: #3fb950;
+  --success-subtle: #04260f;
+  --warning: #d29922;
+  --warning-subtle: #341a00;
+  --danger: #f85149;
+  --danger-subtle: #490202;
+
+  --code-bg: #0d1117;
+  --code-border: #30363d;
+
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code Variable', ui-monospace, monospace;
+  --font-body: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-display: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  --transition-fast: 100ms ease;
+  --transition-base: 200ms ease;
+}
