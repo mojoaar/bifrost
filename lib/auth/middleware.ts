@@ -11,6 +11,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken, verifyRefreshToken } from "./token";
 import { REFRESH_COOKIE_NAME } from "./constants";
 
+const scriptSrc =
+  process.env.NODE_ENV === "development"
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
   "referrer-policy": "no-referrer-when-downgrade",
@@ -18,7 +23,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "strict-transport-security": "max-age=63072000; includeSubDomains",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "content-security-policy":
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    `default-src 'self'; ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
 };
 
 function withSecurityHeaders(response: NextResponse): NextResponse {
