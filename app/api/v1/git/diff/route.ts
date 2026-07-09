@@ -9,9 +9,13 @@
 
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
+import { requireAdmin } from "@/lib/auth/require";
 import { getDiff } from "@/lib/git/repo";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
+
   const { searchParams } = request.nextUrl;
   const sha = searchParams.get("sha");
 

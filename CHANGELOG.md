@@ -5,6 +5,38 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0] — 2026-07-09
+
+### Security
+
+- **Fixed an authentication bypass** affecting the docs, theme files, and post
+  template endpoints. These handlers wrapped a non-throwing `requireAdmin` in a
+  `try/catch` and never checked its result, so requests proceeded as if
+  authenticated. They now reject unauthenticated requests with 401. The docs API
+  is also now covered by the write-protection middleware.
+- **JWT secrets are now required.** The hardcoded development fallback secrets
+  were removed; the server refuses to start unless `BIFROST_JWT_SECRET` and
+  `BIFROST_JWT_REFRESH_SECRET` are set, preventing forged tokens from known
+  defaults.
+- **Blocked a zip-slip vulnerability** in content import. Archive entries are now
+  validated to stay within the target directory before extraction.
+- **Closed unauthenticated read endpoints** — Git history/diff now require admin,
+  and media listing and the AI model list now require authentication.
+
+### Added
+
+- `SECURITY.md` with supported versions, private disclosure process, and
+  deployment hardening guidance.
+- `.env.example` documenting the required and optional environment variables.
+- Security regression tests: auth gating (`require`), route guards for the
+  previously bypassed handlers, and a zip-slip extraction test.
+
+### Fixed
+
+- Content export was broken under archiver v8 (its ESM class API is not callable
+  as a factory); export now uses the `ZipArchive` class.
+- Added the missing AGPL license header to `app/robots.ts`.
+
 ## [1.23.2] — 2026-07-09
 
 ### Fixed

@@ -17,11 +17,8 @@ import path from "path";
 const DOCS_DIR = path.resolve("docs/bifrost");
 
 export async function GET(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   const { searchParams } = request.nextUrl;
   const file = searchParams.get("file");

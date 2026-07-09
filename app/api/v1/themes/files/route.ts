@@ -46,15 +46,12 @@ function resolveThemeFile(theme: string, file: string): string {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
+
   const { searchParams } = request.nextUrl;
   const theme = searchParams.get("theme");
   const file = searchParams.get("file");
-
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
 
   if (!theme) {
     return apiError("theme query parameter is required", 400);
@@ -80,11 +77,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const body = await request.json();

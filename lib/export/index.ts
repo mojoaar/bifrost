@@ -11,14 +11,15 @@ import fs from "fs";
 import path from "path";
 import { contentDir } from "@/lib/paths";
 
-const archiver = require("archiver") as (
-  format: string,
-  opts?: Record<string, unknown>
-) => {
+interface ArchiveStream {
   pipe: (writable: unknown) => void;
   directory: (dir: string, prefix: string | false) => void;
   on: (event: string, cb: (...args: unknown[]) => void) => void;
   finalize: () => void;
+}
+
+const { ZipArchive } = require("archiver") as {
+  ZipArchive: new (opts?: Record<string, unknown>) => ArchiveStream;
 };
 
 export function contentSummary(): { posts: number; pages: number; media: number; templates: number } {
@@ -46,18 +47,35 @@ function countFiles(dir: string, ext: string): number {
 }
 
 export function createExportZip() {
-  const archive = archiver("zip", { zlib: { level: 9 } });
+  const archive = new ZipArchive({ zlib: { level: 9 } });
   archive.directory(contentDir(), false);
   archive.finalize();
   return archive;
 }
 
-export function extractZip(filePath: string, targetDir: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const unzipper = require("unzipper");
-    const rs = fs.createReadStream(filePath);
-    rs.pipe(unzipper.Extract({ path: targetDir }))
-      .on("close", resolve)
-      .on("error", reject);
-  });
+export async function extractZip(filePath: string, targetDir: string): Promise<void> {
+  const unzipper = require("unzipper");
+  const resolvedTarget = path.resolve(targetDir);
+  const directory = await unzipper.Open.file(filePath);
+
+  for (const entry of directory.files) {
+    if (entry.type === "Directory") continue;
+
+    const destination = path.resolve(resolvedTarget, entry.path);
+    if (
+      destination !== resolvedTarget &&
+      !destination.startsWith(resolvedTarget + path.sep)
+    ) {
+      throw new Error(`Blocked path traversal in archive entry: ${entry.path}`);
+    }
+
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    await new Promise<void>((resolve, reject) => {
+      entry
+        .stream()
+        .pipe(fs.createWriteStream(destination))
+        .on("finish", resolve)
+        .on("error", reject);
+    });
+  }
 }

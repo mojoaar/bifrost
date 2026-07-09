@@ -87,6 +87,12 @@ describe("isProtectedApiRoute (via authMiddleware)", () => {
     const res = await authMiddleware(req);
     expect(res.status).toBe(200);
   });
+
+  it("PUT /api/v1/docs without token returns 401", async () => {
+    const req = buildRequest("/api/v1/docs", { method: "PUT" });
+    const res = await authMiddleware(req);
+    expect(res.status).toBe(401);
+  });
 });
 
 describe("admin redirects", () => {

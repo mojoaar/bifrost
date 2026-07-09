@@ -9,15 +9,8 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { isUsingDevSecrets } = await import("@/lib/auth/token");
-    if (isUsingDevSecrets()) {
-      console.error(
-        "\x1b[33m%b%s",
-        "WARNING: BIFROST_JWT_SECRET and/or BIFROST_JWT_REFRESH_SECRET are not set.\n" +
-          "        JWT tokens are signed with publicly known dev defaults.\n" +
-          "        Set both environment variables before exposing Bifröst to any network.",
-      );
-    }
+    const { assertJwtSecretsConfigured } = await import("@/lib/auth/token");
+    assertJwtSecretsConfigured();
 
     const { loadPluginsFromDirectory, runHook } = await import(
       "@/lib/plugins/registry"

@@ -13,6 +13,7 @@ Full design spec: [docs/superpowers/specs/2026-07-06-bifrost-design.md](docs/sup
 | File                                          | Purpose                           |
 | --------------------------------------------- | --------------------------------- |
 | `docs/superpowers/specs/2026-07-06-bifrost-design.md` | Design spec and phased plan       |
+| `docs/superpowers/specs/2026-07-09-application-review-remediation.md` | Review findings and phased remediation plan |
 | `CHANGELOG.md`                                | Release changelog (Keep a Changelog) |
 | `README.md`                                   | Project overview and quick start  |
 | `bifrost.config.ts`                           | Site configuration                |

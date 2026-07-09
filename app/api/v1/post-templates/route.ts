@@ -13,11 +13,8 @@ import { requireAdmin } from "@/lib/auth/require";
 import { loadPostTemplates, savePostTemplate, createPostTemplate, deletePostTemplate } from "@/lib/editor/post-templates";
 
 export async function GET(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const templates = loadPostTemplates();
@@ -28,11 +25,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const body = await request.json();
@@ -51,11 +45,8 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const body = await request.json();
@@ -77,11 +68,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-  } catch {
-    return apiError("Unauthorized", 401);
-  }
+  const auth = await requireAdmin(request);
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const body = await request.json();

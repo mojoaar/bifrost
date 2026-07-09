@@ -43,6 +43,7 @@ const WRITE_API_PATTERNS = [
   /^\/api\/v1\/auth\/mfa/,
   /^\/api\/v1\/users\/.*\/mfa/,
   /^\/api\/v1\/post-templates/,
+  /^\/api\/v1\/docs/,
 ];
 
 function isProtectedApiRoute(pathname: string, method: string): boolean {

@@ -35,7 +35,7 @@ describe("verifyAccessToken", () => {
 
   it("returns null for expired token", async () => {
     const { SignJWT } = await import("jose");
-    const testSecret = new TextEncoder().encode("bifrost-dev-access-secret-change-me");
+    const testSecret = new TextEncoder().encode(process.env.BIFROST_JWT_SECRET);
     const expired = await new SignJWT({ sub: "x", role: "author" })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("0s")

@@ -24,12 +24,15 @@ export default defineConfig({
     env: {
       BIFROST_CONTENT_DIR: path.join(testRoot, "content"),
       DATABASE_URL: "file:" + path.join(testRoot, "test.db"),
+      BIFROST_JWT_SECRET: "test-access-secret-not-for-production",
+      BIFROST_JWT_REFRESH_SECRET: "test-refresh-secret-not-for-production",
     },
     globalSetup: ["./tests/global-setup.ts"],
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname),
+      "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts"),
     },
   },
 });

@@ -9,9 +9,13 @@
 
 import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
+import { requireUser } from "@/lib/auth/require";
 import { fetchModels } from "@/lib/ai/providers";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Unauthorized", 401);
+
   const { searchParams } = request.nextUrl;
   const provider = searchParams.get("provider");
 

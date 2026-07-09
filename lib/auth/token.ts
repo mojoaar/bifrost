@@ -10,24 +10,28 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { TokenPayload } from "./types";
 
-const DEV_ACCESS_SECRET = "bifrost-dev-access-secret-change-me";
-const DEV_REFRESH_SECRET = "bifrost-dev-refresh-secret-change-me";
-
 const ACCESS_SECRET = new TextEncoder().encode(
-  process.env.BIFROST_JWT_SECRET ?? DEV_ACCESS_SECRET
+  process.env.BIFROST_JWT_SECRET ?? ""
 );
 
 const REFRESH_SECRET = new TextEncoder().encode(
-  process.env.BIFROST_JWT_REFRESH_SECRET ?? DEV_REFRESH_SECRET
+  process.env.BIFROST_JWT_REFRESH_SECRET ?? ""
 );
 
-export function isUsingDevSecrets(): boolean {
-  return (
-    !process.env.BIFROST_JWT_SECRET ||
-    !process.env.BIFROST_JWT_REFRESH_SECRET ||
-    process.env.BIFROST_JWT_SECRET === DEV_ACCESS_SECRET ||
-    process.env.BIFROST_JWT_REFRESH_SECRET === DEV_REFRESH_SECRET
-  );
+export function assertJwtSecretsConfigured(): void {
+  const missing: string[] = [];
+  if (!process.env.BIFROST_JWT_SECRET) missing.push("BIFROST_JWT_SECRET");
+  if (!process.env.BIFROST_JWT_REFRESH_SECRET) {
+    missing.push("BIFROST_JWT_REFRESH_SECRET");
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Refusing to start: ${missing.join(" and ")} ` +
+        `${missing.length === 1 ? "is" : "are"} not set. ` +
+        "Generate a strong value for each, e.g. `openssl rand -hex 64`, " +
+        "and set them in the environment before starting Bifröst."
+    );
+  }
 }
 
 const ACCESS_EXPIRES = "1h";
