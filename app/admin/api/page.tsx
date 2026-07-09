@@ -148,7 +148,7 @@ export default function ApiExplorerPage() {
       if (!map.has(op.tag)) map.set(op.tag, []);
       map.get(op.tag)!.push(op);
     }
-    return [...map.entries()];
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [ops]);
 
   const buildRequest = useCallback(() => {
