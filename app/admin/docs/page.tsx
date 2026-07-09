@@ -18,6 +18,7 @@ const SECTIONS = [
   { slug: "themes", title: "Themes" },
   { slug: "admin", title: "Admin Dashboard" },
   { slug: "settings", title: "Settings" },
+  { slug: "branding", title: "Branding & PWA" },
   { slug: "api", title: "REST API" },
   { slug: "mcp", title: "MCP Server" },
   { slug: "git", title: "Git & Versioning" },

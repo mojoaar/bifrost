@@ -156,6 +156,7 @@ Full guides live in [`docs/bifrost/`](docs/bifrost/) and inside the admin at `/a
 - [Audit Log](docs/bifrost/audit.md)
 - [Plugins](docs/bifrost/plugins.md)
 - [Settings](docs/bifrost/settings.md)
+- [Branding & PWA](docs/bifrost/branding.md)
 - [Deployment](docs/bifrost/deployment.md)
 - [License](docs/bifrost/license.md)
 - [Credits & Thanks](docs/bifrost/credits.md)

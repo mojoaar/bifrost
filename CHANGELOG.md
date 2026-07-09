@@ -5,6 +5,19 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0] — 2026-07-09
+
+### Added
+
+- **New Bifröst icon** — a frost-blue snowflake mark, shipped as SVG, PNG (192/512), an Apple touch icon (180), and a multi-size `favicon.ico` for full cross-browser coverage including WebKit.
+- **Custom favicon** — upload your own favicon (SVG, PNG, ICO, or JPG) under **Settings → Branding**, with a live preview and one-click reset to the default.
+- **Progressive Web App** — Bifröst is now installable. A dynamic web manifest, a service worker with offline support (themed offline page, network-first pages, cached assets), a subtle install prompt on the public site, and proper `theme-color` and Apple web-app metadata.
+- **Branding & PWA documentation** — a new guide covering the icon set, custom favicons, and PWA behavior.
+
+### Fixed
+
+- Site metadata now always includes icons and the web manifest, even when "show description in page title" is enabled (previously an early return omitted them).
+
 ## [1.21.0] — 2026-07-09
 
 ### Added

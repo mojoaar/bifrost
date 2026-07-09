@@ -31,6 +31,10 @@ Global metadata used in the header, `<title>`, and feeds:
 
 These override the defaults from `bifrost.config.ts`.
 
+## Branding
+
+Upload a custom favicon under the **Branding** panel. It replaces the default Bifröst snowflake across browser tabs, bookmarks, and the installable app icon. Accepts SVG, PNG, ICO, or JPG. See [branding.md](./branding.md) for details on favicons and PWA support.
+
 ## Social sharing
 
 Configure Open Graph and Twitter/X card metadata and optional share buttons. When enabled, posts expose share links and social preview tags are added to the document head so links unfurl nicely.

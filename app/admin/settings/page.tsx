@@ -10,7 +10,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, AlertTriangle, Trash2, Download, Upload } from "lucide-react";
+import { Save, AlertTriangle, Trash2, Download, Upload, Image as ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/lib/auth/client";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
@@ -32,6 +32,9 @@ export default function SettingsPage() {
   const [hasDemo, setHasDemo] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [importMessage, setImportMessage] = useState("");
+  const [faviconUploading, setFaviconUploading] = useState(false);
+  const [faviconMessage, setFaviconMessage] = useState("");
+  const [faviconVersion, setFaviconVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +126,72 @@ export default function SettingsPage() {
       router.refresh();
     } catch {
       setImportMessage("Import failed");
+    }
+  }
+
+  async function handleFaviconUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFaviconUploading(true);
+    setFaviconMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await authFetch("/api/v1/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const body = await res.json();
+      if (!res.ok || !body.data?.id) {
+        setFaviconMessage(body.error?.message ?? "Upload failed");
+        return;
+      }
+      const saveRes = await authFetch("/api/v1/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ "site.favicon_media_id": body.data.id }),
+      });
+      if (!saveRes.ok) {
+        setFaviconMessage("Upload failed");
+        return;
+      }
+      setSettings((s) => ({ ...s, "site.favicon_media_id": body.data.id }));
+      setFaviconVersion((v) => v + 1);
+      setFaviconMessage("Favicon updated");
+      router.refresh();
+    } catch {
+      setFaviconMessage("Upload failed");
+    } finally {
+      setFaviconUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleFaviconReset() {
+    setFaviconUploading(true);
+    setFaviconMessage("");
+    try {
+      const res = await authFetch("/api/v1/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ "site.favicon_media_id": "" }),
+      });
+      if (!res.ok) {
+        setFaviconMessage("Reset failed");
+        return;
+      }
+      setSettings((s) => {
+        const next = { ...s };
+        delete next["site.favicon_media_id"];
+        return next;
+      });
+      setFaviconVersion((v) => v + 1);
+      setFaviconMessage("Reset to default");
+      router.refresh();
+    } catch {
+      setFaviconMessage("Reset failed");
+    } finally {
+      setFaviconUploading(false);
     }
   }
 
@@ -221,6 +290,48 @@ export default function SettingsPage() {
               />
             </Field>
           </div>
+        </Card>
+
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Branding</div>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex size-16 items-center justify-center overflow-hidden rounded-md border border-border bg-bg-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={faviconVersion}
+                src={`/icon?v=${faviconVersion}`}
+                alt="Favicon preview"
+                className="size-12 object-contain"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-bg-1 px-3 py-1.5 text-sm font-medium text-text-1 transition hover:bg-bg-2">
+                <ImageIcon size={14} />
+                <span>{faviconUploading ? "Uploading…" : "Upload favicon"}</span>
+                <input
+                  type="file"
+                  accept=".svg,.png,.ico,.jpg,.jpeg,image/svg+xml,image/png,image/x-icon,image/vnd.microsoft.icon,image/jpeg"
+                  onChange={handleFaviconUpload}
+                  disabled={faviconUploading}
+                  className="hidden"
+                />
+              </label>
+              {settings["site.favicon_media_id"] && (
+                <Button variant="ghost" type="button" onClick={handleFaviconReset} disabled={faviconUploading}>
+                  <Trash2 size={14} />
+                  <span>Reset to default</span>
+                </Button>
+              )}
+              {faviconMessage && (
+                <span className={`font-mono text-xs ${faviconMessage.includes("fail") || faviconMessage.includes("Fail") ? "text-danger" : "text-success"}`}>
+                  {faviconMessage}
+                </span>
+              )}
+            </div>
+          </div>
+          <p className="mt-3 font-mono text-xs text-text-3">
+            SVG, PNG, ICO, or JPG. Used for browser tabs, bookmarks, and the installable app icon.
+          </p>
         </Card>
 
         <Card padding="md">

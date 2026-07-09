@@ -7,12 +7,13 @@
  * See the LICENSE file for details.
  */
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq, inArray } from "drizzle-orm";
 import { monoFontStack } from "@/lib/fonts/registry";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 import "@/themes/bifrost-terminal/styles/palettes.css";
 
@@ -30,6 +31,7 @@ const SHOW_DESC_KEY = "appearance.show_desc_in_title";
 export async function generateMetadata(): Promise<Metadata> {
   let title = "Bifröst";
   let description = "A self-hosted blogging framework";
+  let showDesc = true;
 
   try {
     const rows = db
@@ -39,22 +41,20 @@ export async function generateMetadata(): Promise<Metadata> {
         inArray(settings.key, [SITE_TITLE_KEY, SITE_DESCRIPTION_KEY, SHOW_DESC_KEY])
       )
       .all();
-    let showDesc = true;
     for (const row of rows) {
       if (row.key === SITE_TITLE_KEY && row.value) title = row.value;
       if (row.key === SITE_DESCRIPTION_KEY && row.value) description = row.value;
       if (row.key === SHOW_DESC_KEY && row.value === "false") showDesc = false;
-    }
-    if (showDesc) {
-      return { title: `${title} | ${description}`, description };
     }
   } catch {
     // use defaults
   }
 
   return {
-    title,
+    title: showDesc ? `${title} | ${description}` : title,
     description,
+    applicationName: title,
+    manifest: "/manifest.webmanifest",
     metadataBase: new URL(
       process.env.BIFROST_SITE_URL ??
       `http://localhost:${process.env.PORT ?? 3000}`
@@ -71,7 +71,17 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
     },
     icons: {
-      icon: "/icon.svg",
+      icon: [
+        { url: "/icon", type: "image/svg+xml" },
+        { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: "/apple-icon",
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title,
     },
     alternates: {
       types: {
@@ -82,6 +92,15 @@ export async function generateMetadata(): Promise<Metadata> {
       index: true,
       follow: true,
     },
+  };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  return {
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: "#eff1f5" },
+      { media: "(prefers-color-scheme: dark)", color: "#1e1e2e" },
+    ],
   };
 }
 
@@ -160,6 +179,7 @@ export default async function RootLayout({
       <body className="bg-bg-0 text-text-1">
         {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
         {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

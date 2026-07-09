@@ -14,6 +14,7 @@ import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 import { PageViewBeacon } from "@/components/PageViewBeacon";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 export default async function PublicLayout({
   children,
@@ -97,6 +98,7 @@ export default async function PublicLayout({
       <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
         <PageViewBeacon />
         {children}
+        <InstallPrompt />
       </ThemeLayout>
     </>
   );
