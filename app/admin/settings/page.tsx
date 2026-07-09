@@ -396,7 +396,7 @@ export default function SettingsPage() {
               <Download size={14} />
               <span>{exporting ? "Preparing…" : "Export ZIP"}</span>
             </Button>
-            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-border-strong hover:text-text-1">
+            <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-bg-1 px-3 py-1.5 text-sm font-medium text-text-1 transition hover:bg-bg-2 disabled:cursor-not-allowed disabled:opacity-50">
               <Upload size={14} />
               <span>Import ZIP</span>
               <input

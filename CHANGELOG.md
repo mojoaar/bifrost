@@ -5,6 +5,16 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.2] — 2026-07-09
+
+### Changed
+
+- **Dashboard "Visitors Today" renamed to "Views Today"** — the metric counts page views, not unique visitors, and now reflects calendar-day totals (from local midnight) instead of a rolling 24-hour window.
+
+### Fixed
+
+- **Settings Export/Import buttons** now share identical sizing and typography (the Import `<label>` matched to the ghost `Button` style)
+
 ## [1.19.1] — 2026-07-08
 
 ### Added

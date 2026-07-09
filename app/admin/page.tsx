@@ -232,7 +232,7 @@ export default function AdminDashboard() {
 
       {adminStats && (
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Visitors Today" value={adminStats.views.today} icon={Eye} />
+          <StatCard label="Views Today" value={adminStats.views.today} icon={Eye} />
           <StatCard label="This Week" value={adminStats.views.week} icon={TrendingUp} />
           <StatCardString label="Uptime" value={formatUptime(adminStats.server.uptime)} icon={Clock} />
           <StatCardString

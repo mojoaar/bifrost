@@ -16,7 +16,6 @@ import { sql } from "drizzle-orm";
 import { version } from "@/package.json";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function GET(request: Request) {
   const auth = await requireAdmin(request);
@@ -33,14 +32,18 @@ export async function GET(request: Request) {
     .from(posts)
     .get();
 
-  const dayAgo = new Date(Date.now() - DAY_MS).toISOString();
+  const startOfToday = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  })();
   const weekAgo = new Date(Date.now() - WEEK_MS).toISOString();
 
   const viewsToday =
     db
       .select({ count: sql<number>`count(*)` })
       .from(pageViews)
-      .where(sql`${pageViews.timestamp} >= ${dayAgo}`)
+      .where(sql`${pageViews.timestamp} >= ${startOfToday}`)
       .get()?.count ?? 0;
 
   const viewsWeek =
