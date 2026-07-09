@@ -157,18 +157,18 @@ MEDIUM / LOW
 - [x] Add `nowISO()` helper
 - [x] Move `lib/format-date.ts` to a client location
 
-### Phase 4 — God-file refactors (behavior-preserving)
+### Phase 4 — God-file refactors (behavior-preserving) (v1.27.0) — DONE
 
-- [ ] Split `lib/api/openapi.ts` → `lib/api/openapi/` (index + per-tag path modules +
+- [x] Split `lib/api/openapi.ts` → `lib/api/openapi/` (index + per-tag path modules +
       schemas + types; re-export to keep importers stable). Drift-guard test protects it.
-- [ ] Split `lib/mcp/tools.ts` → `lib/mcp/tools/` (index + per-category modules + util).
+- [x] Split `lib/mcp/tools.ts` → `lib/mcp/tools/` (index + per-category modules + util).
       `tests/lib/mcp/tools.test.ts` protects it.
-- [ ] Split `lib/seed.ts` → `lib/seed/` (index + posts + pages).
-- [ ] Extract admin sections into `_components/`:
+- [x] Split `lib/seed.ts` → `lib/seed/` (index + posts + pages).
+- [x] Extract admin sections into `_components/`:
       `settings` (Site, Branding, Appearance, DateTime, ImportExport, DangerZone),
       `plugins` (AiProviders, McpStatus, Sharing),
       `profile` (Profile, SocialLinks, Mfa, ApiKeys).
-- [ ] One god-file per commit; typecheck+lint+test green after each.
+- [x] One god-file per commit; typecheck+lint+test green after each.
 
 ### Phase 5+ — Functionality gaps & quick wins
 

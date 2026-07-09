@@ -5,6 +5,16 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.27.0] — 2026-07-09
+
+### Changed
+
+- Refactored large modules for maintainability (behavior-preserving):
+  - Split `lib/api/openapi.ts` into `lib/api/openapi/` (shared, schemas, per-group path modules, index).
+  - Split `lib/mcp/tools.ts` into `lib/mcp/tools/` (shared, posts, pages, system, index).
+  - Split `lib/seed.ts` into `lib/seed/` (posts, pages, index).
+  - Extracted the Settings, Plugins, and Profile admin pages into focused section components under each page's `_components/` directory.
+
 ## [1.26.0] — 2026-07-09
 
 ### Added
