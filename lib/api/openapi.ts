@@ -65,31 +65,8 @@ export function generateOpenApiSpec(): OpenAPISpec {
                           page: { type: "integer" },
                           limit: { type: "integer" },
                           total: { type: "integer" },
-      },
-      "/admin/stats": {
-        get: {
-          summary: "Server and visitor statistics",
-          tags: ["Admin"],
-          security: bearer,
-          responses: { "200": { description: "Server info, DB counts, and view analytics" } },
-        },
-      },
-      "/analytics/view": {
-        post: {
-          summary: "Record a page view",
-          tags: ["Analytics"],
-          requestBody: jsonBody({
-            type: "object",
-            properties: {
-              path: { type: "string" },
-              referrer: { type: "string" },
-            },
-            required: ["path"],
-          }),
-          responses: { "200": { description: "View recorded" } },
-        },
-      },
-    },
+                        },
+                      },
                     },
                   },
                 },
@@ -577,6 +554,428 @@ export function generateOpenApiSpec(): OpenAPISpec {
           responses: { "200": { description: "Seed posts removed" } },
         },
       },
+      "/admin/stats": {
+        get: {
+          summary: "Server and visitor statistics",
+          tags: ["Admin"],
+          security: bearer,
+          responses: { "200": { description: "Server info, DB counts, and view analytics" } },
+        },
+      },
+      "/analytics/view": {
+        post: {
+          summary: "Record a page view",
+          tags: ["Analytics"],
+          requestBody: jsonBody({
+            type: "object",
+            required: ["path"],
+            properties: {
+              path: { type: "string" },
+              referrer: { type: "string" },
+            },
+          }),
+          responses: { "200": { description: "View recorded" } },
+        },
+      },
+      "/pages": {
+        get: {
+          summary: "List pages",
+          tags: ["Pages"],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 } },
+            { name: "limit", in: "query", schema: { type: "integer", default: 50 } },
+            {
+              name: "status",
+              in: "query",
+              schema: { type: "string", enum: ["draft", "published"] },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Paginated list of pages",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      data: { type: "array", items: { $ref: "#/components/schemas/Page" } },
+                      error: { type: "null" },
+                      meta: {
+                        type: "object",
+                        properties: {
+                          page: { type: "integer" },
+                          limit: { type: "integer" },
+                          total: { type: "integer" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          summary: "Create page",
+          tags: ["Pages"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["slug", "title", "content"],
+            properties: {
+              slug: { type: "string", description: "lowercase kebab-case" },
+              title: { type: "string" },
+              content: { type: "string" },
+              status: { type: "string", enum: ["draft", "published"], default: "draft" },
+              showInNav: { type: "boolean", default: false },
+              navOrder: { type: "integer", default: 0 },
+              authorId: { type: "string" },
+              frontmatter: { type: "object" },
+            },
+          }),
+          responses: {
+            "201": { description: "Page created" },
+            "401": { description: "Unauthorized" },
+            "409": { description: "Slug conflict" },
+            "422": { description: "Validation error" },
+          },
+        },
+      },
+      "/pages/{slug}": {
+        get: {
+          summary: "Get page by slug",
+          tags: ["Pages"],
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          responses: {
+            "200": { description: "Page found" },
+            "404": { description: "Page not found" },
+          },
+        },
+        put: {
+          summary: "Update page",
+          tags: ["Pages"],
+          security: bearer,
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          requestBody: jsonBody(
+            {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                content: { type: "string" },
+                status: { type: "string", enum: ["draft", "published"] },
+                showInNav: { type: "boolean" },
+                navOrder: { type: "integer" },
+                authorId: { type: "string" },
+                frontmatter: { type: "object" },
+              },
+            },
+            false
+          ),
+          responses: {
+            "200": { description: "Page updated" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "Page not found" },
+            "422": { description: "Validation error" },
+          },
+        },
+        delete: {
+          summary: "Delete page",
+          tags: ["Pages"],
+          security: bearer,
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          responses: {
+            "200": { description: "Page deleted" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "Page not found" },
+          },
+        },
+      },
+      "/audit": {
+        get: {
+          summary: "List audit log entries",
+          description:
+            "Returns paginated audit log entries, newest first. Admin only. " +
+            "Supports filtering by action, actor, status, and an ISO timestamp range.",
+          tags: ["Audit"],
+          security: bearer,
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 } },
+            { name: "limit", in: "query", schema: { type: "integer", default: 50 } },
+            { name: "action", in: "query", schema: { type: "string" } },
+            { name: "actorId", in: "query", schema: { type: "string" } },
+            {
+              name: "status",
+              in: "query",
+              schema: { type: "string", enum: ["success", "failure"] },
+            },
+            { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
+            { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
+          ],
+          responses: {
+            "200": {
+              description: "Paginated audit log entries",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      data: { type: "array", items: { $ref: "#/components/schemas/AuditLog" } },
+                      error: { type: "null" },
+                      meta: {
+                        type: "object",
+                        properties: {
+                          page: { type: "integer" },
+                          limit: { type: "integer" },
+                          total: { type: "integer" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            "401": { description: "Unauthorized" },
+          },
+        },
+        delete: {
+          summary: "Purge all audit log entries",
+          tags: ["Audit"],
+          security: bearer,
+          responses: {
+            "200": { description: "All entries purged; returns the number removed" },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/post-templates": {
+        get: {
+          summary: "List post templates",
+          tags: ["Templates"],
+          security: bearer,
+          responses: { "200": { description: "List of templates" }, "401": { description: "Unauthorized" } },
+        },
+        post: {
+          summary: "Create post template",
+          tags: ["Templates"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["name"],
+            properties: { name: { type: "string" } },
+          }),
+          responses: {
+            "200": { description: "Template created; returns new template and full list" },
+            "400": { description: "Validation error" },
+            "409": { description: "Template already exists" },
+          },
+        },
+        put: {
+          summary: "Save post template contents",
+          tags: ["Templates"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["name", "content"],
+            properties: { name: { type: "string" }, content: { type: "string" } },
+          }),
+          responses: { "200": { description: "Template saved; returns full list" } },
+        },
+        delete: {
+          summary: "Delete post template",
+          tags: ["Templates"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["name"],
+            properties: { name: { type: "string" } },
+          }),
+          responses: {
+            "200": { description: "Template deleted; returns full list" },
+            "404": { description: "Not found" },
+          },
+        },
+      },
+      "/themes/files": {
+        get: {
+          summary: "List or read theme files",
+          description:
+            "With `theme` only, returns the file list for that theme. " +
+            "With `theme` and `file`, returns the file contents.",
+          tags: ["Themes"],
+          security: bearer,
+          parameters: [
+            { name: "theme", in: "query", required: true, schema: { type: "string" } },
+            { name: "file", in: "query", schema: { type: "string" } },
+          ],
+          responses: {
+            "200": { description: "File list or file contents" },
+            "400": { description: "Missing theme parameter" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "Theme or file not found" },
+          },
+        },
+        put: {
+          summary: "Write a theme file",
+          tags: ["Themes"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["theme", "file", "content"],
+            properties: {
+              theme: { type: "string" },
+              file: { type: "string" },
+              content: { type: "string" },
+            },
+          }),
+          responses: {
+            "200": { description: "File saved (or no changes detected)" },
+            "400": { description: "Validation error or path traversal blocked" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "Directory does not exist" },
+          },
+        },
+      },
+      "/export": {
+        get: {
+          summary: "Export all content as a ZIP archive",
+          tags: ["Export/Import"],
+          security: bearer,
+          responses: {
+            "200": {
+              description: "ZIP archive stream",
+              content: { "application/zip": { schema: { type: "string", format: "binary" } } },
+            },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/import": {
+        post: {
+          summary: "Import content from a ZIP archive",
+          tags: ["Export/Import"],
+          security: bearer,
+          requestBody: {
+            required: true,
+            content: {
+              "multipart/form-data": {
+                schema: {
+                  type: "object",
+                  required: ["file"],
+                  properties: { file: { type: "string", format: "binary" } },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": { description: "Content imported; returns a summary" },
+            "400": { description: "A .zip file is required" },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/auth/mfa": {
+        post: {
+          summary: "Complete MFA login",
+          description: "Second step of login for MFA-enabled users. Accepts a TOTP code or a recovery code.",
+          tags: ["MFA"],
+          requestBody: jsonBody({
+            type: "object",
+            required: ["mfaToken", "code"],
+            properties: {
+              mfaToken: { type: "string", description: "Short-lived token from the login response" },
+              code: { type: "string", description: "TOTP or recovery code" },
+            },
+          }),
+          responses: {
+            "200": { description: "MFA verified; returns access and refresh tokens" },
+            "400": { description: "Invalid MFA code" },
+            "401": { description: "Invalid or expired MFA token" },
+          },
+        },
+      },
+      "/profile/mfa/setup": {
+        post: {
+          summary: "Begin MFA enrollment",
+          description: "Generates a new TOTP secret, otpauth URL, and recovery codes. Does not enable MFA yet.",
+          tags: ["MFA"],
+          security: bearer,
+          responses: {
+            "200": { description: "Secret, otpauthUrl, and recoveryCodes" },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/profile/mfa/verify": {
+        post: {
+          summary: "Confirm and enable MFA",
+          tags: ["MFA"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["secret", "code", "recoveryCodes"],
+            properties: {
+              secret: { type: "string" },
+              code: { type: "string" },
+              recoveryCodes: { type: "array", items: { type: "string" } },
+            },
+          }),
+          responses: {
+            "200": { description: "MFA enabled" },
+            "400": { description: "Invalid verification code" },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/profile/mfa/disable": {
+        post: {
+          summary: "Disable MFA",
+          tags: ["MFA"],
+          security: bearer,
+          requestBody: jsonBody({
+            type: "object",
+            required: ["password"],
+            properties: { password: { type: "string", format: "password" } },
+          }),
+          responses: {
+            "200": { description: "MFA disabled" },
+            "400": { description: "Invalid password" },
+            "401": { description: "Unauthorized" },
+          },
+        },
+      },
+      "/users/{id}/mfa/reset": {
+        post: {
+          summary: "Reset a user's MFA (admin)",
+          tags: ["MFA"],
+          security: bearer,
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+          responses: {
+            "200": { description: "MFA reset for the user" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "User not found" },
+          },
+        },
+      },
+      "/docs": {
+        get: {
+          summary: "List or render documentation",
+          description:
+            "With `list=true`, returns the list of available docs. " +
+            "With `file`, returns the rendered HTML for that doc. Admin only.",
+          tags: ["Docs"],
+          security: bearer,
+          parameters: [
+            { name: "list", in: "query", schema: { type: "string", enum: ["true"] } },
+            { name: "file", in: "query", schema: { type: "string" } },
+          ],
+          responses: {
+            "200": { description: "Doc list or rendered HTML" },
+            "400": { description: "file parameter is required" },
+            "401": { description: "Unauthorized" },
+            "404": { description: "Document not found" },
+          },
+        },
+      },
     },
     components: {
       securitySchemes: {
@@ -601,6 +1000,75 @@ export function generateOpenApiSpec(): OpenAPISpec {
             publishedAt: { type: "string", nullable: true },
             createdAt: { type: "string" },
             updatedAt: { type: "string" },
+          },
+        },
+        Page: {
+          type: "object",
+          properties: {
+            slug: { type: "string" },
+            title: { type: "string" },
+            contentMd: { type: "string" },
+            contentHtml: { type: "string" },
+            excerpt: { type: "string" },
+            frontmatter: { type: "string" },
+            status: { type: "string", enum: ["draft", "published"] },
+            showInNav: { type: "boolean" },
+            navOrder: { type: "integer" },
+            authorId: { type: "string" },
+            createdAt: { type: "string" },
+            updatedAt: { type: "string" },
+          },
+        },
+        Tag: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            slug: { type: "string" },
+            count: { type: "integer", description: "Number of posts using this tag" },
+          },
+        },
+        User: {
+          type: "object",
+          description: "Public user shape; password hash and MFA secrets are never returned.",
+          properties: {
+            id: { type: "string" },
+            email: { type: "string", format: "email" },
+            displayName: { type: "string" },
+            role: { type: "string", enum: ["admin", "editor", "author"] },
+            bio: { type: "string", nullable: true },
+            avatarUrl: { type: "string", nullable: true },
+            mfaEnabled: { type: "boolean" },
+            createdAt: { type: "string" },
+            updatedAt: { type: "string" },
+          },
+        },
+        Media: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            filename: { type: "string" },
+            path: { type: "string", description: "Relative to the content directory" },
+            mimeType: { type: "string" },
+            sizeBytes: { type: "integer" },
+            createdAt: { type: "string" },
+          },
+        },
+        AuditLog: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            timestamp: { type: "string", format: "date-time" },
+            actorId: { type: "string", nullable: true },
+            actorLabel: { type: "string", nullable: true },
+            actorType: { type: "string", enum: ["user", "api_key", "system", "anonymous"] },
+            action: { type: "string" },
+            targetType: { type: "string", nullable: true },
+            targetId: { type: "string", nullable: true },
+            status: { type: "string", enum: ["success", "failure"] },
+            ip: { type: "string", nullable: true },
+            userAgent: { type: "string", nullable: true },
+            metadata: { type: "string", nullable: true, description: "JSON-encoded extra context" },
           },
         },
       },

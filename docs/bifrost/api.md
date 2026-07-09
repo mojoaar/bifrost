@@ -61,18 +61,32 @@ Example error:
 
 ## Endpoints
 
-| Resource   | Base path            | Methods                       |
-| ---------- | -------------------- | ----------------------------- |
-| Posts      | `/api/v1/posts`      | GET, POST, PATCH, DELETE      |
-| Pages      | `/api/v1/pages`      | GET, POST, PATCH, DELETE      |
-| Media      | `/api/v1/media`      | GET, POST, DELETE             |
-| Tags       | `/api/v1/tags`       | GET, PATCH, DELETE            |
-| Users      | `/api/v1/users`      | GET, POST, PATCH, DELETE      |
-| Settings   | `/api/v1/settings`   | GET, PATCH                    |
-| Themes     | `/api/v1/themes`     | GET, PATCH                    |
-| Git        | `/api/v1/git`        | GET (status/log), POST (sync) |
-| AI         | `/api/v1/ai`         | POST (assist/generate)        |
-| Analytics  | `/api/v1/analytics`  | GET                           |
+| Resource       | Base path                  | Methods                   |
+| -------------- | -------------------------- | ------------------------- |
+| Posts          | `/api/v1/posts`            | GET, POST, PUT, DELETE    |
+| Pages          | `/api/v1/pages`            | GET, POST, PUT, DELETE    |
+| Media          | `/api/v1/media`            | GET, POST, DELETE         |
+| Tags           | `/api/v1/tags`             | GET, POST, PUT, DELETE    |
+| Users          | `/api/v1/users`            | GET, POST, PUT, DELETE    |
+| Profile        | `/api/v1/profile`          | GET, PUT                  |
+| API Keys       | `/api/v1/api-keys`         | GET, POST, DELETE         |
+| Settings       | `/api/v1/settings`         | GET, PUT                  |
+| Themes         | `/api/v1/themes`           | GET                       |
+| Theme files    | `/api/v1/themes/files`     | GET, PUT                  |
+| Templates      | `/api/v1/post-templates`   | GET, POST, PUT, DELETE    |
+| Git            | `/api/v1/git`              | GET (history/diff), POST (push/pull) |
+| AI             | `/api/v1/ai`               | GET (models/settings), POST (chat), PUT (settings) |
+| Analytics      | `/api/v1/analytics/view`   | POST                      |
+| Admin          | `/api/v1/admin`            | GET (stats/reset), POST (reset) |
+| Audit          | `/api/v1/audit`            | GET, DELETE               |
+| Auth           | `/api/v1/auth`             | POST (login/refresh/mfa)  |
+| MFA            | `/api/v1/profile/mfa`, `/api/v1/users/{id}/mfa/reset` | POST |
+| Export/Import  | `/api/v1/export`, `/api/v1/import` | GET, POST         |
+| Docs           | `/api/v1/docs`             | GET                       |
+| MCP            | `/api/v1/mcp/status`       | GET                       |
+| Setup          | `/api/v1/setup`            | GET, POST                 |
+
+For the full, always-current list of endpoints — including parameters, request bodies, and response schemas — use the interactive **API Explorer** under **Admin → API Explorer**, or the OpenAPI spec below. The spec is generated from the live routes and kept in sync by a test, so it never drifts.
 
 ### Examples
 
@@ -95,9 +109,9 @@ curl -X POST -H "Authorization: Bearer $KEY" \
 Update a post:
 
 ```bash
-curl -X PATCH -H "Authorization: Bearer $KEY" \
+curl -X PUT -H "Authorization: Bearer $KEY" \
   -H "Content-Type: application/json" \
-  -d '{"draft":false}' \
+  -d '{"status":"published"}' \
   "http://localhost:3000/api/v1/posts/hello"
 ```
 

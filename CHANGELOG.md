@@ -5,6 +5,19 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.0] — 2026-07-09
+
+### Added
+
+- **Complete API reference** — the OpenAPI spec (and therefore the API Explorer and Swagger UI) now documents every endpoint: pages, audit log, post templates, theme files, export/import, MFA flows, and the docs feed.
+- **Component schemas** — `Page`, `Tag`, `User`, `Media`, and `AuditLog` are now defined in the spec for richer Explorer examples and generated clients.
+- **Spec drift guard** — a test asserts the OpenAPI spec and the on-disk routes stay in sync and that every schema reference resolves.
+
+### Fixed
+
+- **Malformed OpenAPI structure** — `/admin/stats` and `/analytics/view` were accidentally nested inside the posts list response, hiding them from the spec, Explorer, and Swagger. They are now top-level paths.
+- Corrected `docs/bifrost/api.md` endpoint table (PUT, not PATCH) and expanded it to cover all resources.
+
 ## [1.22.0] — 2026-07-09
 
 ### Added
