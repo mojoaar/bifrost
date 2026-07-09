@@ -11,15 +11,26 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/require";
 import { apiError } from "@/lib/api/response";
 import { createExportZip } from "@/lib/export";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
+  let auth;
   try {
-    await requireAdmin(request);
+    auth = await requireAdmin(request);
   } catch {
-    return apiError("Unauthorized", 401);
+    // handled below
   }
 
+  if (!auth) return apiError("Unauthorized", 401);
+
   const zip = createExportZip();
+
+  recordAudit({
+    action: "content.export",
+    status: "success",
+    ...getClientContext(request, auth),
+  });
+
   const readable = new ReadableStream({
     start(controller) {
       zip.on("data", (chunk) => controller.enqueue(chunk as Uint8Array));

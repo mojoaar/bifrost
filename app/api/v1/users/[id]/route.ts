@@ -14,6 +14,7 @@ import { users } from "@/lib/db/schema/users";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
 import { requireAdmin } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function PUT(
   request: NextRequest,
@@ -24,7 +25,7 @@ export async function PUT(
 
   const { id } = await params;
 
-  const existing = db.select({ id: users.id }).from(users).where(eq(users.id, id)).get();
+  const existing = db.select({ id: users.id, email: users.email }).from(users).where(eq(users.id, id)).get();
   if (!existing) return apiError("User not found", 404);
 
   let body: Record<string, unknown>;
@@ -51,6 +52,15 @@ export async function PUT(
 
   db.update(users).set(update).where(eq(users.id, id)).run();
 
+  recordAudit({
+    action: "user.update",
+    status: "success",
+    targetType: "user",
+    targetId: id,
+    ...getClientContext(request, auth),
+    metadata: { email: existing.email },
+  });
+
   return apiSuccess({ updated: true });
 }
 
@@ -62,10 +72,19 @@ export async function DELETE(
   if (!auth) return apiError("Admin authentication required", 401);
   const { id } = await params;
 
-  const existing = db.select({ id: users.id }).from(users).where(eq(users.id, id)).get();
+  const existing = db.select({ id: users.id, email: users.email }).from(users).where(eq(users.id, id)).get();
   if (!existing) return apiError("User not found", 404);
 
   db.delete(users).where(eq(users.id, id)).run();
+
+  recordAudit({
+    action: "user.delete",
+    status: "success",
+    targetType: "user",
+    targetId: id,
+    ...getClientContext(request, auth),
+    metadata: { email: existing.email },
+  });
 
   return apiSuccess({ deleted: true });
 }

@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { apiKeys } from "@/lib/db/schema/api-keys";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function DELETE(
   request: NextRequest,
@@ -34,6 +35,14 @@ export async function DELETE(
     .set({ revokedAt: new Date().toISOString() })
     .where(eq(apiKeys.id, id))
     .run();
+
+  recordAudit({
+    action: "apikey.revoke",
+    status: "success",
+    targetType: "api_key",
+    targetId: id,
+    ...getClientContext(request, admin),
+  });
 
   return apiSuccess({ revoked: true });
 }

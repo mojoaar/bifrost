@@ -16,3 +16,4 @@ export { media } from "./media";
 export { settings } from "./settings";
 export { apiKeys } from "./api-keys";
 export { pageViews } from "./page-views";
+export { auditLogs } from "./audit-logs";

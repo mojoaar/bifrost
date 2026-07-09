@@ -18,6 +18,7 @@ import {
 } from "@/lib/content/sync";
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { requireUser } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -106,6 +107,15 @@ export async function PUT(
 
   const page = db.select().from(pages).where(eq(pages.slug, slug)).get();
 
+  recordAudit({
+    action: "page.update",
+    status: "success",
+    targetType: "page",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title: update.title ?? existing.title },
+  });
+
   return apiSuccess(page);
 }
 
@@ -127,6 +137,15 @@ export async function DELETE(
 
   db.delete(pages).where(eq(pages.slug, slug)).run();
   await deletePageFromFilesystem(slug);
+
+  recordAudit({
+    action: "page.delete",
+    status: "success",
+    targetType: "page",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title: existing.title },
+  });
 
   return apiSuccess({ deleted: true });
 }

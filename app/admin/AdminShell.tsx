@@ -37,6 +37,7 @@ const NAV: NavItem[] = [
   { href: "/admin/plugins", label: "Plugins" },
   { href: "/admin/themes", label: "Themes" },
   { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/audit", label: "Audit Log" },
   { href: "/admin/git", label: "Git" },
   { href: "/admin/api", label: "API Explorer" },
   { href: "/admin/docs", label: "Docs" },

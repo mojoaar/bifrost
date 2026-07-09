@@ -14,6 +14,7 @@ import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 import { createAccessToken, createRefreshToken, verifyMfaToken } from "@/lib/auth/token";
 import { verifyMfaCode, verifyRecoveryCode } from "@/lib/auth/mfa";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   let body: { mfaToken?: string; code?: string };
@@ -58,7 +59,17 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (!valid) return apiError("Invalid MFA code", 400);
+  if (!valid) {
+    recordAudit({
+      action: "auth.mfa",
+      status: "failure",
+      targetType: "user",
+      targetId: user.id,
+      ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
+      metadata: { reason: "invalid_code" },
+    });
+    return apiError("Invalid MFA code", 400);
+  }
 
   if (remainingRecovery !== null) {
     db.update(users)
@@ -70,6 +81,15 @@ export async function POST(request: NextRequest) {
   const tokenPayload = { sub: user.id, role: user.role };
   const accessToken = await createAccessToken(tokenPayload);
   const refreshToken = await createRefreshToken(tokenPayload);
+
+  recordAudit({
+    action: "auth.mfa",
+    status: "success",
+    targetType: "user",
+    targetId: user.id,
+    ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
+    metadata: remainingRecovery !== null ? { method: "recovery_code" } : { method: "totp" },
+  });
 
   return apiSuccess({ accessToken, refreshToken });
 }

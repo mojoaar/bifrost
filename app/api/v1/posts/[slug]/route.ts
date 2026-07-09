@@ -20,6 +20,7 @@ import {
 } from "@/lib/content/sync";
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { requireUser } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -138,6 +139,15 @@ export async function PUT(
 
   const post = db.select().from(posts).where(eq(posts.slug, slug)).get();
 
+  recordAudit({
+    action: "post.update",
+    status: "success",
+    targetType: "post",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title: update.title ?? existing.title },
+  });
+
   return apiSuccess(post);
 }
 
@@ -160,6 +170,15 @@ export async function DELETE(
   db.delete(postTags).where(eq(postTags.postSlug, slug)).run();
   db.delete(posts).where(eq(posts.slug, slug)).run();
   await deletePostFromFilesystem(slug);
+
+  recordAudit({
+    action: "post.delete",
+    status: "success",
+    targetType: "post",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title: existing.title },
+  });
 
   return apiSuccess({ deleted: true });
 }

@@ -14,6 +14,7 @@ import { apiKeys } from "@/lib/db/schema/api-keys";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/require";
 import { createApiKey } from "@/lib/auth/api-key";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
   const admin = await requireAdmin(request);
@@ -53,6 +54,16 @@ export async function POST(request: NextRequest) {
   if (!name) return apiError("A key name is required", 400);
 
   const created = await createApiKey({ name, userId: admin.userId });
+
+  recordAudit({
+    action: "apikey.create",
+    status: "success",
+    targetType: "api_key",
+    targetId: created.id,
+    ...getClientContext(request, admin),
+    metadata: { name: created.name, keyPrefix: created.keyPrefix },
+  });
+
   return apiSuccess(
     {
       id: created.id,

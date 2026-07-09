@@ -25,6 +25,7 @@ const SECTIONS = [
   { slug: "deployment", title: "Deployment" },
   { slug: "security", title: "Security & MFA" },
   { slug: "backup", title: "Backup & Restore" },
+  { slug: "audit", title: "Audit Log" },
   { slug: "license", title: "License" },
   { slug: "credits", title: "Credits & Thanks" },
 ];

@@ -11,17 +11,21 @@ import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/require";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { extractZip, contentSummary } from "@/lib/export";
+import { recordAudit, getClientContext } from "@/lib/audit";
 import { writeFileSync, unlinkSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { contentDir } from "@/lib/paths";
 
 export async function POST(request: NextRequest) {
+  let auth;
   try {
-    await requireAdmin(request);
+    auth = await requireAdmin(request);
   } catch {
-    return apiError("Unauthorized", 401);
+    // handled below
   }
+
+  if (!auth) return apiError("Unauthorized", 401);
 
   try {
     const formData = await request.formData();
@@ -43,6 +47,14 @@ export async function POST(request: NextRequest) {
     unlinkSync(tmpPath);
 
     const summary = contentSummary();
+
+    recordAudit({
+      action: "content.import",
+      status: "success",
+      ...getClientContext(request, auth),
+      metadata: { summary },
+    });
+
     return apiSuccess({
       imported: true,
       summary,

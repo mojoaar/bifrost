@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0] — 2026-07-09
+
+### Added
+
+- **Audit log** — an append-only record of administrative and content actions (logins, MFA changes, user/post/page/settings/API-key/media mutations, exports and imports). Each entry captures the actor, action, target, status, IP, and user agent. Browse and filter events at **Admin → Audit Log**, with pagination and a manual purge. Entries are automatically pruned after 90 days. Includes a new `GET`/`DELETE /api/v1/audit` endpoint and an Audit Log documentation guide.
+
 ## [1.20.0] — 2026-07-09
 
 ### Added

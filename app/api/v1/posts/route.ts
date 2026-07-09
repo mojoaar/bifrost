@@ -19,6 +19,7 @@ import { resolveAuthorId } from "@/lib/content/authors";
 import { slugExists } from "@/lib/content/slug";
 import { requireUser } from "@/lib/auth/require";
 import { verifyAccessToken } from "@/lib/auth/token";
+import { recordAudit, getClientContext } from "@/lib/audit";
 import { eq, sql } from "drizzle-orm";
 
 async function isAdmin(request: NextRequest): Promise<boolean> {
@@ -145,6 +146,15 @@ export async function POST(request: NextRequest) {
   }
 
   const post = db.select().from(posts).where(eq(posts.slug, slug)).get();
+
+  recordAudit({
+    action: "post.create",
+    status: "success",
+    targetType: "post",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title },
+  });
 
   return apiSuccess(post, undefined, 201);
 }

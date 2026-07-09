@@ -153,6 +153,7 @@ Full guides live in [`docs/bifrost/`](docs/bifrost/) and inside the admin at `/a
 - [MCP Server](docs/bifrost/mcp.md)
 - [Security & MFA](docs/bifrost/security.md)
 - [Backup & Restore](docs/bifrost/backup.md)
+- [Audit Log](docs/bifrost/audit.md)
 - [Plugins](docs/bifrost/plugins.md)
 - [Settings](docs/bifrost/settings.md)
 - [Deployment](docs/bifrost/deployment.md)

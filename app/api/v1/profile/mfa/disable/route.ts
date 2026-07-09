@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
@@ -44,6 +45,14 @@ export async function POST(request: NextRequest) {
     .set({ mfaEnabled: 0, mfaSecret: null, mfaRecovery: null })
     .where(eq(users.id, auth.userId))
     .run();
+
+  recordAudit({
+    action: "mfa.disable",
+    status: "success",
+    targetType: "user",
+    targetId: auth.userId,
+    ...getClientContext(request, auth),
+  });
 
   return apiSuccess({ disabled: true });
 }

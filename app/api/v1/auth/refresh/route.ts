@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { createAccessToken, verifyRefreshToken } from "@/lib/auth/token";
 import { validateCsrf } from "@/lib/auth/csrf";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   if (!validateCsrf(request)) {
@@ -25,6 +26,12 @@ export async function POST(request: NextRequest) {
 
   const payload = await verifyRefreshToken(cookie.value);
   if (!payload) {
+    recordAudit({
+      action: "auth.refresh",
+      status: "failure",
+      ...getClientContext(request, null),
+      metadata: { reason: "invalid_token" },
+    });
     return apiError("Invalid or expired refresh token", 401);
   }
 

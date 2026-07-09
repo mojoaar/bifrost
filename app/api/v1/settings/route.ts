@@ -13,6 +13,7 @@ import { settings } from "@/lib/db/schema/settings";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { redactSecrets, SECRET_PLACEHOLDER, invalidateSettingsCache, isSecretKey } from "@/lib/settings";
 import { requireAdmin } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function GET() {
   const rows = db.select().from(settings).all();
@@ -42,5 +43,14 @@ export async function PUT(request: NextRequest) {
   }
 
   invalidateSettingsCache();
+
+  recordAudit({
+    action: "settings.update",
+    status: "success",
+    targetType: "settings",
+    ...getClientContext(request, auth),
+    metadata: { keys: Object.keys(body) },
+  });
+
   return apiSuccess({ updated: true });
 }

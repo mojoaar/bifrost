@@ -15,6 +15,7 @@ import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
 import { generateId } from "@/lib/id";
 import { requireAdmin } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function GET() {
   const rows = db.select({
@@ -56,8 +57,10 @@ export async function POST(request: NextRequest) {
   const passwordHash = await hashPassword(password);
   const now = new Date().toISOString();
 
+  const userId = generateId();
+
   db.insert(users).values({
-    id: generateId(),
+    id: userId,
     email,
     passwordHash,
     displayName,
@@ -65,6 +68,15 @@ export async function POST(request: NextRequest) {
     createdAt: now,
     updatedAt: now,
   }).run();
+
+  recordAudit({
+    action: "user.create",
+    status: "success",
+    targetType: "user",
+    targetId: userId,
+    ...getClientContext(request, auth),
+    metadata: { email, role },
+  });
 
   return apiSuccess({ created: true }, undefined, 201);
 }

@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { deleteMedia } from "@/lib/media/store";
 import { requireUser } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function DELETE(
   request: NextRequest,
@@ -27,6 +28,15 @@ export async function DELETE(
     if (!deleted) {
       return apiError("Media not found", 404);
     }
+
+    recordAudit({
+      action: "media.delete",
+      status: "success",
+      targetType: "media",
+      targetId: id,
+      ...getClientContext(request, auth),
+    });
+
     return apiSuccess({ deleted: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to delete media";

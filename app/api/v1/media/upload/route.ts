@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { saveMediaFile } from "@/lib/media/store";
 import { requireUser } from "@/lib/auth/require";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   const auth = await requireUser(request);
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const record = await saveMediaFile(file);
+
+    recordAudit({
+      action: "media.upload",
+      status: "success",
+      targetType: "media",
+      targetId: record.id,
+      ...getClientContext(request, auth),
+      metadata: { filename: file.name, mimeType: file.type },
+    });
+
     return apiSuccess(record, undefined, 201);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Upload failed";

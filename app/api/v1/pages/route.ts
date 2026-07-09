@@ -17,6 +17,7 @@ import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { resolveAuthorId } from "@/lib/content/authors";
 import { requireUser } from "@/lib/auth/require";
 import { verifyAccessToken } from "@/lib/auth/token";
+import { recordAudit, getClientContext } from "@/lib/audit";
 import { slugExists } from "@/lib/content/slug";
 import { eq, sql } from "drizzle-orm";
 
@@ -124,6 +125,15 @@ export async function POST(request: NextRequest) {
   }
 
   const created = db.select().from(pages).where(eq(pages.slug, slug)).get();
+
+  recordAudit({
+    action: "page.create",
+    status: "success",
+    targetType: "page",
+    targetId: slug,
+    ...getClientContext(request, auth),
+    metadata: { title },
+  });
 
   return apiSuccess(created, undefined, 201);
 }

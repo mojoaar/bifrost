@@ -13,23 +13,33 @@ import { requireAdmin } from "@/lib/auth/require";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAdmin(_request);
+  const auth = await requireAdmin(request);
   if (!auth) return apiError("Authentication required", 401);
 
   const { id } = await context.params;
 
-  const user = db.select({ id: users.id }).from(users).where(eq(users.id, id)).get();
+  const user = db.select({ id: users.id, email: users.email }).from(users).where(eq(users.id, id)).get();
   if (!user) return apiError("User not found", 404);
 
   db.update(users)
     .set({ mfaEnabled: 0, mfaSecret: null, mfaRecovery: null })
     .where(eq(users.id, id))
     .run();
+
+  recordAudit({
+    action: "mfa.reset",
+    status: "success",
+    targetType: "user",
+    targetId: id,
+    ...getClientContext(request, auth),
+    metadata: { targetEmail: user.email },
+  });
 
   return apiSuccess({ reset: true });
 }

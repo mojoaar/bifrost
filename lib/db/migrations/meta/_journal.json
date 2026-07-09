@@ -57,6 +57,13 @@
       "when": 1783549000000,
       "tag": "0008_shiny_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1783582808024,
+      "tag": "0009_swift_amazoness",
+      "breakpoints": true
     }
   ]
 }

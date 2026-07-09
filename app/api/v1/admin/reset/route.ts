@@ -19,6 +19,7 @@ import { verifyAccessToken } from "@/lib/auth/token";
 import { stopWatcher, startWatcher } from "@/lib/content/watcher";
 import { SEED_SLUGS, SEED_PAGE_SLUGS } from "@/lib/seed";
 import { postsDir, pagesDir } from "@/lib/paths";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 async function verifyAdmin(request: NextRequest): Promise<{ sub: string; role: string } | { error: string; status: number }> {
   const authHeader = request.headers.get("authorization");
@@ -87,6 +88,13 @@ export async function POST(request: NextRequest) {
     ]);
 
     startWatcher();
+
+    recordAudit({
+      action: "admin.reset",
+      status: "success",
+      ...getClientContext(request, { userId: auth.sub, role: auth.role }),
+      metadata: { removed: slugs.length + pageSlugs.length },
+    });
 
     return apiSuccess({ removed: slugs.length + pageSlugs.length });
   } catch (err) {

@@ -15,6 +15,7 @@ import { apiSuccess, apiError } from "@/lib/api/response";
 import { verifyPassword } from "@/lib/auth/password";
 import { createAccessToken, createRefreshToken, createMfaToken } from "@/lib/auth/token";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordAudit, getClientContext } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   const limited = rateLimit(request, "auth:login", 5, 60_000);
@@ -38,11 +39,23 @@ export async function POST(request: NextRequest) {
     .get();
 
   if (!user) {
+    recordAudit({
+      action: "auth.login",
+      status: "failure",
+      ...getClientContext(request, null, email),
+      metadata: { reason: "user_not_found" },
+    });
     return apiError("Invalid email or password", 401);
   }
 
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
+    recordAudit({
+      action: "auth.login",
+      status: "failure",
+      ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
+      metadata: { reason: "invalid_password" },
+    });
     return apiError("Invalid email or password", 401);
   }
 
@@ -50,6 +63,12 @@ export async function POST(request: NextRequest) {
 
   if (user.mfaEnabled) {
     const mfaToken = await createMfaToken(payload);
+    recordAudit({
+      action: "auth.login",
+      status: "success",
+      ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
+      metadata: { mfaRequired: true },
+    });
     return apiSuccess({
       requiresMfa: true,
       mfaToken,
@@ -58,6 +77,12 @@ export async function POST(request: NextRequest) {
 
   const accessToken = await createAccessToken(payload);
   const refreshToken = await createRefreshToken(payload);
+
+  recordAudit({
+    action: "auth.login",
+    status: "success",
+    ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
+  });
 
   const response = apiSuccess({
     tokens: { accessToken, refreshToken },
