@@ -11,7 +11,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/auth/client";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
 
 interface AuditLogEntry {
   id: string;

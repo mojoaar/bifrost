@@ -19,6 +19,7 @@ import { CommandPaletteProvider, useCommandPalette } from "@/components/CommandP
 import { CommandPalette } from "@/components/CommandPalette";
 import { authFetch } from "@/lib/auth/client";
 import { version } from "@/package.json";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface NavItem {
   href: string;
@@ -188,7 +189,7 @@ function TopBar({ onMenuToggle }: { onMenuToggle: () => void }) {
         <Button
           variant="ghost"
           onClick={() => {
-            localStorage.removeItem("bifrost_token");
+            localStorage.removeItem(ACCESS_TOKEN_KEY);
             window.location.href = "/login";
           }}
           className="font-mono text-xs"

@@ -13,6 +13,7 @@ import { useEffect, useState, useRef } from "react";
 import { Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { authFetch } from "@/lib/auth/client";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface MediaItem {
   id: string;
@@ -43,7 +44,7 @@ export default function ImagePicker({ value, onChange }: Props) {
       setLoading(true);
       try {
         const res = await fetch("/api/v1/media", {
-          headers: { authorization: `Bearer ${localStorage.getItem("bifrost_token") ?? ""}` },
+          headers: { authorization: `Bearer ${localStorage.getItem(ACCESS_TOKEN_KEY) ?? ""}` },
         });
         const body = await res.json();
         if (!cancelled) setItems(body.data ?? []);

@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { db } from "@/lib/db";
 import { pageViews } from "@/lib/db/schema";
 import { generateId } from "@/lib/id";
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
       .values({
         id: generateId(),
         path: parsed.data.path,
-        timestamp: new Date().toISOString(),
+        timestamp: nowISO(),
         referrer: parsed.data.referrer?.slice(0, 2048) ?? null,
       })
       .run();

@@ -7,13 +7,5 @@
  * See the LICENSE file for details.
  */
 
-import nextConfig from "eslint-config-next";
-
-const eslintConfig = [
-  ...nextConfig,
-  {
-    ignores: [".next/", "data/", "dist/", "node_modules/", "coverage/"],
-  },
-];
-
-export default eslintConfig;
+export const ACCESS_TOKEN_KEY = "bifrost_token";
+export const REFRESH_COOKIE_NAME = "bifrost_refresh";

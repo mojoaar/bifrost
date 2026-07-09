@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { pages } from "@/lib/db/schema/pages";
@@ -177,7 +179,7 @@ export function createToolDefinitions(): McpTool[] {
 
         await writePostToFilesystem(body.slug, body.content, { title: body.title, ...body.frontmatter });
 
-        const now = new Date().toISOString();
+        const now = nowISO();
         const { html, excerpt } = await renderMarkdown(body.content);
 
         db.insert(posts)
@@ -243,7 +245,7 @@ export function createToolDefinitions(): McpTool[] {
             excerpt,
             status,
             frontmatter: JSON.stringify(frontmatter),
-            updatedAt: new Date().toISOString(),
+            updatedAt: nowISO(),
           })
           .where(eq(posts.slug, args.slug as string))
           .run();
@@ -321,7 +323,7 @@ export function createToolDefinitions(): McpTool[] {
             path: filePath,
             mimeType,
             sizeBytes: buffer.length,
-            createdAt: new Date().toISOString(),
+            createdAt: nowISO(),
           })
           .run();
 
@@ -500,7 +502,7 @@ export function createToolDefinitions(): McpTool[] {
 
         await writePageToFilesystem(body.slug, body.content, { title: body.title, ...body.frontmatter });
 
-        const now = new Date().toISOString();
+        const now = nowISO();
         const { html, excerpt } = await renderMarkdown(body.content);
 
         db.insert(pages)
@@ -567,7 +569,7 @@ export function createToolDefinitions(): McpTool[] {
             showInNav,
             navOrder,
             frontmatter: JSON.stringify(frontmatter),
-            updatedAt: new Date().toISOString(),
+            updatedAt: nowISO(),
           })
           .where(eq(pages.slug, args.slug as string))
           .run();

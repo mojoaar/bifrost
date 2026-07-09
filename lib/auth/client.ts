@@ -7,11 +7,13 @@
  * See the LICENSE file for details.
  */
 
+import { ACCESS_TOKEN_KEY } from "./constants";
+
 let refreshPromise: Promise<string | null> | null = null;
 
 export async function getAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("bifrost_token");
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export async function refreshAccessToken(): Promise<string | null> {
@@ -29,7 +31,7 @@ export async function refreshAccessToken(): Promise<string | null> {
       const body = await res.json();
       const token = body.data?.accessToken as string | undefined;
       if (token) {
-        localStorage.setItem("bifrost_token", token);
+        localStorage.setItem(ACCESS_TOKEN_KEY, token);
         return token;
       }
       return null;
@@ -58,7 +60,7 @@ function parseExpiry(token: string): number | null {
 }
 
 export async function ensureValidToken(): Promise<string | null> {
-  const token = localStorage.getItem("bifrost_token");
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
 
   if (token) {
     const exp = parseExpiry(token);

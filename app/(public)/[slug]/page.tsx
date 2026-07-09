@@ -21,6 +21,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifyRefreshToken } from "@/lib/auth/token";
+import { REFRESH_COOKIE_NAME } from "@/lib/auth/constants";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -28,7 +29,7 @@ interface Props {
 
 async function isAdminRequest(): Promise<boolean> {
   const cookieStore = await cookies();
-  const refreshCookie = cookieStore.get("bifrost_refresh")?.value;
+  const refreshCookie = cookieStore.get(REFRESH_COOKIE_NAME)?.value;
   if (!refreshCookie) return false;
   try {
     const payload = await verifyRefreshToken(refreshCookie);

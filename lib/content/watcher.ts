@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import chokidar, { type FSWatcher } from "chokidar";
 import { fs } from "@/lib/fs";
 import path from "path";
@@ -106,7 +108,7 @@ async function processPost(
     : frontmatterScheduledAt
       ? "scheduled"
       : "published";
-  const now = new Date().toISOString();
+  const now = nowISO();
   const date = (parsed.frontmatter.date as string) || now;
   const authorId = resolveAuthorId((parsed.frontmatter.author as string) || null);
 
@@ -191,7 +193,7 @@ async function processPage(
   const fm = parsed.frontmatter;
   const title = (fm.title as string) || slug;
   const status = fm.draft === true ? "draft" : "published";
-  const now = new Date().toISOString();
+  const now = nowISO();
   const date = (fm.date as string) || now;
   const showInNav = fm.nav === true || fm.showInNav === true;
   const navOrder = Number(fm.navOrder ?? fm.order ?? 0) || 0;

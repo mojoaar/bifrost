@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { fs } from "@/lib/fs";
 import path from "path";
 import { eq } from "drizzle-orm";
@@ -65,7 +67,7 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
   const filePath = path.join(dir, filename);
   await fs.writeFile(filePath, buffer);
 
-  const now = new Date().toISOString();
+  const now = nowISO();
   const relativePath = path.relative(contentDir(), filePath);
 
   db.insert(media)
@@ -99,7 +101,7 @@ export async function deleteMedia(id: string): Promise<boolean> {
   if (!record) return false;
 
   const fsPath = path.join(contentDir(), record.path);
-  await fs.unlink(fsPath).catch(() => {});
+  await fs.unlink(fsPath).catch((err) => console.error("[media] failed to unlink file:", fsPath, err));
 
   db.delete(media).where(eq(media.id, id)).run();
 

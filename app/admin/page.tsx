@@ -15,6 +15,7 @@ import { Plus, Upload, Settings as SettingsIcon, FileText, Image as ImageIcon, C
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { authFetch } from "@/lib/auth/client";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface AdminWidget {
   component: React.ComponentType;
@@ -138,7 +139,7 @@ export default function AdminDashboard() {
       } catch (err) {
         console.error("Dashboard plugin load failed", err);
       }
-      const token = localStorage.getItem("bifrost_token");
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       const authHeader: Record<string, string> = token ? { authorization: `Bearer ${token}` } : {};
       try {
         const [allRes, draftsRes, publishedRes, mediaRes, recentRes] = await Promise.all([

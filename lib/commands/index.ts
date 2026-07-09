@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
+
 export interface Command {
   id: string;
   label: string;
@@ -25,7 +27,7 @@ async function loadPostCommands(): Promise<Command[]> {
   if (Date.now() - postFetchedAt < POST_CACHE_MS && postCommands.length > 0) {
     return postCommands;
   }
-  const token = typeof localStorage !== "undefined" ? localStorage.getItem("bifrost_token") : null;
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
   try {
     const res = await fetch("/api/v1/posts?limit=20", {
       headers: token ? { authorization: `Bearer ${token}` } : {},

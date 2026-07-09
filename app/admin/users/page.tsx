@@ -15,7 +15,8 @@ import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/u
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input, Select } from "@/themes/bifrost-terminal/components/ui/Input";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface User {
   id: string;
@@ -43,7 +44,7 @@ const ROLE_OPTIONS = ["author", "editor", "admin"] as const;
 
 function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
-  const token = localStorage.getItem("bifrost_token");
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 

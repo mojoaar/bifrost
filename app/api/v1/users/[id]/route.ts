@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -35,7 +37,7 @@ export async function PUT(
     return apiError("Invalid JSON body", 400);
   }
 
-  const update: Record<string, string> = { updatedAt: new Date().toISOString() };
+  const update: Record<string, string> = { updatedAt: nowISO() };
 
   if (typeof body.displayName === "string" && body.displayName.trim()) {
     update.displayName = body.displayName.trim();

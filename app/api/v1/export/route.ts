@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/require";
 import { apiError } from "@/lib/api/response";
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
   return new Response(readable, {
     headers: {
       "content-type": "application/zip",
-      "content-disposition": `attachment; filename="bifrost-export-${new Date().toISOString().slice(0, 10)}.zip"`,
+      "content-disposition": `attachment; filename="bifrost-export-${nowISO().slice(0, 10)}.zip"`,
     },
   });
 }

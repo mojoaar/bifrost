@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { pages } from "@/lib/db/schema/pages";
@@ -443,7 +445,7 @@ The same routes support reading, updating, and deleting posts — and because wr
 export const SEED_SLUGS: string[] = SEED_POSTS.map((p) => p.slug);
 
 export async function seedPosts(authorId: string): Promise<void> {
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   for (let i = 0; i < SEED_POSTS.length; i++) {
     const post = SEED_POSTS[i]!;
@@ -504,7 +506,7 @@ Head to **Admin → Pages**, open this page, and make it your own. You can toggl
 export const SEED_PAGE_SLUGS: string[] = SEED_PAGES.map((p) => p.slug);
 
 export async function seedPages(authorId: string): Promise<void> {
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   for (const page of SEED_PAGES) {
     const existing = db

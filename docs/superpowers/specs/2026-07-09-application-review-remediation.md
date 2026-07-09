@@ -144,17 +144,18 @@ MEDIUM / LOW
 - [x] Cookie `secure` via explicit env, not `NODE_ENV`
 - [x] Sanitize media filename; cap analytics path length
 
-### Phase 3 — Test coverage + quality (v1.26.0)
+### Phase 3 — Test coverage + quality (v1.26.0) — DONE
 
-- [ ] Install `@vitest/coverage-v8`; add `test:coverage` script
-- [ ] Unit tests: require, mfa, csrf, rate-limit, audit, settings, media/store, export,
+- [x] Install `@vitest/coverage-v8`; add `test:coverage` script
+- [x] Unit tests: require, mfa, csrf, rate-limit, audit, settings, media/store, export,
       editor/utils
-- [ ] API-route integration tests (login, posts, settings, media)
-- [ ] Fix `openapi.json` envelope
-- [ ] Add logging to swallowed-error paths
-- [ ] Extract auth constants (`bifrost_refresh` / `bifrost_token`)
-- [ ] Add `nowISO()` helper
-- [ ] Move `lib/format-date.ts` to a client location
+- [x] API-route integration tests (login, posts, settings, media)
+- [x] `openapi.json` envelope — kept raw (consumed directly by Swagger UI + API Explorer);
+      documented as an intentional exception like sitemap/robots/manifest
+- [x] Add logging to swallowed-error paths
+- [x] Extract auth constants (`bifrost_refresh` / `bifrost_token`)
+- [x] Add `nowISO()` helper
+- [x] Move `lib/format-date.ts` to a client location
 
 ### Phase 4 — God-file refactors (behavior-preserving)
 

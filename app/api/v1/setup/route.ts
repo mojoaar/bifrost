@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
   if (password.length < 8) return apiError("Password must be at least 8 characters", 400);
 
   const passwordHash = await hashPassword(password);
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   const adminId = db.transaction(() => {
     const admin = db
@@ -101,8 +103,8 @@ export async function POST(request: NextRequest) {
     const { seedPosts, seedPages } = await import("@/lib/seed");
     await seedPosts(adminId);
     await seedPages(adminId);
-  } catch {
-    // seed is best-effort
+  } catch (err) {
+    console.error("[setup] seed failed (best-effort):", err);
   }
 
   return apiSuccess({ setup: true }, undefined, 201);

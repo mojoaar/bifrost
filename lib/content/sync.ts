@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { fs } from "@/lib/fs";
 import path from "path";
 import YAML from "yaml";
@@ -48,7 +50,7 @@ async function deleteFromFilesystem(baseDir: string, slug: string): Promise<void
 
   const trash = trashDir();
   await fs.mkdir(trash, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const stamp = nowISO().replace(/[:.]/g, "-");
   const dest = path.join(trash, `${slug}-${stamp}`);
 
   try {

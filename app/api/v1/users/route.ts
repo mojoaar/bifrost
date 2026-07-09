@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
   if (existing) return apiError("A user with that email already exists", 409);
 
   const passwordHash = await hashPassword(password);
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   const userId = generateId();
 

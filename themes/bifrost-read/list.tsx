@@ -11,7 +11,7 @@
 
 import Link from "next/link";
 import type { PostData } from "@/lib/themes/types";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
 import { readingTime } from "@/lib/reading-time";
 import { SHARE_NETWORKS, buildShareUrl } from "@/lib/sharing";
 import { SocialIcon } from "@/components/SocialIcon";

@@ -15,6 +15,7 @@ import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/u
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input } from "@/themes/bifrost-terminal/components/ui/Input";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface Tag {
   id: string;
@@ -25,7 +26,7 @@ interface Tag {
 
 function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
-  const token = localStorage.getItem("bifrost_token");
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 

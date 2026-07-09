@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { randomUUID } from "crypto";
 import { lt } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -101,7 +103,7 @@ export function recordAudit(entry: AuditEntry): void {
     db.insert(auditLogs)
       .values({
         id: randomUUID(),
-        timestamp: new Date().toISOString(),
+        timestamp: nowISO(),
         actorId: entry.actorId ?? null,
         actorLabel: entry.actorLabel ?? null,
         actorType: entry.actorType ?? "system",

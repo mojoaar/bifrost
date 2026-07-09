@@ -18,7 +18,7 @@ import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Field, Input } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/ui/Table";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
 
 interface Profile {
   id: string;

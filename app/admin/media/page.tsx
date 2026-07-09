@@ -12,6 +12,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { UploadCloud, FileText, Image as ImageIcon, Copy, Check, Trash2 } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface MediaItem {
   id: string;
@@ -33,7 +34,7 @@ export default function MediaPage() {
   const initialFetchDone = useRef(false);
 
   const fetchMedia = useCallback(async () => {
-    const token = localStorage.getItem("bifrost_token");
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     try {
       const res = await fetch("/api/v1/media", {
         headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -58,7 +59,7 @@ export default function MediaPage() {
     setError("");
     const formData = new FormData();
     formData.append("file", file);
-    const token = localStorage.getItem("bifrost_token");
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     try {
       const res = await fetch("/api/v1/media/upload", {
         method: "POST",
@@ -86,7 +87,7 @@ export default function MediaPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this file?")) return;
-    const token = localStorage.getItem("bifrost_token");
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     await fetch(`/api/v1/media/${id}`, {
       method: "DELETE",
       headers: token ? { authorization: `Bearer ${token}` } : {},

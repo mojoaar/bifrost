@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 export function generateSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
@@ -42,7 +44,7 @@ export function buildFrontmatter(
 ): string {
   const escaped = yamlEsc(title);
   if (type === "post") {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = nowISO().slice(0, 10);
     const tagLine =
       tags && tags.length > 0
         ? "tags:\n" + tags.map((t) => `  - "${yamlEsc(t)}"`).join("\n") + "\n"

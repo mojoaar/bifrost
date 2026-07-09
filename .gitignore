@@ -8,6 +8,7 @@ data/
 *.db-journal
 .DS_Store
 dist/
+coverage/
 .turbo/
 *.tsbuildinfo
 .superpowers/

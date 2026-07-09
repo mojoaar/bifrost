@@ -11,7 +11,7 @@
 
 import type { PostData } from "@/lib/themes/types";
 import { useCodeCopyButtons } from "@/components/CodeCopyButton";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
 import { SOCIAL_PLATFORMS } from "@/lib/social";
 import { SocialIcon } from "@/components/SocialIcon";
 import ShareBar from "@/components/ShareBar";

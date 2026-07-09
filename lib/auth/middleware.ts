@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken, verifyRefreshToken } from "./token";
+import { REFRESH_COOKIE_NAME } from "./constants";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
@@ -70,7 +71,7 @@ async function getTokenPayload(
     return null;
   }
 
-  const refreshCookie = request.cookies.get("bifrost_refresh")?.value;
+  const refreshCookie = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
   if (refreshCookie) {
     const payload = await verifyRefreshToken(refreshCookie);
     if (payload) return payload;
@@ -101,7 +102,7 @@ async function getTokenPayloadForApi(
     return { type: "invalid-token" };
   }
 
-  const refreshCookie = request.cookies.get("bifrost_refresh")?.value;
+  const refreshCookie = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
   if (refreshCookie) {
     const payload = await verifyRefreshToken(refreshCookie);
     if (payload) return payload;

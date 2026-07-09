@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -32,7 +34,7 @@ export async function DELETE(
   if (!existing) return apiError("API key not found", 404);
 
   db.update(apiKeys)
-    .set({ revokedAt: new Date().toISOString() })
+    .set({ revokedAt: nowISO() })
     .where(eq(apiKeys.id, id))
     .run();
 

@@ -14,6 +14,7 @@ import { eq } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { verifyPassword } from "@/lib/auth/password";
 import { createAccessToken, createRefreshToken, createMfaToken, secureCookies } from "@/lib/auth/token";
+import { REFRESH_COOKIE_NAME } from "@/lib/auth/constants";
 import { rateLimit } from "@/lib/rate-limit";
 import { recordAudit, getClientContext } from "@/lib/audit";
 
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  response.cookies.set("bifrost_refresh", refreshToken, {
+  response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {
     httpOnly: true,
     secure: secureCookies(),
     sameSite: "lax",

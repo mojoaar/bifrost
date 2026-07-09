@@ -7,13 +7,6 @@
  * See the LICENSE file for details.
  */
 
-import nextConfig from "eslint-config-next";
-
-const eslintConfig = [
-  ...nextConfig,
-  {
-    ignores: [".next/", "data/", "dist/", "node_modules/", "coverage/"],
-  },
-];
-
-export default eslintConfig;
+export function nowISO(): string {
+  return new Date().toISOString();
+}

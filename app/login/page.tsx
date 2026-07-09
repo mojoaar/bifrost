@@ -15,6 +15,7 @@ import { KeyRound } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Field, Input } from "@/themes/bifrost-terminal/components/ui/Input";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function LoginPage() {
         setError(body.error?.message ?? "Login failed");
         return;
       }
-      localStorage.setItem("bifrost_token", body.data.tokens.accessToken);
+      localStorage.setItem(ACCESS_TOKEN_KEY, body.data.tokens.accessToken);
       router.push("/admin");
     } catch {
       setError("Network error");

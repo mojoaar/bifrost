@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
@@ -73,7 +75,7 @@ export async function PUT(
   }
 
   const update = parsed.data;
-  const now = new Date().toISOString();
+  const now = nowISO();
   const existingFm: Record<string, unknown> = JSON.parse(existing.frontmatter);
   const contentFm = parseFrontmatter(update.content ?? "").frontmatter;
   const mergedFm = { ...existingFm, ...contentFm, ...(update.frontmatter ?? {}) };
@@ -133,8 +135,8 @@ export async function PUT(
   try {
     const { commitPost } = await import("@/lib/git/repo");
     await commitPost(slug, update.title ?? existing.title, "update");
-  } catch {
-    // best-effort
+  } catch (err) {
+    console.error("[posts] git commit failed (best-effort):", err);
   }
 
   const post = db.select().from(posts).where(eq(posts.slug, slug)).get();

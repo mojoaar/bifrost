@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { randomBytes, randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { and, eq, isNull } from "drizzle-orm";
@@ -67,7 +69,7 @@ export async function createApiKey(
 ): Promise<CreatedApiKey> {
   const { plaintext, prefix, hash } = await generateApiKey();
   const id = randomUUID();
-  const createdAt = new Date().toISOString();
+  const createdAt = nowISO();
   db.insert(apiKeys)
     .values({
       id,
@@ -112,7 +114,7 @@ export async function verifyApiKey(
     if (!user) return null;
 
     db.update(apiKeys)
-      .set({ lastUsedAt: new Date().toISOString() })
+      .set({ lastUsedAt: nowISO() })
       .where(eq(apiKeys.id, candidate.id))
       .run();
 

@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
     }
 
     await Promise.all([
-      ...SEED_SLUGS.map((slug) => rmDir(path.join(postsDir(), slug)).catch(() => {})),
-      ...SEED_PAGE_SLUGS.map((slug) => rmDir(path.join(pagesDir(), slug)).catch(() => {})),
+      ...SEED_SLUGS.map((slug) => rmDir(path.join(postsDir(), slug)).catch((err) => console.error("[reset] failed to remove post dir:", slug, err))),
+      ...SEED_PAGE_SLUGS.map((slug) => rmDir(path.join(pagesDir(), slug)).catch((err) => console.error("[reset] failed to remove page dir:", slug, err))),
     ]);
 
     startWatcher();

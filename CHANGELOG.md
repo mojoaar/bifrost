@@ -5,6 +5,22 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.26.0] — 2026-07-09
+
+### Added
+
+- Test coverage tooling (`@vitest/coverage-v8`) and a `test:coverage` script.
+- Unit tests for MFA, CSRF, rate limiting, audit logging, settings redaction, media store, and editor frontmatter utilities.
+- API-route integration tests for login, settings, posts, and media upload.
+- `lib/time.ts` `nowISO()` helper and `lib/auth/constants.ts` for the auth cookie/token names.
+
+### Changed
+
+- Moved the client-only `useDateTimeFormat` hook out of `lib/` to `components/use-date-time-format.ts`.
+- Centralized the `bifrost_token` / `bifrost_refresh` names as shared constants.
+- Best-effort failures (git commit, seed, content reset, media unlink) now log instead of being silently swallowed.
+- Test runner now executes test files serially to avoid shared-SQLite lock flakiness.
+
 ## [1.25.1] — 2026-07-09
 
 ### Changed

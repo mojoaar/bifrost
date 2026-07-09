@@ -10,6 +10,10 @@
 import { NextResponse } from "next/server";
 import { generateOpenApiSpec } from "@/lib/api/openapi";
 
+// This endpoint intentionally returns a raw OpenAPI 3 document rather than the
+// { data, error, meta } envelope: it is consumed directly by Swagger UI and the
+// API Explorer, which require a spec-compliant document. Like sitemap.xml,
+// robots.ts, and manifest.webmanifest, it serves a standardized format.
 export async function GET() {
   return NextResponse.json(generateOpenApiSpec());
 }

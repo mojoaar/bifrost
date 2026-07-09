@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { pages } from "@/lib/db/schema/pages";
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
 
   await writePageToFilesystem(slug, content, mergedFm);
 
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   try {
     const { html, excerpt } = await renderMarkdown(content);

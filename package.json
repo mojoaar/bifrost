@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "1.25.1",
+  "version": "1.26.0",
   "license": "AGPL-3.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -71,10 +72,11 @@
     "@types/react-dom": "^19.2.0",
     "@types/yaml": "^1.9.6",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.10",
-    "esbuild": "^0.28.1",
     "prettier": "^3.9.4",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.0",

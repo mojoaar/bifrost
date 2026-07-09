@@ -16,7 +16,8 @@ import { Table, THead, TR, TH, TD } from "@/themes/bifrost-terminal/components/u
 import { StatusPill } from "@/themes/bifrost-terminal/components/ui/StatusPill";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface BaseItem {
   slug: string;
@@ -75,7 +76,7 @@ export default function AdminContentList({
 
   const fetchItems = useCallback(async () => {
     try {
-      const token = localStorage.getItem("bifrost_token");
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       const res = await fetch(`${apiPath}?limit=50`, {
         headers: token ? { authorization: `Bearer ${token}` } : {},
       });
@@ -101,7 +102,7 @@ export default function AdminContentList({
 
   async function handleDelete(slug: string) {
     if (!confirm(deleteConfirm)) return;
-    const token = localStorage.getItem("bifrost_token");
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     const res = await fetch(`${apiPath}/${slug}`, {
       method: "DELETE",
       headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -136,7 +137,7 @@ export default function AdminContentList({
   async function handleBulkDelete() {
     if (!confirm(`Delete ${selected.size} selected items?`)) return;
     setBulkDeleting(true);
-    const token = localStorage.getItem("bifrost_token");
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     for (const slug of selected) {
       await fetch(`${apiPath}/${slug}`, {
         method: "DELETE",

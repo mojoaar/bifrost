@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import DiffViewer from "@/components/DiffViewer";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 export default function DiffPage() {
   const params = useParams<{ sha: string }>();
@@ -24,7 +25,7 @@ export default function DiffPage() {
   useEffect(() => {
     async function load() {
       try {
-        const token = localStorage.getItem("bifrost_token");
+        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         const res = await fetch(`/api/v1/git/diff?sha=${params.sha}`, {
           headers: token ? { authorization: `Bearer ${token}` } : {},
         });

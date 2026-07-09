@@ -21,6 +21,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    fileParallelism: false,
     env: {
       BIFROST_CONTENT_DIR: path.join(testRoot, "content"),
       DATABASE_URL: "file:" + path.join(testRoot, "test.db"),
@@ -28,6 +29,12 @@ export default defineConfig({
       BIFROST_JWT_REFRESH_SECRET: "test-refresh-secret-not-for-production",
     },
     globalSetup: ["./tests/global-setup.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      include: ["lib/**/*.ts", "app/api/**/*.ts"],
+      exclude: ["lib/db/migrations/**", "**/*.test.ts"],
+    },
   },
   resolve: {
     alias: {

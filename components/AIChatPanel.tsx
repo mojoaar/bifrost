@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Select } from "@/themes/bifrost-terminal/components/ui/Input";
 import { authFetch } from "@/lib/auth/client";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface Message {
   role: "user" | "assistant";
@@ -80,7 +81,7 @@ export default function AIChatPanel({ content, onInsert, onReplace }: Props) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("bifrost_token");
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       const res = await fetch("/api/v1/ai/chat", {
         method: "POST",
         headers: {

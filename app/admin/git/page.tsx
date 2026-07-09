@@ -15,7 +15,8 @@ import { useSearchParams } from "next/navigation";
 import { GitBranch, GitCommit, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
-import { useDateTimeFormat } from "@/lib/format-date";
+import { useDateTimeFormat } from "@/components/use-date-time-format";
+import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
 
 interface Commit {
   sha: string;
@@ -41,7 +42,7 @@ export default function GitHistoryPage() {
     initialFetchDone.current = true;
     (async () => {
       try {
-        const token = localStorage.getItem("bifrost_token");
+        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         const query = slug ? `?slug=${encodeURIComponent(slug)}` : "";
         const res = await fetch(`/api/v1/git/history${query}`, {
           headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -63,7 +64,7 @@ export default function GitHistoryPage() {
   async function handlePush() {
     setPushing(true);
     try {
-      const token = localStorage.getItem("bifrost_token");
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       await fetch("/api/v1/git/push", {
         method: "POST",
         headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -78,7 +79,7 @@ export default function GitHistoryPage() {
   async function handlePull() {
     setPulling(true);
     try {
-      const token = localStorage.getItem("bifrost_token");
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       await fetch("/api/v1/git/pull", {
         method: "POST",
         headers: token ? { authorization: `Bearer ${token}` } : {},

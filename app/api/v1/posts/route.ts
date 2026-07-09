@@ -7,6 +7,8 @@
  * See the LICENSE file for details.
  */
 
+import { nowISO } from "@/lib/time";
+
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
 
   await writePostToFilesystem(slug, content, mergedFm);
 
-  const now = new Date().toISOString();
+  const now = nowISO();
 
   try {
     const { html, excerpt } = await renderMarkdown(content);
@@ -129,8 +131,8 @@ export async function POST(request: NextRequest) {
     try {
       const { commitPost } = await import("@/lib/git/repo");
       await commitPost(slug, title, "create");
-    } catch {
-      // best-effort
+    } catch (err) {
+      console.error("[posts] git commit failed (best-effort):", err);
     }
   } catch (err) {
     return apiError("Failed to create post", 500);
