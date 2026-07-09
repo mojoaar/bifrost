@@ -13,4 +13,4 @@ export const config = {
   matcher: ["/admin/:path*", "/api/v1/:path*"],
 };
 
-export default authMiddleware;
+export const proxy = authMiddleware;
