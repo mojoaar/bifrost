@@ -14,6 +14,7 @@ import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 import { getSetting } from "@/lib/settings";
+import { getRelatedPosts } from "@/lib/content/related";
 import { parseSocialLinks } from "@/lib/social";
 import { parseShareNetworks } from "@/lib/sharing";
 import type { PostData, PageData } from "@/lib/themes/types";
@@ -53,8 +54,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return { title: "Not Found" };
     }
     const fm = JSON.parse(pageRow.frontmatter) as Record<string, unknown>;
-    const ogImage = fm.featuredImage ? [fm.featuredImage as string] : undefined;
-    const hasImage = !!fm.featuredImage;
+    const ogImage = fm.featuredImage
+      ? [fm.featuredImage as string]
+      : [`/og?title=${encodeURIComponent((fm.ogTitle as string) ?? pageRow.title)}`];
     return {
       title: fm.ogTitle as string ?? pageRow.title,
       description: fm.metaDescription as string ?? pageRow.excerpt ?? undefined,
@@ -65,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: "website",
         images: ogImage,
       },
-      twitter: { card: hasImage ? "summary_large_image" : "summary", title: fm.ogTitle as string ?? pageRow.title, description: fm.ogDescription as string ?? pageRow.excerpt ?? undefined, images: ogImage },
+      twitter: { card: "summary_large_image", title: fm.ogTitle as string ?? pageRow.title, description: fm.ogDescription as string ?? pageRow.excerpt ?? undefined, images: ogImage },
     };
   }
 
@@ -82,8 +84,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const postFm = JSON.parse(row.frontmatter) as Record<string, unknown>;
-  const postOgImage = postFm.featuredImage ? [postFm.featuredImage as string] : undefined;
-  const postHasImage = !!postFm.featuredImage;
+  const postOgImage = postFm.featuredImage
+    ? [postFm.featuredImage as string]
+    : [`/og?title=${encodeURIComponent((postFm.ogTitle as string) ?? row.title)}`];
 
   return {
     title: postFm.ogTitle as string ?? row.title,
@@ -95,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       images: postOgImage,
     },
-    twitter: { card: postHasImage ? "summary_large_image" : "summary", title: postFm.ogTitle as string ?? row.title, description: postFm.ogDescription as string ?? row.excerpt ?? undefined, images: postOgImage },
+    twitter: { card: "summary_large_image", title: postFm.ogTitle as string ?? row.title, description: postFm.ogDescription as string ?? row.excerpt ?? undefined, images: postOgImage },
   };
 }
 
@@ -163,6 +166,8 @@ export default async function PublicSlugPage({ params }: Props) {
   const showFeatured = getSetting("appearance.show_featured_images") !== "false";
   const showReadingTime = getSetting("appearance.show_reading_time") !== "false";
   const showAuthorBio = getSetting("appearance.show_author_bio") !== "false";
+  const showReadingProgress = getSetting("appearance.show_reading_progress") !== "false";
+  const showRelatedPosts = getSetting("appearance.show_related_posts") !== "false";
   const author =
     showAuthor && row.authorId
       ? db
@@ -199,6 +204,8 @@ export default async function PublicSlugPage({ params }: Props) {
     author: authorData,
     showReadingTime,
     showAuthorBio,
+    showReadingProgress,
+    relatedPosts: showRelatedPosts ? getRelatedPosts(row.slug, 3) : [],
   };
 
   if (!PostComponent) {

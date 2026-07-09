@@ -20,6 +20,7 @@ import type { Schema } from "hast-util-sanitize";
 import type { ParsedMarkdown } from "./types";
 import { runHook } from "@/lib/plugins/registry";
 import rehypeLucide from "./rehype-lucide";
+import rehypeHeadingAnchors from "./rehype-heading-anchors";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
@@ -50,6 +51,7 @@ export function parseFrontmatter(content: string): {
 
 const shikiSchema: Schema = {
   ...defaultSchema,
+  clobberPrefix: "",
   tagNames: [
     ...(defaultSchema.tagNames ?? []),
     "svg",
@@ -76,6 +78,20 @@ const shikiSchema: Schema = {
     polyline: ["points"],
     rect: ["x", "y", "width", "height", "rx", "ry"],
     g: [],
+    a: [
+      ...(defaultSchema.attributes?.a ?? []).filter(
+        (attr) => !(Array.isArray(attr) && attr[0] === "className")
+      ),
+      "className",
+      "ariaHidden",
+      "tabIndex",
+    ],
+    h1: ["id"],
+    h2: ["id"],
+    h3: ["id"],
+    h4: ["id"],
+    h5: ["id"],
+    h6: ["id"],
     "*": [...(defaultSchema.attributes?.["*"] ?? []), ["className"]],
   },
 };
@@ -93,6 +109,7 @@ const processor = remark()
     defaultColor: false,
   })
   .use(rehypeLucide)
+  .use(rehypeHeadingAnchors)
   .use(rehypeSanitize, shikiSchema)
   .use(rehypeStringify);
 
@@ -115,6 +132,7 @@ export async function renderMarkdown(
   }
 
   const plainText = html
+    .replace(/<a\b[^>]*class="heading-anchor"[^>]*>.*?<\/a>/g, "")
     .replace(/<[^>]+>/g, "")
     .replace(/\s+/g, " ")
     .trim();

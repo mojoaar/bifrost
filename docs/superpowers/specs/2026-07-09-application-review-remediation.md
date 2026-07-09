@@ -175,7 +175,7 @@ MEDIUM / LOW
 - [x] Scheduled-post runner (HIGH) — v1.28.0
 - [x] Tag page: active theme + pagination (bugs) — v1.28.0
 - [x] Public search (API backend only) — v1.29.0 (UI deferred)
-- [ ] Quick wins batch: editor word count, heading anchors, reading progress, related posts,
-      auto-excerpt, author pages, OG fallback
+- [x] Quick wins batch — v1.30.0: editor word count, heading anchors, reading progress,
+      related posts, auto-excerpt, OG fallback (author pages dropped by request)
 - [ ] Deferred/optional: comments, image resizing (`sharp`), categories, draft-share tokens,
       `useBifrost()` hook, structured logger

@@ -65,11 +65,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       siteName: title,
+      images: [`/og?title=${encodeURIComponent(title)}`],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [`/og?title=${encodeURIComponent(title)}`],
     },
     icons: {
       icon: [

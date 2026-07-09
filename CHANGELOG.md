@@ -5,6 +5,20 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.30.0] — 2026-07-09
+
+### Added
+
+- **Word count in the editor** — the editor status bar now shows the live word count and estimated reading time.
+- **Heading anchor links** — rendered headings get stable `id` slugs and a hover anchor link for easy deep-linking.
+- **Reading progress bar** — an optional scroll-driven progress bar on post pages (all three themes), toggled by the new **Show reading progress bar** appearance setting.
+- **Related posts** — up to three posts sharing at least one tag are shown at the bottom of each post (all three themes), toggled by the new **Show related posts** appearance setting.
+- **Auto-generated Open Graph images** — posts and pages without a `featuredImage` now fall back to a branded, generated OG image via `/og`.
+
+### Changed
+
+- Post and page excerpts now fall back to an auto-generated summary when no `excerpt` is set in frontmatter.
+
 ## [1.29.0] — 2026-07-09
 
 ### Added

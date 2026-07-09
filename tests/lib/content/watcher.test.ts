@@ -68,7 +68,7 @@ This post validates the ingestion pipeline.`
     expect(post).toBeTruthy();
     expect(post!.title).toBe("Test Ingest");
     expect(post!.status).toBe("published");
-    expect(post!.contentHtml).toContain("<h1>");
+    expect(post!.contentHtml).toContain('<h1 id="test-content">');
   });
 
   it("updates existing post on re-ingest", async () => {

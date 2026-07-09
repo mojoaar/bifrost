@@ -16,6 +16,8 @@ import { SOCIAL_PLATFORMS } from "@/lib/social";
 import { SocialIcon } from "@/components/SocialIcon";
 import ShareBar from "@/components/ShareBar";
 import { readingTime } from "@/lib/reading-time";
+import ReadingProgress from "@/components/ReadingProgress";
+import RelatedPosts from "@/components/RelatedPosts";
 
 interface Props {
   post: PostData;
@@ -36,6 +38,7 @@ export default function PostTemplate({ post, isAdmin = false, sharing = null }: 
 
   return (
     <article className="mx-auto max-w-3xl">
+      {post.showReadingProgress !== false && <ReadingProgress />}
       <header className="mb-8 border-b border-border pb-6">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-bold tracking-tight text-text-1 sm:text-display">
@@ -137,6 +140,9 @@ export default function PostTemplate({ post, isAdmin = false, sharing = null }: 
             )}
           </div>
         </footer>
+      )}
+      {post.relatedPosts && post.relatedPosts.length > 0 && (
+        <RelatedPosts posts={post.relatedPosts} />
       )}
     </article>
   );

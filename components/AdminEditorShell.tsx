@@ -12,6 +12,7 @@
 import { type ReactNode, useState } from "react";
 import dynamic from "next/dynamic";
 import EditorToolbar from "@/lib/editor/EditorToolbar";
+import { wordCount, readingTime } from "@/lib/reading-time";
 import type { EditorView } from "@codemirror/view";
 
 const Editor = dynamic(() => import("@/lib/editor/Editor"), { ssr: false });
@@ -66,6 +67,11 @@ export default function AdminEditorShell({
           </div>
           <div className="min-h-0 flex-1 overflow-auto">
             <Editor value={content} onChange={onChange} onViewReady={onViewReady} />
+          </div>
+          <div className="flex justify-end gap-3 border-t border-border bg-bg-1 px-3 py-1 font-mono text-xs text-text-3">
+            <span>{wordCount(content)} words</span>
+            <span>·</span>
+            <span>{readingTime(content)} min read</span>
           </div>
         </div>
         <div className="w-1/2 bg-bg-0">

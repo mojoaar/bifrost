@@ -151,6 +151,24 @@ export function AppearanceSection({ settings, setValue, setSettings, applyPalett
           />
           <span>Show reading time</span>
         </label>
+        <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+          <input
+            type="checkbox"
+            checked={settings["appearance.show_reading_progress"] !== "false"}
+            onChange={toggle("appearance.show_reading_progress")}
+            className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+          />
+          <span>Show reading progress bar</span>
+        </label>
+        <label className="flex items-center gap-2 font-mono text-sm text-text-2">
+          <input
+            type="checkbox"
+            checked={settings["appearance.show_related_posts"] !== "false"}
+            onChange={toggle("appearance.show_related_posts")}
+            className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+          />
+          <span>Show related posts</span>
+        </label>
       </div>
     </Card>
   );

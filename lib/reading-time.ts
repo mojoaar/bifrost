@@ -7,7 +7,7 @@
  * See the LICENSE file for details.
  */
 
-function wordCount(html: string): number {
+export function wordCount(html: string): number {
   const text = html.replace(/<[^>]+>/g, "");
   return text.split(/\s+/).filter(Boolean).length;
 }

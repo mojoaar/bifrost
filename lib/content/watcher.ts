@@ -101,6 +101,7 @@ async function processPost(
   skipGit: boolean
 ): Promise<void> {
   const title = (parsed.frontmatter.title as string) || slug;
+  const excerpt = (parsed.frontmatter.excerpt as string) || parsed.excerpt;
   const isDraft = parsed.frontmatter.draft === true;
   const frontmatterScheduledAt = parsed.frontmatter.scheduledAt as string | undefined;
   const status = isDraft
@@ -129,7 +130,7 @@ async function processPost(
           title,
           contentMd: raw,
           contentHtml: parsed.html,
-          excerpt: parsed.excerpt,
+          excerpt,
           frontmatter: JSON.stringify(parsed.frontmatter),
           status,
           authorId,
@@ -148,7 +149,7 @@ async function processPost(
         title,
         contentMd: raw,
         contentHtml: parsed.html,
-        excerpt: parsed.excerpt,
+        excerpt,
         frontmatter: JSON.stringify(parsed.frontmatter),
         status,
         authorId,
@@ -192,6 +193,7 @@ async function processPage(
 ): Promise<void> {
   const fm = parsed.frontmatter;
   const title = (fm.title as string) || slug;
+  const excerpt = (fm.excerpt as string) || parsed.excerpt;
   const status = fm.draft === true ? "draft" : "published";
   const now = nowISO();
   const date = (fm.date as string) || now;
@@ -216,7 +218,7 @@ async function processPage(
           title,
           contentMd: raw,
           contentHtml: parsed.html,
-          excerpt: parsed.excerpt,
+          excerpt,
           frontmatter: JSON.stringify(fm),
           status,
           showInNav,
@@ -235,7 +237,7 @@ async function processPage(
         title,
         contentMd: raw,
         contentHtml: parsed.html,
-        excerpt: parsed.excerpt,
+        excerpt,
         frontmatter: JSON.stringify(fm),
         status,
         showInNav,

@@ -19,6 +19,8 @@ Fine-grained switches that themes respect when rendering:
 - **Show author** — display the post author byline.
 - **Show reading time** — display an estimated reading time (also available via the reading-time plugin).
 - **Show featured images** — render `featuredImage` in listings and post headers.
+- **Show reading progress bar** — display a scroll-driven progress bar at the top of post pages.
+- **Show related posts** — show up to three related posts (sharing at least one tag) at the bottom of each post.
 
 Toggle these off for a cleaner, more minimal presentation.
 

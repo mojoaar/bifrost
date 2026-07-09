@@ -36,7 +36,7 @@ describe("parseFrontmatter", () => {
 describe("renderMarkdown", () => {
   it("renders markdown to HTML", async () => {
     const { html, excerpt } = await renderMarkdown("# Hello **World**");
-    expect(html).toContain("<h1>");
+    expect(html).toContain('<h1 id="hello-world">');
     expect(html).toContain("<strong>World</strong>");
     expect(excerpt).toBe("Hello World");
   });
@@ -64,7 +64,7 @@ describe("parseMarkdown", () => {
   it("parses full markdown document with frontmatter + body", async () => {
     const result = await parseMarkdown(fixture);
     expect(result.frontmatter).toMatchObject({ title: "Hello World" });
-    expect(result.html).toContain("<h1>");
+    expect(result.html).toContain('<h1 id="hello-world">');
     expect(result.body).toContain("# Hello World");
     expect(result.excerpt).toBeTruthy();
   });

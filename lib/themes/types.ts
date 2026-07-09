@@ -25,6 +25,14 @@ export interface PostAuthor {
   socialLinks?: Record<string, string> | null;
 }
 
+export interface RelatedPost {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
 export interface PostData {
   slug: string;
   title: string;
@@ -38,6 +46,8 @@ export interface PostData {
   author?: PostAuthor | null;
   showReadingTime?: boolean;
   showAuthorBio?: boolean;
+  showReadingProgress?: boolean;
+  relatedPosts?: RelatedPost[];
 }
 
 export interface PageData {
