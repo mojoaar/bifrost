@@ -8,17 +8,20 @@ MCP is a standard protocol that lets AI agents discover and call tools, and read
 
 ## Starting the server
 
-Run the MCP server alongside (or instead of) the web app:
+The MCP server is a standalone process, separate from the web app. Compile it once, then run it:
 
 ```bash
-npm run mcp:start
+npm run build:mcp   # bundles to dist/mcp/http-server.cjs
+npm run mcp:start   # runs the compiled server
 ```
 
 This launches the server with an HTTP/SSE transport. Agents connect over Server-Sent Events at:
 
 ```
-http://localhost:3000/sse
+http://localhost:3456/sse
 ```
+
+The port is `mcp.port` in `bifrost.config.ts` (default `3456`). It runs the HTTP/SSE transport regardless of the `mcp.mode` setting.
 
 The server authenticates using the same API keys (`bfk_`) as the REST API. Provide the key to your agent's MCP client configuration.
 
@@ -68,7 +71,7 @@ Add an MCP server entry to your opencode config referencing the SSE URL and key:
   "mcp": {
     "bifrost": {
       "type": "sse",
-      "url": "http://localhost:3000/sse",
+      "url": "http://localhost:3456/sse",
       "headers": { "Authorization": "Bearer bfk_..." }
     }
   }
@@ -81,7 +84,7 @@ Register the server in your MCP settings with the same SSE URL and Authorization
 
 ### Kilo Code
 
-Add a remote MCP server pointing to `http://localhost:3000/sse` and supply the `bfk_` key as a bearer token. The Bifröst tools then appear in the agent's tool list.
+Add a remote MCP server pointing to `http://localhost:3456/sse` and supply the `bfk_` key as a bearer token. The Bifröst tools then appear in the agent's tool list.
 
 ## Typical agent workflow
 
@@ -96,4 +99,4 @@ Because every write goes through the same pipeline as the admin UI, agent change
 
 - Scope access with dedicated API keys and revoke them when no longer needed.
 - The MCP server respects the same authorization rules as the REST API.
-- Run it behind your reverse proxy with TLS in production (see [deployment.md](./deployment.md)).
+- Run it behind your reverse proxy with TLS in production. See [Running the MCP server as a service](./deployment.md#running-the-mcp-server-as-a-service) for Docker Compose, systemd, and reverse-proxy examples.

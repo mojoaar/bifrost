@@ -5,6 +5,18 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.3] — 2026-07-09
+
+### Added
+
+- **MCP server deployment guide** — new "Running the MCP server as a service" section in the deployment docs with Docker Compose, systemd, and reverse-proxy (nginx/Caddy) examples for the standalone MCP process.
+- **`build:mcp` script** — precompiles the MCP server to `dist/mcp/http-server.cjs` via esbuild. The production Docker image now builds and exposes the MCP server (port `3456`).
+
+### Fixed
+
+- **MCP server no longer depends on `tsx`** — `mcp:start` previously ran the TypeScript entry via `tsx`, which is not installed in production (`npm ci --omit=dev`). It now runs the precompiled `dist/mcp/http-server.cjs` with plain `node`.
+- **MCP docs port corrected** — the SSE endpoint is `:3456` (default `mcp.port`), not `:3000`; clarified that the MCP server is a separate process from the web app and runs HTTP/SSE regardless of `mcp.mode`.
+
 ## [1.19.2] — 2026-07-09
 
 ### Changed

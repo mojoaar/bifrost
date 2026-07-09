@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "1.19.2",
+  "version": "1.19.3",
   "license": "AGPL-3.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "format": "prettier --write .",
-    "mcp:start": "tsx lib/mcp/http-server.ts"
+    "build:mcp": "esbuild lib/mcp/http-server.ts --bundle --platform=node --format=cjs --target=node22 --packages=external --outfile=dist/mcp/http-server.cjs --alias:@=.",
+    "mcp:start": "node dist/mcp/http-server.cjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.4",
@@ -73,6 +74,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.10",
+    "esbuild": "^0.28.1",
     "prettier": "^3.9.4",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.0",
