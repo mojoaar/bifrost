@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.6] — 2026-07-09
+
+### Changed
+
+- **README rewritten** — a benefit-driven overview that leads with content ownership and self-hosting, a "Why Bifröst?" section, a complete feature table reflecting current capabilities (MFA, MCP server, AI chat, SEO, backup/restore, analytics, themes), a tech-stack summary, and a full documentation index.
+
 ## [1.19.5] — 2026-07-09
 
 ### Fixed
