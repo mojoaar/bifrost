@@ -21,7 +21,10 @@ import { resolveAuthorId } from "@/lib/content/authors";
 import { slugExists } from "@/lib/content/slug";
 import { requireUser, requireAdmin } from "@/lib/auth/require";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { createLogger } from "@/lib/logger";
 import { eq, sql } from "drizzle-orm";
+
+const log = createLogger("posts");
 
 export async function GET(request: NextRequest) {
   const admin = (await requireAdmin(request)) !== null;
@@ -132,7 +135,7 @@ export async function POST(request: NextRequest) {
       const { commitPost } = await import("@/lib/git/repo");
       await commitPost(slug, title, "create");
     } catch (err) {
-      console.error("[posts] git commit failed (best-effort):", err);
+      log.error("git commit failed (best-effort):", err);
     }
   } catch (err) {
     return apiError("Failed to create post", 500);

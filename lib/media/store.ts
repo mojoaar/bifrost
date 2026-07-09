@@ -16,6 +16,9 @@ import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema/media";
 import { generateId } from "@/lib/id";
 import { contentDir, mediaDir } from "@/lib/paths";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("media");
 
 export interface MediaRecord {
   id: string;
@@ -101,7 +104,7 @@ export async function deleteMedia(id: string): Promise<boolean> {
   if (!record) return false;
 
   const fsPath = path.join(contentDir(), record.path);
-  await fs.unlink(fsPath).catch((err) => console.error("[media] failed to unlink file:", fsPath, err));
+  await fs.unlink(fsPath).catch((err) => log.error("failed to unlink file:", fsPath, err));
 
   db.delete(media).where(eq(media.id, id)).run();
 

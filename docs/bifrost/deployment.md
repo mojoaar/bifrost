@@ -24,6 +24,8 @@ Configure the deployment with environment variables. Bifröst-specific ones are 
 | `DATABASE_URL`        | Yes      | Database connection string. Default SQLite: `file:./bifrost.db`. |
 | `NODE_ENV`            | Yes      | Set to `production`.                                    |
 | `PORT`                | No       | Port the server listens on (default `3000`).            |
+| `BIFROST_LOG_LEVEL`   | No       | `debug`, `info`, `warn`, or `error`. Defaults to `info` in production. |
+| `BIFROST_LOG_FORMAT`  | No       | Set to `json` for structured one-line-per-event logs suited to log aggregators. |
 
 Example `.env` (never commit this file):
 

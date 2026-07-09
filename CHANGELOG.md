@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.0] — 2026-07-09
+
+### Added
+
+- **Structured logging** — a scoped logger (`lib/logger.ts`) with configurable levels via `BIFROST_LOG_LEVEL` (`debug`/`info`/`warn`/`error`) and optional machine-readable output via `BIFROST_LOG_FORMAT=json` for log aggregators. Existing `console.*` calls now route through scoped loggers.
+
 ## [1.30.0] — 2026-07-09
 
 ### Added

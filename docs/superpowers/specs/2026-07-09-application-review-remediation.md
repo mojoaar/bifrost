@@ -179,3 +179,13 @@ MEDIUM / LOW
       related posts, auto-excerpt, OG fallback (author pages dropped by request)
 - [ ] Deferred/optional: comments, image resizing (`sharp`), categories, draft-share tokens,
       `useBifrost()` hook, structured logger
+
+### Deferred items — execution
+
+Four of the deferred items are being executed as separate minor releases (comments and
+categories remain out of scope for now).
+
+- [x] Structured logger — v1.31.0
+- [ ] Draft-share tokens — v1.32.0
+- [ ] `useBifrost()` hook (minimal: theme Header/Footer) — v1.33.0
+- [ ] Image resizing (`sharp`, featured + admin thumbnails) — v1.34.0

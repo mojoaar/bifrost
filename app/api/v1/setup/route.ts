@@ -18,6 +18,9 @@ import { apiSuccess, apiError } from "@/lib/api/response";
 import { hashPassword } from "@/lib/auth/password";
 import { generateId } from "@/lib/id";
 import { rateLimit } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("setup");
 
 export async function GET() {
   const admin = db
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest) {
     await seedPosts(adminId);
     await seedPages(adminId);
   } catch (err) {
-    console.error("[setup] seed failed (best-effort):", err);
+    log.error("seed failed (best-effort):", err);
   }
 
   return apiSuccess({ setup: true }, undefined, 201);

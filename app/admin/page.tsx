@@ -16,6 +16,9 @@ import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { authFetch } from "@/lib/auth/client";
 import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("admin");
 
 interface AdminWidget {
   component: React.ComponentType;
@@ -137,7 +140,7 @@ export default function AdminDashboard() {
         }
         if (!cancelled) setWidgets(found);
       } catch (err) {
-        console.error("Dashboard plugin load failed", err);
+        log.error("plugin load failed", err);
       }
       const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       const authHeader: Record<string, string> = token ? { authorization: `Bearer ${token}` } : {};
@@ -166,7 +169,7 @@ export default function AdminDashboard() {
           setPosts(recentBody.data ?? []);
         }
       } catch (err) {
-        console.error("Dashboard stats load failed", err);
+        log.error("stats load failed", err);
       }
       try {
         const settingsRes = await fetch("/api/v1/settings", { headers: authHeader });
@@ -179,7 +182,7 @@ export default function AdminDashboard() {
           if (settingsBody.data?.["theme"]) setThemeName(settingsBody.data["theme"]);
         }
       } catch (err) {
-        console.error("Dashboard settings load failed", err);
+        log.error("settings load failed", err);
       }
       try {
         const statsRes = await authFetch("/api/v1/admin/stats");
@@ -188,7 +191,7 @@ export default function AdminDashboard() {
           setAdminStats(statsBody.data);
         }
       } catch (err) {
-        console.error("Dashboard admin stats load failed", err);
+        log.error("admin stats load failed", err);
       }
       if (!cancelled) setLoading(false);
     }

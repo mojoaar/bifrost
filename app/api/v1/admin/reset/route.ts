@@ -20,6 +20,9 @@ import { stopWatcher, startWatcher } from "@/lib/content/watcher";
 import { SEED_SLUGS, SEED_PAGE_SLUGS } from "@/lib/seed";
 import { postsDir, pagesDir } from "@/lib/paths";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("reset");
 
 async function rmDir(dir: string): Promise<void> {
   const { rm } = await import("fs/promises");
@@ -67,8 +70,8 @@ export async function POST(request: NextRequest) {
     }
 
     await Promise.all([
-      ...SEED_SLUGS.map((slug) => rmDir(path.join(postsDir(), slug)).catch((err) => console.error("[reset] failed to remove post dir:", slug, err))),
-      ...SEED_PAGE_SLUGS.map((slug) => rmDir(path.join(pagesDir(), slug)).catch((err) => console.error("[reset] failed to remove page dir:", slug, err))),
+      ...SEED_SLUGS.map((slug) => rmDir(path.join(postsDir(), slug)).catch((err) => log.error("failed to remove post dir:", slug, err))),
+      ...SEED_PAGE_SLUGS.map((slug) => rmDir(path.join(pagesDir(), slug)).catch((err) => log.error("failed to remove page dir:", slug, err))),
     ]);
 
     startWatcher();

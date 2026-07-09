@@ -23,7 +23,10 @@ import {
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { requireUser } from "@/lib/auth/require";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { createLogger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
+
+const log = createLogger("posts");
 
 export async function GET(
   _request: NextRequest,
@@ -136,7 +139,7 @@ export async function PUT(
     const { commitPost } = await import("@/lib/git/repo");
     await commitPost(slug, update.title ?? existing.title, "update");
   } catch (err) {
-    console.error("[posts] git commit failed (best-effort):", err);
+    log.error("git commit failed (best-effort):", err);
   }
 
   const post = db.select().from(posts).where(eq(posts.slug, slug)).get();

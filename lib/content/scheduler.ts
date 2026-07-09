@@ -13,7 +13,9 @@ import { posts } from "@/lib/db/schema/posts";
 import { nowISO } from "@/lib/time";
 import { writePostToFilesystem } from "@/lib/content/sync";
 import { runHook } from "@/lib/plugins/registry";
+import { createLogger } from "@/lib/logger";
 
+const log = createLogger("scheduler");
 const INTERVAL_MS = 60_000;
 
 export async function publishDueScheduledPosts(): Promise<number> {
@@ -48,10 +50,7 @@ export async function publishDueScheduledPosts(): Promise<number> {
         ...fm,
       });
     } catch (err) {
-      console.error(
-        `[scheduler] failed to rewrite markdown for ${post.slug}:`,
-        err
-      );
+      log.error(`failed to rewrite markdown for ${post.slug}:`, err);
     }
 
     try {
@@ -62,7 +61,7 @@ export async function publishDueScheduledPosts(): Promise<number> {
     }
 
     published += 1;
-    console.log(`[scheduler] published scheduled post ${post.slug}`);
+    log.info(`published scheduled post ${post.slug}`);
   }
 
   return published;
@@ -74,7 +73,7 @@ export function startScheduler(): void {
   if (timer) return;
   timer = setInterval(() => {
     publishDueScheduledPosts().catch((err) =>
-      console.error("[scheduler] run failed:", err)
+      log.error("run failed:", err)
     );
   }, INTERVAL_MS);
 }

@@ -14,6 +14,9 @@ import { loadConfig } from "@/lib/config/loader";
 import { getSetting } from "@/lib/settings";
 import { verifyAccessToken } from "@/lib/auth/token";
 import { verifyApiKey } from "@/lib/auth/api-key";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("mcp");
 
 const app = express();
 app.use(express.json());
@@ -69,5 +72,5 @@ const config = loadConfig();
 const port = config.mcp.port;
 
 app.listen(port, () => {
-  console.log(`Bifröst MCP HTTP server running on port ${port}`);
+  log.info(`Bifröst MCP HTTP server running on port ${port}`);
 });

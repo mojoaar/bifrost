@@ -22,7 +22,10 @@ import { resolveAuthorId } from "@/lib/content/authors";
 import { runHook } from "@/lib/plugins/registry";
 import { postsDir, pagesDir } from "@/lib/paths";
 import { generateId } from "@/lib/id";
+import { createLogger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
+
+const log = createLogger("watcher");
 
 function tagSlug(name: string): string {
   return name
@@ -114,7 +117,7 @@ async function processPost(
   const authorId = resolveAuthorId((parsed.frontmatter.author as string) || null);
 
   if (!authorId) {
-    console.error(`[watcher] no users exist in the database — skipping ${filePath}`);
+    log.error(`no users exist in the database — skipping ${filePath}`);
     return;
   }
 
@@ -163,7 +166,7 @@ async function processPost(
 
   syncPostTags(slug, parsed.frontmatter.tags);
 
-  console.log(`[watcher] processFile ${filePath} → post slug=${slug} action=${action ?? "unchanged"}`);
+  log.info(`processFile ${filePath} → post slug=${slug} action=${action ?? "unchanged"}`);
 
   if (action && !skipGit) {
     try {
@@ -202,7 +205,7 @@ async function processPage(
   const authorId = resolveAuthorId((fm.author as string) || null);
 
   if (!authorId) {
-    console.error(`[watcher] no users exist in the database — skipping ${filePath}`);
+    log.error(`no users exist in the database — skipping ${filePath}`);
     return;
   }
 
@@ -250,7 +253,7 @@ async function processPage(
     action = "create";
   }
 
-  console.log(`[watcher] processFile ${filePath} → page slug=${slug} action=${action ?? "unchanged"}`);
+  log.info(`processFile ${filePath} → page slug=${slug} action=${action ?? "unchanged"}`);
 
   if (action && !skipGit) {
     try {
@@ -279,7 +282,7 @@ async function processFile(filePath: string, skipGit = false): Promise<void> {
       await processPost(filePath, slug, raw, parsed, skipGit);
     }
   } catch (err) {
-    console.error(`Error processing ${filePath}:`, err);
+    log.error(`Error processing ${filePath}:`, err);
   }
 }
 
@@ -292,20 +295,20 @@ function deleteFromDb(filePath: string): void {
   if (collection.kind === "page") {
     const row = db.select({ slug: pages.slug }).from(pages).where(eq(pages.slug, slug)).get();
     if (!row) {
-      console.warn(`[watcher] unlink for page ${slug} but no DB row exists — skipping`);
+      log.warn(`unlink for page ${slug} but no DB row exists — skipping`);
       return;
     }
-    console.log(`[watcher] unlink: deleting page ${slug} from DB`);
+    log.info(`unlink: deleting page ${slug} from DB`);
     db.delete(pages).where(eq(pages.slug, slug)).run();
     return;
   }
 
   const row = db.select({ id: posts.slug }).from(posts).where(eq(posts.slug, slug)).get();
   if (!row) {
-    console.warn(`[watcher] unlink for ${slug} but no DB row exists — skipping`);
+    log.warn(`unlink for ${slug} but no DB row exists — skipping`);
     return;
   }
-  console.log(`[watcher] unlink: deleting ${slug} from DB`);
+  log.info(`unlink: deleting ${slug} from DB`);
   db.delete(posts).where(eq(posts.slug, slug)).run();
 }
 
@@ -321,19 +324,19 @@ export function startWatcher(): void {
   });
 
   watcher.on("add", (filePath: string) => {
-    console.log(`[watcher] add: ${filePath}`);
+    log.info(`add: ${filePath}`);
     processFile(filePath);
   });
   watcher.on("change", (filePath: string) => {
-    console.log(`[watcher] change: ${filePath}`);
+    log.info(`change: ${filePath}`);
     processFile(filePath);
   });
   watcher.on("unlink", (filePath: string) => {
-    console.log(`[watcher] unlink: ${filePath}`);
+    log.info(`unlink: ${filePath}`);
     deleteFromDb(filePath);
   });
   watcher.on("unlinkDir", (dirPath: string) => {
-    console.log(`[watcher] unlinkDir: ${dirPath}`);
+    log.info(`unlinkDir: ${dirPath}`);
   });
 }
 

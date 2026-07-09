@@ -9,6 +9,9 @@
 
 import { registerPlugin } from "./index";
 import type { BifrostPlugin } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("plugins");
 
 export { registerPlugin, listPlugins, runHook, getPlugins } from "./index";
 
@@ -54,7 +57,7 @@ export async function loadPluginsFromDirectory(
         }
       }
     } catch (err) {
-      console.error(`Failed to load plugin "${entry.name}":`, err);
+      log.error(`Failed to load plugin "${entry.name}":`, err);
     }
   }
 }
