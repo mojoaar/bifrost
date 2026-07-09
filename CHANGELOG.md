@@ -5,6 +5,17 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.28.0] — 2026-07-09
+
+### Added
+
+- **Scheduled post publishing** — posts with `status: scheduled` are now automatically promoted to `published` once their `scheduledAt` time passes. A background runner checks every 60 seconds (and once at startup), updates the database, and rewrites the markdown file to drop the `scheduledAt` frontmatter so the file and database stay in sync.
+
+### Fixed
+
+- Tag pages now use the **active theme** instead of always rendering with `bifrost-terminal`.
+- Tag pages now show only **published** posts (drafts and scheduled posts no longer leak) and support **pagination** like the homepage.
+
 ## [1.27.2] — 2026-07-09
 
 ### Fixed

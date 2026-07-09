@@ -172,8 +172,8 @@ MEDIUM / LOW
 
 ### Phase 5+ — Functionality gaps & quick wins
 
-- [ ] Scheduled-post runner (HIGH)
-- [ ] Tag page: active theme + pagination (bugs)
+- [x] Scheduled-post runner (HIGH) — v1.28.0
+- [x] Tag page: active theme + pagination (bugs) — v1.28.0
 - [ ] Public search (API + UI)
 - [ ] Quick wins batch: editor word count, heading anchors, reading progress, related posts,
       auto-excerpt, author pages, OG fallback

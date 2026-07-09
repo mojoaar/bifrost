@@ -22,6 +22,12 @@ export async function register() {
     await ingestAll(true);
     startWatcher();
 
+    const { publishDueScheduledPosts, startScheduler } = await import(
+      "@/lib/content/scheduler"
+    );
+    await publishDueScheduledPosts();
+    startScheduler();
+
     try {
       const { db } = await import("@/lib/db");
       const { loadConfig } = await import("@/lib/config/loader");
