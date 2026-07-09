@@ -343,4 +343,16 @@ export const contentPaths = {
       responses: { "200": { description: "Rendered HTML" } },
     },
   },
+  "/search": {
+    get: {
+      summary: "Search published posts",
+      tags: ["Content"],
+      parameters: [
+        { name: "q", in: "query", required: true, schema: { type: "string", minLength: 2 } },
+        { name: "page", in: "query", schema: { type: "integer", default: 1 } },
+        { name: "limit", in: "query", schema: { type: "integer", default: 10, maximum: 50 } },
+      ],
+      responses: { "200": { description: "Matching published posts" } },
+    },
+  },
 };

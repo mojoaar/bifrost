@@ -77,6 +77,7 @@ Example error:
 | Git            | `/api/v1/git`              | GET (history/diff), POST (push/pull) |
 | AI             | `/api/v1/ai`               | GET (models/settings), POST (chat), PUT (settings) |
 | Analytics      | `/api/v1/analytics/view`   | POST                      |
+| Search         | `/api/v1/search`           | GET (public)              |
 | Admin          | `/api/v1/admin`            | GET (stats/reset), POST (reset) |
 | Audit          | `/api/v1/audit`            | GET, DELETE               |
 | Auth           | `/api/v1/auth`             | POST (login/refresh/mfa)  |
@@ -114,6 +115,14 @@ curl -X PUT -H "Authorization: Bearer $KEY" \
   -d '{"status":"published"}' \
   "http://localhost:3000/api/v1/posts/hello"
 ```
+
+Search published posts (public, no authentication):
+
+```bash
+curl "http://localhost:3000/api/v1/search?q=markdown&page=1&limit=10"
+```
+
+The search endpoint matches the query (minimum 2 characters) against post titles and content, returns published posts only, and is paginated via `meta`. It is public and rate limited to 30 requests per minute.
 
 ## OpenAPI spec and explorer
 
