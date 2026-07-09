@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.7] — 2026-07-09
+
+### Changed
+
+- **README** — added the "Where your words cross over." tagline and a "The name" section explaining the Norse-mythology origin of Bifröst (the rainbow bridge between your thoughts and your audience).
+
 ## [1.19.6] — 2026-07-09
 
 ### Changed

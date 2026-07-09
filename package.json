@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "1.19.6",
+  "version": "1.19.7",
   "license": "AGPL-3.0",
   "private": true,
   "scripts": {

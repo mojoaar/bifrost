@@ -6,11 +6,17 @@ Bifröst is a self-hosted blogging framework for people who want to _own_ their 
 
 No SaaS lock-in. No monthly fee. No telemetry phoning home. Just you, your words, and a stack you fully control.
 
+> **Where your words cross over.**
+
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)
 
 ---
+
+## The name
+
+In Norse mythology, **Bifröst** is the burning rainbow bridge that connects Midgard (the world of humans) to Asgard (the realm of the gods). Bifröst the framework is the bridge between your thoughts and your audience — a seamless path from Markdown to published content.
 
 ## Why Bifröst?
 
