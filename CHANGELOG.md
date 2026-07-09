@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.4] — 2026-07-09
+
+### Fixed
+
+- **Admin docs cross-links no longer 404** — clicking an inter-doc link (e.g. `deployment.md#running-the-mcp-server-as-a-service`) in the admin documentation viewer navigated to `/admin/<file>.md` and returned a 404. Such links are now intercepted and load the target doc within the viewer, scrolling to the referenced heading anchor when present.
+
 ## [1.19.3] — 2026-07-09
 
 ### Added
