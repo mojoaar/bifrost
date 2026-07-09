@@ -75,6 +75,36 @@ export function useDateTimeFormat() {
     return d.toLocaleString();
   };
 
+  const formatDateTime = (dateStr: string | null): string => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear().toString();
+    const hours = d.getHours();
+    const hours24 = hours.toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const seconds = d.getSeconds().toString().padStart(2, "0");
+    const h12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const ampm = hours < 12 ? "AM" : "PM";
+
+    if (format.date === "EU") {
+      const dt = `${day}/${month}/${year}`;
+      if (format.time === "24h") return `${dt}, ${hours24}:${minutes}:${seconds}`;
+      return `${dt}, ${h12}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    if (format.date === "ISO") {
+      const dt = `${year}-${month}-${day}`;
+      if (format.time === "24h") return `${dt} ${hours24}:${minutes}:${seconds}`;
+      return `${dt} ${h12}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    const dt = `${month}/${day}/${year}`;
+    if (format.time === "24h") return `${dt}, ${hours24}:${minutes}:${seconds}`;
+    return `${dt}, ${h12}:${minutes}:${seconds} ${ampm}`;
+  };
+
   const formatDateShort = (dateStr: string | null): string => {
     if (!dateStr) return "";
     const d = new Date(dateStr);
@@ -90,5 +120,5 @@ export function useDateTimeFormat() {
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
   };
 
-  return { formatDate, formatDateShort, formatTime, format };
+  return { formatDate, formatDateTime, formatDateShort, formatTime, format };
 }

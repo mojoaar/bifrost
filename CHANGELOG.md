@@ -5,6 +5,13 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.2] — 2026-07-09
+
+### Fixed
+
+- Audit Log timestamps now respect the configured date and time format (EU/US/ISO, 12h/24h) instead of the browser default, and include seconds.
+- Hardened the date formatter so US format is deterministic regardless of browser locale.
+
 ## [1.23.1] — 2026-07-09
 
 ### Changed

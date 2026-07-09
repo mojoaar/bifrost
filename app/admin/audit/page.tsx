@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/auth/client";
+import { useDateTimeFormat } from "@/lib/format-date";
 
 interface AuditLogEntry {
   id: string;
@@ -60,6 +61,7 @@ const ACTION_OPTIONS = [
 ];
 
 export default function AuditLogPage() {
+  const { formatDateTime } = useDateTimeFormat();
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -108,9 +110,6 @@ export default function AuditLogPage() {
       setPurging(false);
     }
   };
-
-  const formatTime = (iso: string) =>
-    new Date(iso).toLocaleString();
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,7 +168,7 @@ export default function AuditLogPage() {
                   {entries.map((e) => (
                     <tr key={e.id} className="border-b border-border/50">
                       <td className="py-2 pr-4 whitespace-nowrap text-text-2">
-                        {formatTime(e.timestamp)}
+                        {formatDateTime(e.timestamp)}
                       </td>
                       <td className="py-2 pr-4 text-text-2">
                         {e.actorLabel ?? e.actorId ?? <span className="text-text-3">—</span>}
