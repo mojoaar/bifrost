@@ -63,6 +63,7 @@ export default function GenericEditor({ value, onChange, fileName }: Props) {
     return () => {
       viewRef.current?.destroy();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; value is synced by a separate effect
   }, []);
 
   useEffect(() => {

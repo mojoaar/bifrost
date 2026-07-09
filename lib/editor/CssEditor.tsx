@@ -56,6 +56,7 @@ export default function CssEditor({ value, onChange }: Props) {
       view.destroy();
       viewRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; value is synced by a separate effect
   }, []);
 
   useEffect(() => {

@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.5] — 2026-07-09
+
+### Fixed
+
+- **Editor lint warnings** — the CodeMirror mount-once effects in `Editor.tsx`, `CssEditor.tsx`, and `GenericEditor.tsx` now carry documented `eslint-disable` comments for `react-hooks/exhaustive-deps`. Adding the flagged dependencies would recreate the editor on every keystroke; `value` is already synced by a separate effect.
+
 ## [1.19.4] — 2026-07-09
 
 ### Fixed

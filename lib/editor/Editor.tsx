@@ -88,6 +88,7 @@ export default function CodeMirrorEditor({ value, onChange, onViewReady }: Props
       view.destroy();
       viewRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; value is synced by a separate effect
   }, []);
 
   useEffect(() => {
