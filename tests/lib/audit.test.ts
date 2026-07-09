@@ -11,6 +11,7 @@ import { describe, it, expect } from "vitest";
 import { recordAudit, getClientContext, pruneAuditLogs } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { auditLogs } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 
 function req(headers: Record<string, string> = {}): Request {
@@ -43,6 +44,26 @@ describe("getClientContext", () => {
       role: "admin",
     });
     expect(ctx.actorType).toBe("api_key");
+  });
+
+  it("resolves the actor email from the database when no label is passed", () => {
+    const now = new Date().toISOString();
+    db.insert(users)
+      .values({
+        id: "u-audit-email",
+        email: "resolved@example.com",
+        passwordHash: "x",
+        displayName: "Resolved",
+        role: "admin",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    const ctx = getClientContext(req({ authorization: "Bearer eyJhbGci" }), {
+      userId: "u-audit-email",
+      role: "admin",
+    });
+    expect(ctx.actorLabel).toBe("resolved@example.com");
   });
 });
 

@@ -171,7 +171,13 @@ export default function AuditLogPage() {
                         {formatDateTime(e.timestamp)}
                       </td>
                       <td className="py-2 pr-4 text-text-2">
-                        {e.actorLabel ?? e.actorId ?? <span className="text-text-3">—</span>}
+                        {e.actorLabel ?? (
+                          e.actorType === "anonymous" || e.actorType === "system" ? (
+                            <span className="text-text-3">{e.actorType}</span>
+                          ) : (
+                            <span className="text-text-3">—</span>
+                          )
+                        )}
                       </td>
                       <td className="py-2 pr-4 font-mono text-xs text-text-2">
                         {e.action}

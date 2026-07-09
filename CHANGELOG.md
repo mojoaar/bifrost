@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.27.2] — 2026-07-09
+
+### Fixed
+
+- Audit Log now consistently displays the actor's **email** instead of sometimes showing a raw user ID. `getClientContext` resolves the email at record time, the audit API backfills it for existing rows via a join, and the table shows the actor type (`system`/`anonymous`) rather than an ID when no email applies.
+
 ## [1.27.1] — 2026-07-09
 
 ### Fixed

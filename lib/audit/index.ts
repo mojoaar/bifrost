@@ -10,9 +10,10 @@
 import { nowISO } from "@/lib/time";
 
 import { randomUUID } from "crypto";
-import { lt } from "drizzle-orm";
+import { lt, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { auditLogs } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema/users";
 import type { AuthIdentity } from "@/lib/auth/require";
 
 export type AuditAction =
@@ -81,17 +82,31 @@ export function getClientContext(
   const userAgent = request.headers.get("user-agent");
 
   let actorType: AuditActorType = "anonymous";
+  let resolvedLabel = actorLabel ?? null;
   if (auth) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.slice(7)
       : null;
     actorType = token?.startsWith("bfk_") ? "api_key" : "user";
+
+    if (!resolvedLabel) {
+      try {
+        resolvedLabel =
+          db
+            .select({ email: users.email })
+            .from(users)
+            .where(eq(users.id, auth.userId))
+            .get()?.email ?? null;
+      } catch {
+        resolvedLabel = null;
+      }
+    }
   }
 
   return {
     actorId: auth?.userId ?? null,
-    actorLabel: actorLabel ?? null,
+    actorLabel: resolvedLabel,
     actorType,
     ip: ip || null,
     userAgent: userAgent || null,

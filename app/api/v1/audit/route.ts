@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { auditLogs } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema/users";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/require";
 import { recordAudit, getClientContext } from "@/lib/audit";
@@ -55,8 +56,22 @@ export async function GET(request: NextRequest) {
       .get()?.count ?? 0;
 
   const rows = db
-    .select()
+    .select({
+      id: auditLogs.id,
+      timestamp: auditLogs.timestamp,
+      actorId: auditLogs.actorId,
+      actorLabel: sql<string | null>`coalesce(${auditLogs.actorLabel}, ${users.email})`,
+      actorType: auditLogs.actorType,
+      action: auditLogs.action,
+      targetType: auditLogs.targetType,
+      targetId: auditLogs.targetId,
+      status: auditLogs.status,
+      ip: auditLogs.ip,
+      userAgent: auditLogs.userAgent,
+      metadata: auditLogs.metadata,
+    })
     .from(auditLogs)
+    .leftJoin(users, eq(auditLogs.actorId, users.id))
     .where(where)
     .orderBy(desc(auditLogs.timestamp))
     .limit(limit)
