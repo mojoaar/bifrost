@@ -13,7 +13,7 @@ import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { verifyPassword } from "@/lib/auth/password";
-import { createAccessToken, createRefreshToken } from "@/lib/auth/token";
+import { createAccessToken, createRefreshToken, createMfaToken } from "@/lib/auth/token";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -47,6 +47,15 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = { sub: user.id, role: user.role };
+
+  if (user.mfaEnabled) {
+    const mfaToken = await createMfaToken(payload);
+    return apiSuccess({
+      requiresMfa: true,
+      mfaToken,
+    });
+  }
+
   const accessToken = await createAccessToken(payload);
   const refreshToken = await createRefreshToken(payload);
 

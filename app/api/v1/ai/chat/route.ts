@@ -8,7 +8,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { streamChatCompletion, getDefaultProvider } from "@/lib/ai/providers";
+import { streamChatCompletion, getDefaultProvider, type ChatMessage } from "@/lib/ai/providers";
 import { buildMessages } from "@/lib/ai/actions";
 import { getSetting } from "@/lib/settings";
 import { requireUser } from "@/lib/auth/require";
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     provider?: string;
     model?: string;
     customPrompt?: string;
+    messages?: ChatMessage[];
   };
 
   try {
@@ -38,19 +39,26 @@ export async function POST(request: NextRequest) {
     return apiError("Invalid JSON body", 400);
   }
 
-  const { action = "improve", content = "", provider, model, customPrompt } = body;
-
   if (getSetting("ai.enabled") !== "true") {
     return apiError("AI assist is disabled", 403);
   }
 
-  if (!content) {
-    return apiError("content is required", 400);
+  const providerName = body.provider ?? getDefaultProvider();
+
+  let messages: ChatMessage[];
+
+  if (body.messages && Array.isArray(body.messages)) {
+    if (body.messages.length === 0) {
+      return apiError("messages array is empty", 400);
+    }
+    messages = body.messages;
+  } else {
+    const { action = "improve", content = "", customPrompt } = body;
+    if (!content) {
+      return apiError("content is required", 400);
+    }
+    messages = buildMessages(action, content, customPrompt);
   }
-
-  const providerName = provider ?? getDefaultProvider();
-
-  const messages = buildMessages(action, content, customPrompt);
 
   const encoder = new TextEncoder();
 
@@ -58,7 +66,7 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       try {
         for await (const token of streamChatCompletion(providerName, messages, {
-          model,
+          model: body.model,
         })) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
         }

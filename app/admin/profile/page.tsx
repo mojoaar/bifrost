@@ -51,7 +51,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
-  const [loadError, setLoadError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -60,6 +59,50 @@ export default function ProfilePage() {
   const [creatingKey, setCreatingKey] = useState(false);
   const [freshKey, setFreshKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaSetup, setMfaSetup] = useState<{ otpauthUrl: string; recoveryCodes: string[] } | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaMessage, setMfaMessage] = useState("");
+
+  async function handleMfaSetup() {
+    setMfaLoading(true);
+    try {
+      const res = await authFetch("/api/v1/profile/mfa/setup", { method: "POST" });
+      const body = await res.json();
+      if (body.data) setMfaSetup(body.data);
+    } catch { setMfaMessage("Failed to setup MFA"); }
+    finally { setMfaLoading(false); }
+  }
+
+  async function handleMfaVerify() {
+    if (!mfaSetup || mfaCode.length !== 6) return;
+    setMfaLoading(true);
+    try {
+      const res = await authFetch("/api/v1/profile/mfa/verify", {
+        method: "POST",
+        body: JSON.stringify({ secret: (mfaSetup as unknown as Record<string, unknown>).secret, code: mfaCode, recoveryCodes: mfaSetup.recoveryCodes }),
+      });
+      if (res.ok) { setMfaEnabled(true); setMfaSetup(null); setMfaMessage("MFA enabled"); }
+      else { const b = await res.json(); setMfaMessage(b.error?.message ?? "Verification failed"); }
+    } catch { setMfaMessage("Failed to verify"); }
+    finally { setMfaLoading(false); setMfaCode(""); }
+  }
+
+  async function handleMfaDisable() {
+    const pw = prompt("Enter your password to disable MFA:");
+    if (!pw) return;
+    setMfaLoading(true);
+    try {
+      const res = await authFetch("/api/v1/profile/mfa/disable", {
+        method: "POST",
+        body: JSON.stringify({ password: pw }),
+      });
+      if (res.ok) { setMfaEnabled(false); setMfaMessage("MFA disabled"); }
+      else { const b = await res.json(); setMfaMessage(b.error?.message ?? "Failed to disable"); }
+    } catch { setMfaMessage("Failed"); }
+    finally { setMfaLoading(false); }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -461,6 +504,46 @@ export default function ProfilePage() {
               </tbody>
             </Table>
           ) : null}
+        </Card>
+
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Two-Factor Authentication</div>
+          {mfaEnabled ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-success">MFA is enabled</span>
+              <Button variant="ghost" size="sm" onClick={handleMfaDisable} disabled={mfaLoading}>
+                {mfaLoading ? "Disabling…" : "Disable"}
+              </Button>
+            </div>
+          ) : mfaSetup ? (
+            <div className="space-y-4">
+              <p className="text-sm text-text-2">Scan this QR code with your authenticator app:</p>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mfaSetup.otpauthUrl)}`} alt="QR code" className="rounded-md border border-border" />
+              <div className="space-y-1">
+                <p className="font-mono text-xs text-text-3">Recovery codes — save these in a safe place:</p>
+                <pre className="rounded-md border border-border bg-bg-2 p-3 font-mono text-xs text-text-1">{mfaSetup.recoveryCodes.join("\n")}</pre>
+              </div>
+              <Field label="Verification code">
+                <div className="flex items-center gap-2">
+                  <Input value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} placeholder="000000" maxLength={6} className="w-28 font-mono" />
+                  <Button variant="primary" size="sm" onClick={handleMfaVerify} disabled={mfaLoading || mfaCode.length !== 6}>
+                    {mfaLoading ? "Verifying…" : "Verify"}
+                  </Button>
+                </div>
+              </Field>
+            </div>
+          ) : (
+            <div>
+              <Button variant="ghost" onClick={handleMfaSetup} disabled={mfaLoading}>
+                {mfaLoading ? "Loading…" : "Enable two-factor authentication"}
+              </Button>
+            </div>
+          )}
+          {mfaMessage && (
+            <p className={`mt-2 font-mono text-xs ${mfaMessage.startsWith("MFA") || mfaMessage.startsWith("Two") ? "text-success" : "text-danger"}`}>
+              {mfaMessage}
+            </p>
+          )}
         </Card>
 
         <div className="flex items-center gap-4">

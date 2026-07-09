@@ -22,6 +22,7 @@ interface User {
   email: string;
   displayName: string;
   role: "admin" | "editor" | "author";
+  mfaEnabled?: number | boolean;
   createdAt: string;
 }
 
@@ -216,6 +217,7 @@ export default function UsersPage() {
             <TH>Email</TH>
             <TH>Name</TH>
             <TH>Role</TH>
+            <TH>MFA</TH>
             <TH>Password</TH>
             <TH>Joined</TH>
             <TH className="w-24">Actions</TH>
@@ -235,6 +237,28 @@ export default function UsersPage() {
                         {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                       </Select>
                     </TD>
+                    <TD>
+                      {u.mfaEnabled ? (
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Reset MFA for ${u.email}?`)) return;
+                            try {
+                              const res = await fetch(`/api/v1/users/${u.id}/mfa/reset`, { method: "POST", headers: authHeaders() });
+                              if (res.ok) {
+                                const listRes = await fetch("/api/v1/users", { headers: authHeaders() });
+                                const listBody = await listRes.json();
+                                if (listRes.ok) setUsers(listBody.data ?? []);
+                              }
+                            } catch { /* silent */ }
+                          }}
+                          className="font-mono text-xs text-danger hover:underline"
+                        >
+                          reset
+                        </button>
+                      ) : (
+                        <span className="font-mono text-xs text-text-muted">—</span>
+                      )}
+                    </TD>
                     <TD><Input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="new pw" className="font-mono text-xs" /></TD>
                     <TD className="font-mono text-xs text-text-3">{formatDateShort(u.createdAt)}</TD>
                     <TD>
@@ -253,6 +277,31 @@ export default function UsersPage() {
                     <TD className="font-mono text-text-2">{u.email}</TD>
                     <TD className="text-text-1">{u.displayName}</TD>
                     <TD><RolePill role={u.role} /></TD>
+                    <TD className="text-center font-mono text-xs">
+                      {u.mfaEnabled ? (
+                        <span className="flex items-center justify-center gap-1">
+                          <span className="text-success">2FA</span>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Reset MFA for ${u.email}?`)) return;
+                              try {
+                                const res = await fetch(`/api/v1/users/${u.id}/mfa/reset`, { method: "POST", headers: authHeaders() });
+                                if (res.ok) {
+                                  const listRes = await fetch("/api/v1/users", { headers: authHeaders() });
+                                  const listBody = await listRes.json();
+                                  if (listRes.ok) setUsers(listBody.data ?? []);
+                                }
+                              } catch { /* silent */ }
+                            }}
+                            className="text-danger hover:underline"
+                          >
+                            reset
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="text-text-muted">—</span>
+                      )}
+                    </TD>
                     <TD className="text-center font-mono text-xs text-text-muted">·</TD>
                     <TD className="font-mono text-xs text-text-3">{formatDateShort(u.createdAt)}</TD>
                     <TD>

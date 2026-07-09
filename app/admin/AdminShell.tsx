@@ -177,6 +177,13 @@ function TopBar({ onMenuToggle }: { onMenuToggle: () => void }) {
           <Search size={12} className="inline-block" /> Cmd+K
         </button>
         <ThemeToggle />
+        <Link
+          href="/"
+          target="_blank"
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-1 px-2 py-1 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+        >
+          site ↗
+        </Link>
         <Button
           variant="ghost"
           onClick={() => {

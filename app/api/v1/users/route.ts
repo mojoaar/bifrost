@@ -22,6 +22,7 @@ export async function GET() {
     email: users.email,
     displayName: users.displayName,
     role: users.role,
+    mfaEnabled: users.mfaEnabled,
     createdAt: users.createdAt,
   }).from(users).all();
 

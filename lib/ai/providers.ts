@@ -55,6 +55,10 @@ function getEndpoint(provider: string): string {
 const modelsCache = new Map<string, { models: string[]; expires: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
+const FALLBACK_MODELS: Record<string, string[]> = {
+  deepseek: ["deepseek-v4-pro", "deepseek-v4-flash"],
+};
+
 export async function fetchModels(providerName: string): Promise<string[]> {
   getProviderConfig(providerName);
 
@@ -76,6 +80,8 @@ export async function fetchModels(providerName: string): Promise<string[]> {
     modelsCache.set(providerName, { models, expires: Date.now() + CACHE_TTL });
     return models;
   } catch {
+    const fallback = FALLBACK_MODELS[providerName];
+    if (fallback) return fallback;
     const configModel = resolveModel(providerName);
     return configModel ? [configModel] : [];
   }

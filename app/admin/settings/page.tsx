@@ -10,7 +10,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, AlertTriangle, Trash2 } from "lucide-react";
+import { Save, AlertTriangle, Trash2, Download, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/lib/auth/client";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
@@ -30,6 +30,8 @@ export default function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState("");
   const [hasDemo, setHasDemo] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +82,47 @@ export default function SettingsPage() {
       setMessage("Error saving");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await authFetch("/api/v1/export");
+      if (!res.ok) {
+        setImportMessage("Export failed");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bifrost-export-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setImportMessage("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await authFetch("/api/v1/import", {
+        method: "POST",
+        body: formData,
+      });
+      const body = await res.json();
+      setImportMessage(body.data?.message ?? body.error?.message ?? "Import failed");
+      router.refresh();
+    } catch {
+      setImportMessage("Import failed");
     }
   }
 
@@ -159,6 +202,22 @@ export default function SettingsPage() {
                 value={settings["site.footer_text"] ?? ""}
                 onChange={setValue("site.footer_text")}
                 placeholder="Powered by Bifröst"
+              />
+            </Field>
+            <Field label="Site URL" helper="Used for RSS, sitemap, and canonical URLs.">
+              <Input
+                value={settings["site.url"] ?? ""}
+                onChange={setValue("site.url")}
+                placeholder="https://example.com"
+                className="font-mono"
+              />
+            </Field>
+            <Field label="Language" helper="HTML lang attribute and RSS language.">
+              <Input
+                value={settings["site.language"] ?? "en"}
+                onChange={setValue("site.language")}
+                placeholder="en"
+                className="font-mono w-24"
               />
             </Field>
           </div>
@@ -300,6 +359,59 @@ export default function SettingsPage() {
                <span>Show reading time</span>
              </label>
            </div>
+        </Card>
+
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Analytics</div>
+          <Field label="Umami Website ID" helper="Optional. Leave blank to disable Umami tracking.">
+            <Input
+              value={settings["analytics.umami_website_id"] ?? ""}
+              onChange={setValue("analytics.umami_website_id")}
+              placeholder="a1b2c3d4-e5f6-..."
+              className="font-mono"
+            />
+          </Field>
+          <Field label="Umami Script URL" helper="Defaults to cloud.umami.is if left blank.">
+            <Input
+              value={settings["analytics.umami_script_url"] ?? ""}
+              onChange={setValue("analytics.umami_script_url")}
+              placeholder="https://cloud.umami.is/script.js"
+              className="font-mono"
+            />
+          </Field>
+          <Field label="Umami Domains" helper="Comma-separated. Optional — limits tracking to these domains.">
+            <Input
+              value={settings["analytics.umami_domains"] ?? ""}
+              onChange={setValue("analytics.umami_domains")}
+              placeholder="example.com,blog.example.com"
+              className="font-mono"
+            />
+          </Field>
+        </Card>
+
+        <Card padding="md">
+          <div className="mb-3 font-mono text-xs uppercase tracking-wider text-text-3">Export / Import</div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="ghost" onClick={handleExport} disabled={exporting}>
+              <Download size={14} />
+              <span>{exporting ? "Preparing…" : "Export ZIP"}</span>
+            </Button>
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-border-strong hover:text-text-1">
+              <Upload size={14} />
+              <span>Import ZIP</span>
+              <input
+                type="file"
+                accept=".zip"
+                onChange={handleImport}
+                className="hidden"
+              />
+            </label>
+            {importMessage && (
+              <span className={`font-mono text-xs ${importMessage.startsWith("Imported") ? "text-success" : "text-danger"}`}>
+                {importMessage}
+              </span>
+            )}
+          </div>
         </Card>
 
         <div className="flex items-center gap-4">

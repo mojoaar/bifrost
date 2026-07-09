@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "1.19.0",
+  "version": "1.19.1",
   "license": "AGPL-3.0",
   "private": true,
   "scripts": {
@@ -31,6 +31,9 @@
     "@fontsource/roboto-mono": "^5.2.9",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@shikijs/rehype": "^4.3.1",
+    "@types/archiver": "^8.0.0",
+    "@types/unzipper": "^0.10.11",
+    "archiver": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.11.1",
     "chokidar": "^5.0.0",
@@ -51,6 +54,7 @@
     "remark-rehype": "^11.1.2",
     "shiki": "^4.3.1",
     "swagger-ui-dist": "^5.32.8",
+    "unzipper": "^0.12.5",
     "uuid": "^14.0.1",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"

@@ -32,6 +32,7 @@ export function isUsingDevSecrets(): boolean {
 
 const ACCESS_EXPIRES = "1h";
 const REFRESH_EXPIRES = "7d";
+const MFA_EXPIRES = "5m";
 
 export function createAccessToken(payload: TokenPayload): Promise<string> {
   return new SignJWT({ sub: payload.sub, role: payload.role })
@@ -66,6 +67,27 @@ export async function verifyRefreshToken(
 ): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, REFRESH_SECRET);
+    if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+      return null;
+    }
+    return { sub: payload.sub, role: payload.role };
+  } catch {
+    return null;
+  }
+}
+
+export function createMfaToken(payload: TokenPayload): Promise<string> {
+  return new SignJWT({ sub: payload.sub, role: payload.role })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(MFA_EXPIRES)
+    .sign(ACCESS_SECRET);
+}
+
+export async function verifyMfaToken(
+  token: string
+): Promise<TokenPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, ACCESS_SECRET);
     if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
       return null;
     }

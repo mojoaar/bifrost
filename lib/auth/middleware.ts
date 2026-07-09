@@ -38,6 +38,10 @@ const WRITE_API_PATTERNS = [
   /^\/api\/v1\/api-keys/,
   /^\/api\/v1\/admin\//,
   /^\/api\/v1\/themes\/files/,
+  /^\/api\/v1\/import/,
+  /^\/api\/v1\/profile\/mfa/,
+  /^\/api\/v1\/auth\/mfa/,
+  /^\/api\/v1\/users\/.*\/mfa/,
   /^\/api\/v1\/post-templates/,
 ];
 

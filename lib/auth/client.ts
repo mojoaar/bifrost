@@ -43,11 +43,38 @@ export async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
+const REFRESH_BUFFER = 5 * 60 * 1000;
+
+function parseExpiry(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    const payload = parts[1];
+    if (!payload) return null;
+    const decoded = JSON.parse(atob(payload));
+    return typeof decoded.exp === "number" ? decoded.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function ensureValidToken(): Promise<string | null> {
+  const token = localStorage.getItem("bifrost_token");
+
+  if (token) {
+    const exp = parseExpiry(token);
+    if (exp && Date.now() < exp * 1000 - REFRESH_BUFFER) {
+      return token;
+    }
+  }
+
+  return refreshAccessToken();
+}
+
 export async function authFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const token = await getAccessToken();
+  let token = await ensureValidToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> | undefined),
   };

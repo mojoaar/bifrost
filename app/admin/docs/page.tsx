@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { authFetch } from "@/lib/auth/client";
 
 const SECTIONS = [
@@ -23,6 +23,8 @@ const SECTIONS = [
   { slug: "git", title: "Git & Versioning" },
   { slug: "plugins", title: "Plugins" },
   { slug: "deployment", title: "Deployment" },
+  { slug: "security", title: "Security & MFA" },
+  { slug: "backup", title: "Backup & Restore" },
 ];
 
 export default function DocsPage() {
@@ -50,13 +52,24 @@ export default function DocsPage() {
     }
   }, []);
 
+  const initialDone = useRef(false);
+
   useEffect(() => {
+    if (initialDone.current) return;
+    initialDone.current = true;
     const hash = window.location.hash.replace("#", "");
     loadDoc(hash || "getting-started");
+
+    function onHashChange() {
+      const slug = window.location.hash.replace("#", "") || "getting-started";
+      loadDoc(slug);
+    }
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, [loadDoc]);
 
   function handleClick(slug: string) {
-    window.location.hash = slug;
+    setActive(slug);
     loadDoc(slug);
   }
 

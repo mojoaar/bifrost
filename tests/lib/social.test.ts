@@ -11,9 +11,10 @@ import { describe, it, expect } from "vitest";
 import { SOCIAL_PLATFORMS, cleanSocialLinks, parseSocialLinks } from "@/lib/social";
 
 describe("social platforms", () => {
-  it("defines the nine expected platforms in order", () => {
+  it("defines the ten expected platforms in order", () => {
     expect(SOCIAL_PLATFORMS.map((p) => p.key)).toEqual([
       "bluesky",
+      "facebook",
       "mastodon",
       "lemmy",
       "reddit",

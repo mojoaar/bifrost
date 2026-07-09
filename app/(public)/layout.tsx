@@ -25,6 +25,9 @@ export default async function PublicLayout({
 
   let contentWidth: string | undefined;
   let themeName = "bifrost-terminal";
+  let umamiId: string | undefined;
+  let umamiScript: string | undefined;
+  let umamiDomains: string | undefined;
 
   try {
     const cwRow = db
@@ -44,6 +47,31 @@ export default async function PublicLayout({
     if (themeRow?.value) {
       themeName = themeRow.value;
     }
+
+    const umamiRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "analytics.umami_website_id"))
+      .get();
+    if (umamiRow?.value) {
+      umamiId = umamiRow.value;
+    }
+
+    const umamiScriptRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "analytics.umami_script_url"))
+      .get();
+    umamiScript = umamiScriptRow?.value ?? "https://cloud.umami.is/script.js";
+
+    const umamiDomainsRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, "analytics.umami_domains"))
+      .get();
+    if (umamiDomainsRow?.value) {
+      umamiDomains = umamiDomainsRow.value;
+    }
   } catch {
     contentWidth = undefined;
   }
@@ -56,9 +84,20 @@ export default async function PublicLayout({
   }
 
   return (
-    <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
-      <PageViewBeacon />
-      {children}
-    </ThemeLayout>
+    <>
+      {umamiId && (
+        <script
+          async
+          defer
+          src={umamiScript}
+          data-website-id={umamiId}
+          {...(umamiDomains ? { "data-domains": umamiDomains } : {})}
+        />
+      )}
+      <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
+        <PageViewBeacon />
+        {children}
+      </ThemeLayout>
+    </>
   );
 }

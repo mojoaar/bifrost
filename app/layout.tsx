@@ -23,6 +23,7 @@ const COLOR_SCHEME_KEY = "appearance.color_scheme";
 const CUSTOM_CSS_KEY = "appearance.custom_css";
 const SITE_TITLE_KEY = "site.title";
 const SITE_DESCRIPTION_KEY = "site.description";
+const SITE_LANG_KEY = "site.language";
 
 const SHOW_DESC_KEY = "appearance.show_desc_in_title";
 
@@ -62,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       type: "website",
-      siteName: "Bifröst",
+      siteName: title,
     },
     twitter: {
       card: "summary",
@@ -97,6 +98,7 @@ export default async function RootLayout({
   let themeMode: "system" | "light" | "dark" = "dark";
   let colorScheme = "default";
   let customCss = "";
+  let siteLang = "en";
 
   try {
     const fontRow = db
@@ -134,6 +136,14 @@ export default async function RootLayout({
     if (cssRow?.value) {
       customCss = cssRow.value;
     }
+    const langRow = db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, SITE_LANG_KEY))
+      .get();
+    if (langRow?.value) {
+      siteLang = langRow.value;
+    }
   } catch {
     fontStack = undefined;
   }
@@ -142,7 +152,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="en"
+      lang={siteLang}
       data-theme={activeTheme}
       data-palette={colorScheme}
       style={fontStack ? ({ "--font-mono": fontStack } as React.CSSProperties) : undefined}

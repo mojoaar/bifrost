@@ -5,6 +5,39 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.1] — 2026-07-08
+
+### Added
+
+- **Per-post SEO** — collapsible SEO panel in post and page editors for meta description, OG title, OG description, and noindex. Fields serialize to YAML frontmatter and drive the public route's `generateMetadata` (title, description, robots, OpenGraph, Twitter card).
+- **Two-factor authentication (TOTP)** — enable 2FA from the profile page with QR-code enrollment and recovery codes. Login returns `requiresMfa` with a short-lived MFA token; admins can reset a user's MFA from the users page. New `users.mfa_enabled/mfa_secret/mfa_recovery` columns (migration `0008`).
+- **Export / Import** — download a full site backup as a ZIP and restore it from Settings.
+- **Umami analytics** — optional website ID, script URL, and domains configured in Settings; script injected into the public layout when set.
+- **Site URL & language settings** — `site.url` and `site.language` fields in Settings; language drives the HTML `lang` attribute.
+- **Dynamic robots** — `app/robots.ts` replaces the static `public/robots.txt`.
+- **Facebook** added to the supported social platforms.
+- **AI Chat panel** — full chat interface replacing the actions dropdown. Toggle "AI Chat" in editor toolbar to chat with LLMs about your post content. Provider selector, streaming, Insert/Replace on responses.
+- **Documentation** — new Security & MFA and Backup & Restore guides, wired into the `/admin/docs` sidebar.
+
+### Changed
+
+- **DeepSeek models** updated — default now `deepseek-v4-pro` with `deepseek-v4-flash` as alternative (removed `deepseek-chat` per provider deprecation); added fallback model list when discovery fails
+- **Slug field** added to post edit page — auto-generates from title, manually editable, sent on save
+- **Back button** styling unified with View/History buttons in both post and page editors
+- **Token refresh** — client proactively refreshes access tokens before expiry
+- **Docs navigation** — supports `hashchange` for deep-linking between sections
+
+### Fixed
+
+- **AI Assistant not showing** — was calling wrong endpoint (`/api/v1/ai/models` instead of `/api/v1/ai/settings`) and missing auth token
+- **Docs page lint** — removed setState-in-effect and window.location mutation
+- **AIChatPanel** — replaced `<a>` with Next.js `<Link>` for /admin/plugins navigation
+
+### Removed
+
+- **Old AIAssistant component** (`lib/editor/AIAssistant.tsx`) — replaced by AIChatPanel
+- **Static robots.txt** (`public/robots.txt`) — replaced by `app/robots.ts`
+
 ## [1.19.0] — 2026-07-08
 
 ### Added
