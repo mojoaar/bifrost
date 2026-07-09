@@ -11,17 +11,9 @@ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { apiSuccess, apiError } from "@/lib/api/response";
-import { verifyAccessToken } from "@/lib/auth/token";
+import { requireAdmin } from "@/lib/auth/require";
 import { getSetting, invalidateSettingsCache, SECRET_PLACEHOLDER } from "@/lib/settings";
 import { loadConfig } from "@/lib/config/loader";
-
-async function requireAdmin(request: NextRequest): Promise<boolean> {
-  const authHeader = request.headers.get("authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!bearerToken) return false;
-  const payload = await verifyAccessToken(bearerToken);
-  return payload?.role === "admin";
-}
 
 function providerNames(): string[] {
   return Object.keys(loadConfig().ai.providers);

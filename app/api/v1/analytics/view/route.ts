@@ -15,8 +15,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const viewSchema = z.object({
-  path: z.string().min(1),
-  referrer: z.string().optional(),
+  path: z.string().min(1).max(2048),
+  referrer: z.string().max(2048).optional(),
 });
 
 export async function POST(request: Request) {

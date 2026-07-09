@@ -13,7 +13,7 @@ import { users } from "@/lib/db/schema/users";
 import { eq } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/api/response";
 import { verifyPassword } from "@/lib/auth/password";
-import { createAccessToken, createRefreshToken, createMfaToken } from "@/lib/auth/token";
+import { createAccessToken, createRefreshToken, createMfaToken, secureCookies } from "@/lib/auth/token";
 import { rateLimit } from "@/lib/rate-limit";
 import { recordAudit, getClientContext } from "@/lib/audit";
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
   response.cookies.set("bifrost_refresh", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,

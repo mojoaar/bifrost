@@ -5,6 +5,18 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.25.0] — 2026-07-09
+
+### Security
+
+- Custom CSS is now sanitized before injection, blocking HTML/script, `javascript:`/`vbscript:` URLs, `expression()`, `-moz-binding`, `behavior:`, and `@import`.
+- Rate-limited MFA verification, token refresh, and password changes to slow brute-force attempts.
+- Added `Content-Security-Policy`, `Strict-Transport-Security`, and `Permissions-Policy` response headers.
+- Consolidated all API auth onto the shared `requireUser`/`requireAdmin` helpers so API-key auth is honored consistently.
+- Settings updates are now schema-validated (key format and value size).
+- Refresh-cookie `secure` flag is controlled by `BIFROST_SECURE_COOKIES` instead of `NODE_ENV`.
+- Uploaded media filenames are sanitized; analytics path/referrer lengths are capped.
+
 ## [1.24.0] — 2026-07-09
 
 ### Security

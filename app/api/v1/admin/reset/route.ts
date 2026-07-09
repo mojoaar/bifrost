@@ -15,27 +15,11 @@ import { posts } from "@/lib/db/schema/posts";
 import { postTags } from "@/lib/db/schema/post-tags";
 import { pages } from "@/lib/db/schema/pages";
 import { apiSuccess, apiError } from "@/lib/api/response";
-import { verifyAccessToken } from "@/lib/auth/token";
+import { requireAdmin } from "@/lib/auth/require";
 import { stopWatcher, startWatcher } from "@/lib/content/watcher";
 import { SEED_SLUGS, SEED_PAGE_SLUGS } from "@/lib/seed";
 import { postsDir, pagesDir } from "@/lib/paths";
 import { recordAudit, getClientContext } from "@/lib/audit";
-
-async function verifyAdmin(request: NextRequest): Promise<{ sub: string; role: string } | { error: string; status: number }> {
-  const authHeader = request.headers.get("authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!bearerToken) {
-    return { error: "Authentication required", status: 401 };
-  }
-  const payload = await verifyAccessToken(bearerToken);
-  if (!payload) {
-    return { error: "Invalid or expired token", status: 401 };
-  }
-  if (payload.role !== "admin") {
-    return { error: "Admin role required", status: 403 };
-  }
-  return payload;
-}
 
 async function rmDir(dir: string): Promise<void> {
   const { rm } = await import("fs/promises");
@@ -63,9 +47,9 @@ function seedPageSlugs(): string[] {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await verifyAdmin(request);
-  if ("error" in auth) {
-    return apiError(auth.error, auth.status);
+  const auth = await requireAdmin(request);
+  if (!auth) {
+    return apiError("Unauthorized", 401);
   }
 
   try {
@@ -92,7 +76,7 @@ export async function POST(request: NextRequest) {
     recordAudit({
       action: "admin.reset",
       status: "success",
-      ...getClientContext(request, { userId: auth.sub, role: auth.role }),
+      ...getClientContext(request, { userId: auth.userId, role: auth.role }),
       metadata: { removed: slugs.length + pageSlugs.length },
     });
 
@@ -103,9 +87,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await verifyAdmin(request);
-  if ("error" in auth) {
-    return apiError(auth.error, auth.status);
+  const auth = await requireAdmin(request);
+  if (!auth) {
+    return apiError("Unauthorized", 401);
   }
   return apiSuccess({ demoCount: seedPostSlugs().length + seedPageSlugs().length });
 }

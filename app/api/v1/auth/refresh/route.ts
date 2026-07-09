@@ -12,8 +12,12 @@ import { apiSuccess, apiError } from "@/lib/api/response";
 import { createAccessToken, verifyRefreshToken } from "@/lib/auth/token";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, "auth:refresh", 10, 60000);
+  if (limited) return limited;
+
   if (!validateCsrf(request)) {
     return apiError("Invalid request origin", 403);
   }

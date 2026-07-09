@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
 import { eq, inArray } from "drizzle-orm";
 import { monoFontStack } from "@/lib/fonts/registry";
+import { sanitizeCustomCss } from "@/lib/sanitize-css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 import "@/themes/bifrost-terminal/styles/palettes.css";
@@ -153,7 +154,7 @@ export default async function RootLayout({
       .where(eq(settings.key, CUSTOM_CSS_KEY))
       .get();
     if (cssRow?.value) {
-      customCss = cssRow.value;
+      customCss = sanitizeCustomCss(cssRow.value);
     }
     const langRow = db
       .select()

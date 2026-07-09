@@ -134,15 +134,15 @@ MEDIUM / LOW
 - [x] Bonus: fixed `createExportZip` for archiver v8 (class API; the factory call threw)
 - [x] Verify, bump 1.24.0, CHANGELOG (Security + Fixed), commit/tag/push
 
-### Phase 2 — Security hardening (v1.25.0)
+### Phase 2 — Security hardening (v1.25.0) — DONE
 
-- [ ] H4: sanitize custom CSS
-- [ ] H5: rate-limit MFA verify / refresh / password change
-- [ ] H6: add CSP / HSTS / Permissions-Policy headers
-- [ ] Consolidate duplicated auth helpers onto `lib/auth/require.ts`
-- [ ] Settings input validation (zod)
-- [ ] Cookie `secure` via explicit env, not `NODE_ENV`
-- [ ] Sanitize media filename; cap analytics path length
+- [x] H4: sanitize custom CSS
+- [x] H5: rate-limit MFA verify / refresh / password change
+- [x] H6: add CSP / HSTS / Permissions-Policy headers
+- [x] Consolidate duplicated auth helpers onto `lib/auth/require.ts`
+- [x] Settings input validation (zod)
+- [x] Cookie `secure` via explicit env, not `NODE_ENV`
+- [x] Sanitize media filename; cap analytics path length
 
 ### Phase 3 — Test coverage + quality (v1.26.0)
 

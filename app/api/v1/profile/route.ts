@@ -12,17 +12,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema/users";
 import { apiSuccess, apiError } from "@/lib/api/response";
-import { verifyAccessToken } from "@/lib/auth/token";
+import { requireUser } from "@/lib/auth/require";
 import { hashPassword } from "@/lib/auth/password";
 import { cleanSocialLinks, parseSocialLinks } from "@/lib/social";
-
-async function currentUserId(request: NextRequest): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!bearerToken) return null;
-  const payload = await verifyAccessToken(bearerToken);
-  return payload?.sub ?? null;
-}
+import { rateLimit } from "@/lib/rate-limit";
 
 const PROFILE_COLUMNS = {
   id: users.id,
@@ -37,8 +30,9 @@ const PROFILE_COLUMNS = {
 };
 
 export async function GET(request: NextRequest) {
-  const userId = await currentUserId(request);
-  if (!userId) return apiError("Invalid or expired token", 401);
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Invalid or expired token", 401);
+  const userId = auth.userId;
 
   const user = db.select(PROFILE_COLUMNS).from(users).where(eq(users.id, userId)).get();
   if (!user) return apiError("User not found", 404);
@@ -47,8 +41,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const userId = await currentUserId(request);
-  if (!userId) return apiError("Invalid or expired token", 401);
+  const limited = rateLimit(request, "profile:update", 10, 60000);
+  if (limited) return limited;
+
+  const auth = await requireUser(request);
+  if (!auth) return apiError("Invalid or expired token", 401);
+  const userId = auth.userId;
 
   const existing = db.select({ id: users.id }).from(users).where(eq(users.id, userId)).get();
   if (!existing) return apiError("User not found", 404);

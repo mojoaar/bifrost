@@ -18,6 +18,12 @@ const REFRESH_SECRET = new TextEncoder().encode(
   process.env.BIFROST_JWT_REFRESH_SECRET ?? ""
 );
 
+export function secureCookies(): boolean {
+  const explicit = process.env.BIFROST_SECURE_COOKIES;
+  if (explicit !== undefined) return explicit !== "false";
+  return process.env.NODE_ENV !== "development";
+}
+
 export function assertJwtSecretsConfigured(): void {
   const missing: string[] = [];
   if (!process.env.BIFROST_JWT_SECRET) missing.push("BIFROST_JWT_SECRET");

@@ -32,6 +32,16 @@ const ALLOWED_MIME_PREFIXES = [
   "text/",
 ];
 
+function sanitizeFilename(name: string): string {
+  const base = path.basename(name).replace(/\\/g, "");
+  const cleaned = base
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[.-]+/, "")
+    .slice(0, 200);
+  return cleaned || "file";
+}
+
 export async function saveMediaFile(file: File): Promise<MediaRecord> {
   const mimeType = file.type;
   const allowed = ALLOWED_MIME_PREFIXES.some((prefix) =>
@@ -46,12 +56,13 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
     throw new Error("File exceeds 50MB limit");
   }
 
+  const filename = sanitizeFilename(file.name);
   const id = generateId();
   const dir = path.join(mediaDir(), id);
   await fs.mkdir(dir, { recursive: true });
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const filePath = path.join(dir, file.name);
+  const filePath = path.join(dir, filename);
   await fs.writeFile(filePath, buffer);
 
   const now = new Date().toISOString();
@@ -60,7 +71,7 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
   db.insert(media)
     .values({
       id,
-      filename: file.name,
+      filename,
       path: relativePath,
       mimeType,
       sizeBytes: file.size,
@@ -70,7 +81,7 @@ export async function saveMediaFile(file: File): Promise<MediaRecord> {
 
   return {
     id,
-    filename: file.name,
+    filename,
     path: relativePath,
     mimeType,
     sizeBytes: file.size,

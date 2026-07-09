@@ -15,8 +15,12 @@ import { eq } from "drizzle-orm";
 import { createAccessToken, createRefreshToken, verifyMfaToken } from "@/lib/auth/token";
 import { verifyMfaCode, verifyRecoveryCode } from "@/lib/auth/mfa";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, "auth:mfa", 5, 60000);
+  if (limited) return limited;
+
   let body: { mfaToken?: string; code?: string };
   try {
     body = await request.json();

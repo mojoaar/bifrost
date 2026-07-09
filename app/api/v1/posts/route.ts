@@ -17,21 +17,12 @@ import { writePostToFilesystem } from "@/lib/content/sync";
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { resolveAuthorId } from "@/lib/content/authors";
 import { slugExists } from "@/lib/content/slug";
-import { requireUser } from "@/lib/auth/require";
-import { verifyAccessToken } from "@/lib/auth/token";
+import { requireUser, requireAdmin } from "@/lib/auth/require";
 import { recordAudit, getClientContext } from "@/lib/audit";
 import { eq, sql } from "drizzle-orm";
 
-async function isAdmin(request: NextRequest): Promise<boolean> {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!token) return false;
-  const payload = await verifyAccessToken(token);
-  return payload?.role === "admin";
-}
-
 export async function GET(request: NextRequest) {
-  const admin = await isAdmin(request);
+  const admin = (await requireAdmin(request)) !== null;
   const { searchParams } = request.nextUrl;
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const limit = Math.min(
