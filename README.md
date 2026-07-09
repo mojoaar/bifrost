@@ -156,6 +156,8 @@ Full guides live in [`docs/bifrost/`](docs/bifrost/) and inside the admin at `/a
 - [Plugins](docs/bifrost/plugins.md)
 - [Settings](docs/bifrost/settings.md)
 - [Deployment](docs/bifrost/deployment.md)
+- [License](docs/bifrost/license.md)
+- [Credits & Thanks](docs/bifrost/credits.md)
 
 See the [design spec](docs/superpowers/specs/2026-07-06-bifrost-design.md) for architecture and the [changelog](CHANGELOG.md) for release history.
 
