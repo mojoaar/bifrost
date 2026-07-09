@@ -11,12 +11,12 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, ExternalLink, History } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Save, ExternalLink, History, Copy, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
 import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
-import AIAssistant from "@/lib/editor/AIAssistant";
-import { mergeFrontmatter } from "@/lib/editor/utils";
+import { mergeFrontmatter, generateSlug, buildFrontmatter } from "@/lib/editor/utils";
 import AdminEditorShell from "@/components/AdminEditorShell";
 import { TagInput, type TagItem } from "@/components/TagInput";
 import ImagePicker from "@/components/ImagePicker";
@@ -40,6 +40,7 @@ export default function EditPostPage() {
   const params = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<"draft" | "published" | "scheduled">("draft");
   const [scheduledAt, setScheduledAt] = useState("");
@@ -50,7 +51,20 @@ export default function EditPostPage() {
   const [initialStatus, setInitialStatus] = useState<"draft" | "published" | "scheduled">("draft");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [gitEnabled, setGitEnabled] = useState(false);
+  const [seoMetaDescription, setSeoMetaDescription] = useState("");
+  const [seoOgTitle, setSeoOgTitle] = useState("");
+  const [seoOgDescription, setSeoOgDescription] = useState("");
+  const [seoNoindex, setSeoNoindex] = useState(false);
+  const [seoCollapsed, setSeoCollapsed] = useState(true);
   const editorViewRef = useRef<EditorView | null>(null);
+
+  const seo = useCallback(() => ({
+    metaDescription: seoMetaDescription || undefined,
+    ogTitle: seoOgTitle || undefined,
+    ogDescription: seoOgDescription || undefined,
+    noindex: seoNoindex || undefined,
+  }), [seoMetaDescription, seoOgTitle, seoOgDescription, seoNoindex]);
 
   const getEditorView = useCallback(() => editorViewRef.current, []);
   const getSelection = useCallback(() => {
@@ -73,18 +87,29 @@ export default function EditPostPage() {
         if (cancelled) return;
         const p = body.data as Post;
         setPost(p);
-        setTitle(p.title);
-        setContent(p.contentMd);
+          setTitle(p.title);
+          setSlug(p.slug);
+          setContent(p.contentMd);
         setStatus(p.status);
         setScheduledAt(p.scheduledAt ? p.scheduledAt.slice(0, 16) : "");
         setTags(p.tags ?? []);
         try {
           const fm = JSON.parse(p.frontmatter ?? "{}");
           setFeaturedImage((fm.featuredImage as string) ?? "");
+          setSeoMetaDescription((fm.metaDescription as string) ?? "");
+          setSeoOgTitle((fm.ogTitle as string) ?? "");
+          setSeoOgDescription((fm.ogDescription as string) ?? "");
+          setSeoNoindex(fm.noindex === true);
         } catch { /* noop */ }
         setInitialTitle(p.title);
         setInitialContent(p.contentMd);
         setInitialStatus(p.status);
+
+        try {
+          const sRes = await authFetch("/api/v1/settings");
+          const sBody = await sRes.json();
+          setGitEnabled(sBody.data?.["git.enabled"] === "true");
+        } catch { /* ignore */ }
       } catch {
         if (!cancelled) setError("Network error");
       }
@@ -92,6 +117,16 @@ export default function EditPostPage() {
     load();
     return () => { cancelled = true; };
   }, [params.slug]);
+
+  const lastFmRef = useRef("");
+  useEffect(() => {
+    if (!title) return;
+    const tagNames = tags.map((t) => t.name);
+    const newFm = buildFrontmatter(title, "post", tagNames);
+    if (newFm === lastFmRef.current) return;
+    lastFmRef.current = newFm;
+    setContent((prev) => mergeFrontmatter(prev, title, "post", tagNames));
+  }, [title, tags]);
 
   async function handleSave() {
     if (!title) {
@@ -104,7 +139,7 @@ export default function EditPostPage() {
       const res = await authFetch(`/api/v1/posts/${params.slug}`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name)), status, scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined, frontmatter: featuredImage ? { featuredImage } : {}, tagIds: tags.map((t) => t.id) }),
+        body: JSON.stringify({ title, slug, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name), seo()), status, scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined, frontmatter: featuredImage ? { featuredImage } : {}, tagIds: tags.map((t) => t.id) }),
       });
       if (!res.ok) {
         const body = await res.json();
@@ -116,6 +151,21 @@ export default function EditPostPage() {
       setError("Network error");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${title || params.slug}" permanently?`)) return;
+    try {
+      const res = await authFetch(`/api/v1/posts/${params.slug}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/admin/posts");
+      } else {
+        const body = await res.json();
+        setError(body.error?.message ?? "Failed to delete");
+      }
+    } catch {
+      setError("Network error");
     }
   }
 
@@ -141,10 +191,13 @@ export default function EditPostPage() {
       getSelection={getSelection}
     >
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/posts")}>
+        <Link
+          href="/admin/posts"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+        >
           <ArrowLeft size={14} />
           <span>back</span>
-        </Button>
+        </Link>
         <a
           href={`/${post.slug}`}
           target="_blank"
@@ -154,17 +207,38 @@ export default function EditPostPage() {
           <ExternalLink size={14} />
           <span>{status === "draft" ? "Preview" : "View"}</span>
         </a>
-        <a
-          href={`/admin/git?slug=${encodeURIComponent(post.slug)}`}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
-        >
-          <History size={14} />
-          <span>History</span>
-        </a>
+        {gitEnabled && (
+          <a
+            href={`/admin/git?slug=${encodeURIComponent(post.slug)}`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+          >
+            <History size={14} />
+            <span>History</span>
+          </a>
+        )}
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_10rem_auto]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_10rem_auto]">
         <Field label="Title">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setSlug(generateSlug(e.target.value));
+            }}
+          />
+        </Field>
+        <Field label="Slug">
+          <div className="relative">
+            <Input value={slug} onChange={(e) => setSlug(e.target.value)} className="font-mono pr-8" />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(slug)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-3 hover:text-text-1"
+              title="Copy slug"
+            >
+              <Copy size={14} />
+            </button>
+          </div>
         </Field>
         <Field label="Status">
           <Select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published" | "scheduled")}>
@@ -187,16 +261,47 @@ export default function EditPostPage() {
             <Save size={14} />
             <span>{saving ? "Saving..." : "Save"}</span>
           </Button>
-          <AIAssistant
-            content={content}
-            onInsert={(text) => setContent((prev) => prev + text)}
-            onReplace={(text) => setContent(text)}
-            className="h-[2.375rem]"
-          />
+          <Button variant="ghost" size="md" onClick={handleDelete} className="h-[2.375rem] text-danger hover:text-danger">
+            <Trash2 size={14} />
+          </Button>
         </div>
       </div>
       <TagInput selected={tags} onChange={setTags} />
       <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
+      <div className="rounded-md border border-border bg-bg-1">
+        <button
+          type="button"
+          onClick={() => setSeoCollapsed((v) => !v)}
+          className="flex w-full items-center gap-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-text-3 hover:text-text-1"
+        >
+          {seoCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+          <span>SEO</span>
+        </button>
+        {!seoCollapsed && (
+          <div className="grid grid-cols-1 gap-3 border-t border-border px-4 py-3 md:grid-cols-2">
+            <Field label="Meta Description">
+              <Input value={seoMetaDescription} onChange={(e) => setSeoMetaDescription(e.target.value)} placeholder="Custom meta description" className="font-mono text-xs" />
+            </Field>
+            <Field label="OG Title">
+              <Input value={seoOgTitle} onChange={(e) => setSeoOgTitle(e.target.value)} placeholder="Custom Open Graph title" className="font-mono text-xs" />
+            </Field>
+            <Field label="OG Description">
+              <Input value={seoOgDescription} onChange={(e) => setSeoOgDescription(e.target.value)} placeholder="Custom Open Graph description" className="font-mono text-xs" />
+            </Field>
+            <div className="flex items-end">
+              <label className="flex cursor-pointer items-center gap-2 font-mono text-sm text-text-2">
+                <input
+                  type="checkbox"
+                  checked={seoNoindex}
+                  onChange={(e) => setSeoNoindex(e.target.checked)}
+                  className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30"
+                />
+                <span>noindex</span>
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
       {error && (
         <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
       )}

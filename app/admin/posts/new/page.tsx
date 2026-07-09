@@ -11,13 +11,11 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Copy } from "lucide-react";
+import { ArrowLeft, Save, Copy, ChevronRight, ChevronDown } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
-import { generateSlug, mergeFrontmatter } from "@/lib/editor/utils";
+import { generateSlug, mergeFrontmatter, buildFrontmatter } from "@/lib/editor/utils";
 import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
 import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
-
-import AIAssistant from "@/lib/editor/AIAssistant";
 import AdminEditorShell from "@/components/AdminEditorShell";
 import { TagInput, type TagItem } from "@/components/TagInput";
 import ImagePicker from "@/components/ImagePicker";
@@ -34,6 +32,11 @@ export default function NewPostPage() {
   const [scheduledAt, setScheduledAt] = useState("");
   const [tags, setTags] = useState<TagItem[]>([]);
   const [featuredImage, setFeaturedImage] = useState("");
+  const [seoMetaDescription, setSeoMetaDescription] = useState("");
+  const [seoOgTitle, setSeoOgTitle] = useState("");
+  const [seoOgDescription, setSeoOgDescription] = useState("");
+  const [seoNoindex, setSeoNoindex] = useState(false);
+  const [seoOpen, setSeoOpen] = useState(false);
   const [template, setTemplate] = useState("");
   const [templates, setTemplates] = useState<{ name: string; title: string; content: string }[]>([]);
   const [saving, setSaving] = useState(false);
@@ -59,6 +62,24 @@ export default function NewPostPage() {
     })();
   }, []);
 
+  const lastFmRef = useRef("");
+  const seo = useCallback(() => {
+    return {
+      metaDescription: seoMetaDescription || undefined,
+      ogTitle: seoOgTitle || undefined,
+      ogDescription: seoOgDescription || undefined,
+      noindex: seoNoindex || undefined,
+    };
+  }, [seoMetaDescription, seoOgTitle, seoOgDescription, seoNoindex]);
+  useEffect(() => {
+    if (!title) return;
+    const tagNames = tags.map((t) => t.name);
+    const newFm = buildFrontmatter(title, "post", tagNames);
+    if (newFm === lastFmRef.current) return;
+    lastFmRef.current = newFm;
+    setContent((prev) => mergeFrontmatter(prev, title, "post", tagNames, seo()));
+  }, [title, tags, seo]);
+
   async function handleSave() {
     if (!title || !slug) {
       setError("Title and slug are required");
@@ -71,7 +92,7 @@ export default function NewPostPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          title, slug, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name)), status,
+          title, slug, content: mergeFrontmatter(content, title, "post", tags.map((t) => t.name), seo()), status,
           scheduledAt: status === "scheduled" ? (scheduledAt || undefined) : undefined,
           frontmatter: featuredImage ? { featuredImage } : {},
           authorId: "00000000-0000-0000-0000-000000000000",
@@ -134,6 +155,29 @@ export default function NewPostPage() {
         <TagInput selected={tags} onChange={setTags} />
         <Field label="Featured">
           <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
+          <div className="border-t border-border pt-3">
+            <button type="button" onClick={() => setSeoOpen(!seoOpen)} className="flex items-center gap-1 font-mono text-xs text-text-3 hover:text-text-1">
+              {seoOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              SEO
+            </button>
+            {seoOpen && (
+              <div className="mt-3 space-y-3">
+                <Field label="Meta Description">
+                  <Input value={seoMetaDescription} onChange={(e) => setSeoMetaDescription(e.target.value)} placeholder="Description for search engines" className="font-mono" />
+                </Field>
+                <Field label="OG Title">
+                  <Input value={seoOgTitle} onChange={(e) => setSeoOgTitle(e.target.value)} placeholder="Override Open Graph title" className="font-mono" />
+                </Field>
+                <Field label="OG Description">
+                  <Input value={seoOgDescription} onChange={(e) => setSeoOgDescription(e.target.value)} placeholder="Override Open Graph description" className="font-mono" />
+                </Field>
+                <label className="flex cursor-pointer items-center gap-2 font-mono text-sm text-text-2">
+                  <input type="checkbox" checked={seoNoindex} onChange={(e) => setSeoNoindex(e.target.checked)} className="size-4 rounded border-border bg-bg-1 text-accent" />
+                  <span>Hide from search engines (noindex)</span>
+                </label>
+              </div>
+            )}
+          </div>
         </Field>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_16rem_10rem_auto]">
@@ -186,12 +230,6 @@ export default function NewPostPage() {
             <Save size={14} />
             <span>{saving ? "Saving..." : "Create"}</span>
           </Button>
-          <AIAssistant
-            content={content}
-            onInsert={(text) => setContent((prev) => prev + text)}
-            onReplace={(text) => setContent(text)}
-            className="h-[2.375rem]"
-          />
         </div>
       </div>
       {error && (

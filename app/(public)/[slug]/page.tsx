@@ -53,21 +53,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
     const fm = JSON.parse(pageRow.frontmatter) as Record<string, unknown>;
     const ogImage = fm.featuredImage ? [fm.featuredImage as string] : undefined;
+    const hasImage = !!fm.featuredImage;
     return {
-      title: pageRow.title,
-      description: pageRow.excerpt ?? undefined,
+      title: fm.ogTitle as string ?? pageRow.title,
+      description: fm.metaDescription as string ?? pageRow.excerpt ?? undefined,
+      robots: fm.noindex ? { index: false, follow: false } : undefined,
       openGraph: {
-        title: pageRow.title,
-        description: pageRow.excerpt ?? undefined,
-        type: "article",
+        title: fm.ogTitle as string ?? pageRow.title,
+        description: fm.ogDescription as string ?? pageRow.excerpt ?? undefined,
+        type: "website",
         images: ogImage,
       },
-      twitter: { card: "summary", title: pageRow.title, description: pageRow.excerpt ?? undefined, images: ogImage },
+      twitter: { card: hasImage ? "summary_large_image" : "summary", title: fm.ogTitle as string ?? pageRow.title, description: fm.ogDescription as string ?? pageRow.excerpt ?? undefined, images: ogImage },
     };
   }
 
   const row = db
-    .select({ title: posts.title, excerpt: posts.excerpt, status: posts.status, frontmatter: posts.frontmatter })
+    .select({ title: posts.title, excerpt: posts.excerpt, status: posts.status, frontmatter: posts.frontmatter, publishedAt: posts.publishedAt, createdAt: posts.createdAt, updatedAt: posts.updatedAt, authorId: posts.authorId })
     .from(posts)
     .where(eq(posts.slug, slug))
     .get();
@@ -80,17 +82,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const postFm = JSON.parse(row.frontmatter) as Record<string, unknown>;
   const postOgImage = postFm.featuredImage ? [postFm.featuredImage as string] : undefined;
+  const postHasImage = !!postFm.featuredImage;
 
   return {
-    title: row.title,
-    description: row.excerpt ?? undefined,
+    title: postFm.ogTitle as string ?? row.title,
+    description: postFm.metaDescription as string ?? row.excerpt ?? undefined,
+    robots: postFm.noindex ? { index: false, follow: false } : undefined,
     openGraph: {
-      title: row.title,
-      description: row.excerpt ?? undefined,
+      title: postFm.ogTitle as string ?? row.title,
+      description: postFm.ogDescription as string ?? row.excerpt ?? undefined,
       type: "article",
       images: postOgImage,
     },
-    twitter: { card: "summary", title: row.title, description: row.excerpt ?? undefined, images: postOgImage },
+    twitter: { card: postHasImage ? "summary_large_image" : "summary", title: postFm.ogTitle as string ?? row.title, description: postFm.ogDescription as string ?? row.excerpt ?? undefined, images: postOgImage },
   };
 }
 
@@ -103,7 +107,8 @@ export default async function PublicSlugPage({ params }: Props) {
     const isAdmin = await isAdminRequest();
     if (pageRow.status !== "published" && !isAdmin) notFound();
 
-    const theme = await loadTheme("bifrost-terminal");
+    const themeName = getSetting("theme") ?? "bifrost-terminal";
+    const theme = await loadTheme(themeName);
     const PageComponent = theme.components.page;
 
     const showFeatured = getSetting("appearance.show_featured_images") !== "false";
@@ -149,7 +154,8 @@ export default async function PublicSlugPage({ params }: Props) {
 
   if (row.status !== "published" && !isAdmin) notFound();
 
-  const theme = await loadTheme("bifrost-terminal");
+  const themeName = getSetting("theme") ?? "bifrost-terminal";
+  const theme = await loadTheme(themeName);
   const PostComponent = theme.components.post;
 
   const showAuthor = getSetting("appearance.show_author") !== "false";

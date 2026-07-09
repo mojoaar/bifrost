@@ -11,12 +11,11 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Copy } from "lucide-react";
+import { ArrowLeft, Save, Copy, ChevronRight, ChevronDown } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import { generateSlug, mergeFrontmatter } from "@/lib/editor/utils";
 import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
 import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
-import AIAssistant from "@/lib/editor/AIAssistant";
 import AdminEditorShell from "@/components/AdminEditorShell";
 import type { EditorView } from "@codemirror/view";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
@@ -34,7 +33,19 @@ export default function NewPagePage() {
   const [featuredImage, setFeaturedImage] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [seoMetaDescription, setSeoMetaDescription] = useState("");
+  const [seoOgTitle, setSeoOgTitle] = useState("");
+  const [seoOgDescription, setSeoOgDescription] = useState("");
+  const [seoNoindex, setSeoNoindex] = useState(false);
+  const [seoOpen, setSeoOpen] = useState(false);
   const editorViewRef = useRef<EditorView | null>(null);
+
+  const seo = useCallback(() => ({
+    metaDescription: seoMetaDescription || undefined,
+    ogTitle: seoOgTitle || undefined,
+    ogDescription: seoOgDescription || undefined,
+    noindex: seoNoindex || undefined,
+  }), [seoMetaDescription, seoOgTitle, seoOgDescription, seoNoindex]);
   const lastTitleRef = useRef("");
 
   const getEditorView = useCallback(() => editorViewRef.current, []);
@@ -58,7 +69,7 @@ export default function NewPagePage() {
         body: JSON.stringify({
           title, slug, content, status,
           showInNav, navOrder,
-          frontmatter: featuredImage ? { featuredImage } : {},
+          frontmatter: featuredImage ? { featuredImage, ...seo() } : seo(),
         }),
       });
       if (!res.ok) {
@@ -140,12 +151,6 @@ export default function NewPagePage() {
             <Save size={14} />
             <span>{saving ? "Saving..." : "Create"}</span>
           </Button>
-          <AIAssistant
-            content={content}
-            onInsert={(text) => setContent((prev) => prev + text)}
-            onReplace={(text) => setContent(text)}
-            className="h-[2.375rem]"
-          />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-6 rounded-md border border-border bg-bg-1 px-4 py-2.5">
@@ -170,6 +175,33 @@ export default function NewPagePage() {
         </div>
       </div>
       <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
+      <div className="rounded-md border border-border bg-bg-1">
+        <button
+          type="button"
+          onClick={() => setSeoOpen(!seoOpen)}
+          className="flex w-full items-center gap-2 px-4 py-2.5 font-mono text-xs text-text-2 hover:text-text-1"
+        >
+          {seoOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          SEO
+        </button>
+        {seoOpen && (
+          <div className="border-t border-border px-4 pb-4 pt-3 space-y-3">
+            <Field label="Meta description (meta tags)">
+              <Input value={seoMetaDescription} onChange={(e) => setSeoMetaDescription(e.target.value)} className="font-mono" />
+            </Field>
+            <Field label="OG title (social preview)">
+              <Input value={seoOgTitle} onChange={(e) => setSeoOgTitle(e.target.value)} className="font-mono" />
+            </Field>
+            <Field label="OG description (social preview)">
+              <Input value={seoOgDescription} onChange={(e) => setSeoOgDescription(e.target.value)} className="font-mono" />
+            </Field>
+            <label className="flex cursor-pointer items-center gap-2 font-mono text-xs text-text-2">
+              <input type="checkbox" checked={seoNoindex} onChange={(e) => setSeoNoindex(e.target.checked)} className="size-4 accent-accent" />
+              <span>noindex (hide from search engines)</span>
+            </label>
+          </div>
+        )}
+      </div>
       {error && (
         <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
       )}
