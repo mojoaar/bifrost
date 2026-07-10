@@ -95,3 +95,19 @@ New posts are created as drafts (`draft: true`). Drafts:
 - Are published by setting `draft: false` and saving.
 
 Use drafts freely for work in progress; they are still versioned in Git so you never lose history.
+
+## Sharing a draft
+
+You can share a private preview of an unpublished post (draft or scheduled) with someone who is not signed in — for example, an external reviewer.
+
+In the post editor, click **Copy preview link** on any non-published post. Bifröst generates a secret token and copies a URL like `https://your-site/my-post?preview=<token>` to your clipboard. Anyone with that link can view the post without logging in.
+
+Preview links:
+
+- Expire automatically after 7 days.
+- Are marked `noindex` so search engines never index the preview.
+- Are cleared automatically when the post is published.
+- Can be revoked at any time with the **Revoke** button, which invalidates the current link immediately.
+
+Generating a new link replaces any previous one for that post.
+

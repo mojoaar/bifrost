@@ -30,6 +30,8 @@ export type AuditAction =
   | "post.create"
   | "post.update"
   | "post.delete"
+  | "post.preview_share"
+  | "post.preview_revoke"
   | "page.create"
   | "page.update"
   | "page.delete"

@@ -12,7 +12,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, ExternalLink, History, Copy, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, ExternalLink, History, Copy, Trash2, ChevronDown, ChevronRight, Link2, LinkIcon } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import { useSaveShortcut } from "@/lib/editor/use-save-shortcut";
 import { useUnsavedChanges } from "@/lib/editor/use-unsaved-changes";
@@ -57,6 +57,7 @@ export default function EditPostPage() {
   const [seoOgDescription, setSeoOgDescription] = useState("");
   const [seoNoindex, setSeoNoindex] = useState(false);
   const [seoCollapsed, setSeoCollapsed] = useState(true);
+  const [previewMessage, setPreviewMessage] = useState("");
   const editorViewRef = useRef<EditorView | null>(null);
 
   const seo = useCallback(() => ({
@@ -169,6 +170,46 @@ export default function EditPostPage() {
     }
   }
 
+  async function handleCopyPreviewLink() {
+    setPreviewMessage("");
+    try {
+      const res = await authFetch(`/api/v1/posts/${params.slug}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "generate_preview" }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setPreviewMessage(body.error?.message ?? "Failed to create preview link");
+        return;
+      }
+      const url = `${window.location.origin}/${post?.slug}?preview=${body.data.previewToken}`;
+      await navigator.clipboard.writeText(url);
+      setPreviewMessage("Preview link copied to clipboard");
+    } catch {
+      setPreviewMessage("Network error");
+    }
+  }
+
+  async function handleRevokePreviewLink() {
+    setPreviewMessage("");
+    try {
+      const res = await authFetch(`/api/v1/posts/${params.slug}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "revoke_preview" }),
+      });
+      if (!res.ok) {
+        const body = await res.json();
+        setPreviewMessage(body.error?.message ?? "Failed to revoke preview link");
+        return;
+      }
+      setPreviewMessage("Preview link revoked");
+    } catch {
+      setPreviewMessage("Network error");
+    }
+  }
+
   useSaveShortcut(handleSave, [saving, title, content, status, post]);
 
   const isDirty = title !== initialTitle || content !== initialContent || status !== initialStatus;
@@ -216,7 +257,30 @@ export default function EditPostPage() {
             <span>History</span>
           </a>
         )}
+        {status !== "published" && (
+          <>
+            <button
+              type="button"
+              onClick={handleCopyPreviewLink}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-accent hover:text-accent"
+            >
+              <Link2 size={14} />
+              <span>Copy preview link</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRevokePreviewLink}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-1 px-3 py-1.5 font-mono text-xs text-text-2 transition hover:border-danger hover:text-danger"
+            >
+              <LinkIcon size={14} />
+              <span>Revoke</span>
+            </button>
+          </>
+        )}
       </div>
+      {previewMessage && (
+        <div className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 font-mono text-xs text-text-2">{previewMessage}</div>
+      )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_10rem_auto]">
         <Field label="Title">
           <Input

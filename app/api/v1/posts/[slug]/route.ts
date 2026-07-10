@@ -23,6 +23,7 @@ import {
 import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { requireUser } from "@/lib/auth/require";
 import { recordAudit, getClientContext } from "@/lib/audit";
+import { generatePreviewToken } from "@/lib/content/preview";
 import { createLogger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
 
@@ -118,6 +119,11 @@ export async function PUT(
     updateData.scheduledAt = null;
   }
 
+  if (update.status === "published") {
+    updateData.previewToken = null;
+    updateData.previewTokenExpiresAt = null;
+  }
+
   db.update(posts).set(updateData).where(eq(posts.slug, slug)).run();
 
   if (update.content !== undefined) {
@@ -154,6 +160,73 @@ export async function PUT(
   });
 
   return apiSuccess(post);
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  const auth = await requireUser(request);
+  if (!auth) {
+    return apiError("Authentication required", 401);
+  }
+
+  const { slug } = await params;
+
+  const existing = db.select().from(posts).where(eq(posts.slug, slug)).get();
+  if (!existing) {
+    return apiError("Post not found", 404);
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return apiError("Invalid JSON body", 400);
+  }
+
+  const action = (body as { action?: string } | null)?.action;
+
+  if (action === "generate_preview") {
+    if (existing.status === "published") {
+      return apiError("Cannot create a preview link for a published post", 400);
+    }
+    const { previewToken, previewTokenExpiresAt } = generatePreviewToken();
+    db.update(posts)
+      .set({ previewToken, previewTokenExpiresAt, updatedAt: nowISO() })
+      .where(eq(posts.slug, slug))
+      .run();
+
+    recordAudit({
+      action: "post.preview_share",
+      status: "success",
+      targetType: "post",
+      targetId: slug,
+      ...getClientContext(request, auth),
+      metadata: { expiresAt: previewTokenExpiresAt },
+    });
+
+    return apiSuccess({ previewToken, previewTokenExpiresAt });
+  }
+
+  if (action === "revoke_preview") {
+    db.update(posts)
+      .set({ previewToken: null, previewTokenExpiresAt: null, updatedAt: nowISO() })
+      .where(eq(posts.slug, slug))
+      .run();
+
+    recordAudit({
+      action: "post.preview_revoke",
+      status: "success",
+      targetType: "post",
+      targetId: slug,
+      ...getClientContext(request, auth),
+    });
+
+    return apiSuccess({ revoked: true });
+  }
+
+  return apiError("Unknown action", 400);
 }
 
 export async function DELETE(

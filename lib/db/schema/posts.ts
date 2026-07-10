@@ -25,6 +25,8 @@ export const posts = sqliteTable("posts", {
     .references(() => users.id),
   publishedAt: text("published_at"),
   scheduledAt: text("scheduled_at"),
+  previewToken: text("preview_token"),
+  previewTokenExpiresAt: text("preview_token_expires_at"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

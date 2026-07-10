@@ -15,6 +15,7 @@ import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 import { getSetting } from "@/lib/settings";
 import { getRelatedPosts } from "@/lib/content/related";
+import { isPreviewTokenValid } from "@/lib/content/preview";
 import { parseSocialLinks } from "@/lib/social";
 import { parseShareNetworks } from "@/lib/sharing";
 import type { PostData, PageData } from "@/lib/themes/types";
@@ -26,6 +27,7 @@ import { REFRESH_COOKIE_NAME } from "@/lib/auth/constants";
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 async function isAdminRequest(): Promise<boolean> {
@@ -40,8 +42,9 @@ async function isAdminRequest(): Promise<boolean> {
   }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const { preview } = await searchParams;
 
   const pageRow = db
     .select({ title: pages.title, excerpt: pages.excerpt, status: pages.status, frontmatter: pages.frontmatter })
@@ -72,14 +75,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const row = db
-    .select({ title: posts.title, excerpt: posts.excerpt, status: posts.status, frontmatter: posts.frontmatter, publishedAt: posts.publishedAt, createdAt: posts.createdAt, updatedAt: posts.updatedAt, authorId: posts.authorId })
+    .select({ title: posts.title, excerpt: posts.excerpt, status: posts.status, frontmatter: posts.frontmatter, publishedAt: posts.publishedAt, createdAt: posts.createdAt, updatedAt: posts.updatedAt, authorId: posts.authorId, previewToken: posts.previewToken, previewTokenExpiresAt: posts.previewTokenExpiresAt })
     .from(posts)
     .where(eq(posts.slug, slug))
     .get();
 
   if (!row) return { title: "Not Found" };
 
-  if (row.status !== "published" && !(await isAdminRequest())) {
+  const previewValid = isPreviewTokenValid(row.previewToken, row.previewTokenExpiresAt, preview);
+
+  if (row.status !== "published" && !previewValid && !(await isAdminRequest())) {
     return { title: "Not Found" };
   }
 
@@ -88,10 +93,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? [postFm.featuredImage as string]
     : [`/og?title=${encodeURIComponent((postFm.ogTitle as string) ?? row.title)}`];
 
+  const forceNoindex = previewValid && row.status !== "published";
+
   return {
     title: postFm.ogTitle as string ?? row.title,
     description: postFm.metaDescription as string ?? row.excerpt ?? undefined,
-    robots: postFm.noindex ? { index: false, follow: false } : undefined,
+    robots: postFm.noindex || forceNoindex ? { index: false, follow: false } : undefined,
     openGraph: {
       title: postFm.ogTitle as string ?? row.title,
       description: postFm.ogDescription as string ?? row.excerpt ?? undefined,
@@ -102,8 +109,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PublicSlugPage({ params }: Props) {
+export default async function PublicSlugPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { preview } = await searchParams;
 
   const pageRow = db.select().from(pages).where(eq(pages.slug, slug)).get();
 
@@ -156,7 +164,9 @@ export default async function PublicSlugPage({ params }: Props) {
 
   const isAdmin = await isAdminRequest();
 
-  if (row.status !== "published" && !isAdmin) notFound();
+  const previewValid = isPreviewTokenValid(row.previewToken, row.previewTokenExpiresAt, preview);
+
+  if (row.status !== "published" && !isAdmin && !previewValid) notFound();
 
   const themeName = getSetting("theme") ?? "bifrost-terminal";
   const theme = await loadTheme(themeName);

@@ -37,6 +37,8 @@ export async function publishDueScheduledPosts(): Promise<number> {
         status: "published",
         publishedAt,
         scheduledAt: null,
+        previewToken: null,
+        previewTokenExpiresAt: null,
         updatedAt: now,
       })
       .where(eq(posts.slug, post.slug))
