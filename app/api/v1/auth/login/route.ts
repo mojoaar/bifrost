@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
     recordAudit({
       action: "auth.login",
       status: "failure",
+      targetType: "user",
+      targetId: email,
       ...getClientContext(request, null, email),
       metadata: { reason: "user_not_found" },
     });
@@ -54,6 +56,8 @@ export async function POST(request: NextRequest) {
     recordAudit({
       action: "auth.login",
       status: "failure",
+      targetType: "user",
+      targetId: user.email,
       ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
       metadata: { reason: "invalid_password" },
     });
@@ -67,6 +71,8 @@ export async function POST(request: NextRequest) {
     recordAudit({
       action: "auth.login",
       status: "success",
+      targetType: "user",
+      targetId: user.email,
       ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
       metadata: { mfaRequired: true },
     });
@@ -82,6 +88,8 @@ export async function POST(request: NextRequest) {
   recordAudit({
     action: "auth.login",
     status: "success",
+    targetType: "user",
+    targetId: user.email,
     ...getClientContext(request, { userId: user.id, role: user.role }, user.email),
   });
 

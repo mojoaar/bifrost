@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
-import { ingestAll, startWatcher, stopWatcher } from "@/lib/content/watcher";
+import { ingestAll, startWatcher, stopWatcher, deleteFromDb } from "@/lib/content/watcher";
 import { fs } from "@/lib/fs";
 import path from "path";
 import { db } from "@/lib/db";
@@ -138,6 +138,27 @@ tags:
     db.delete(postTags).where(eq(postTags.postSlug, "test-post")).run();
     db.delete(tags).where(eq(tags.slug, "guide")).run();
     db.delete(tags).where(eq(tags.slug, "dev-ops")).run();
+  });
+
+  it("deletes a tagged post on unlink without a foreign-key error", async () => {
+    await fs.writeFile(
+      TEST_FILE,
+      `---
+title: Tagged For Delete
+tags:
+  - Guide
+---
+# Tagged`
+    );
+    await ingestAll();
+    expect(db.select().from(postTags).where(eq(postTags.postSlug, "test-post")).all()).toHaveLength(1);
+
+    expect(() => deleteFromDb(TEST_FILE)).not.toThrow();
+
+    expect(db.select().from(posts).where(eq(posts.slug, "test-post")).get()).toBeUndefined();
+    expect(db.select().from(postTags).where(eq(postTags.postSlug, "test-post")).all()).toHaveLength(0);
+
+    db.delete(tags).where(eq(tags.slug, "guide")).run();
   });
 });
 

@@ -286,7 +286,7 @@ async function processFile(filePath: string, skipGit = false): Promise<void> {
   }
 }
 
-function deleteFromDb(filePath: string): void {
+export function deleteFromDb(filePath: string): void {
   const collection = collectionFor(filePath);
   if (!collection) return;
 
@@ -309,6 +309,7 @@ function deleteFromDb(filePath: string): void {
     return;
   }
   log.info(`unlink: deleting ${slug} from DB`);
+  db.delete(postTags).where(eq(postTags.postSlug, slug)).run();
   db.delete(posts).where(eq(posts.slug, slug)).run();
 }
 
