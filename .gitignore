@@ -12,3 +12,7 @@ coverage/
 .turbo/
 *.tsbuildinfo
 .superpowers/
+
+# User content is its own git repo (see docs/bifrost/git.md) and holds local
+# blog data. The app recreates these directories on startup, so never track it.
+content/
