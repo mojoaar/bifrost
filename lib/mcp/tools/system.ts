@@ -7,15 +7,18 @@
  * See the LICENSE file for details.
  */
 
-import { nowISO } from "@/lib/time";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema/media";
 import { settings } from "@/lib/db/schema/settings";
 import { buildMessages } from "@/lib/ai/actions";
-import { generateId } from "@/lib/id";
-import { mediaDir } from "@/lib/paths";
-import { redactSecrets } from "@/lib/settings";
-import path from "path";
+import {
+  redactSecrets,
+  isSecretKey,
+  invalidateSettingsCache,
+  SECRET_PLACEHOLDER,
+} from "@/lib/settings";
+import { saveMediaFile } from "@/lib/media/store";
+import { recordAudit } from "@/lib/audit";
 import type { McpTool } from "./shared";
 import { safeJson } from "./shared";
 
@@ -42,31 +45,35 @@ export const systemTools: McpTool[] = [
       },
       required: ["filename", "mimeType", "base64Content"],
     },
-    handler: async (args) => {
-      const id = generateId();
+    handler: async (args, ctx) => {
       const filename = args.filename as string;
       const mimeType = args.mimeType as string;
       const base64Content = args.base64Content as string;
 
       const buffer = Buffer.from(base64Content, "base64");
-      const { mkdir, writeFile } = await import("fs/promises");
-      const dir = mediaDir();
-      await mkdir(dir, { recursive: true });
-      const filePath = path.join(dir, `${id}-${filename}`);
-      await writeFile(filePath, buffer);
+      const file = new File([buffer], filename, { type: mimeType });
 
-      db.insert(media)
-        .values({
-          id,
-          filename,
-          path: filePath,
-          mimeType,
-          sizeBytes: buffer.length,
-          createdAt: nowISO(),
-        })
-        .run();
+      let record;
+      try {
+        record = await saveMediaFile(file);
+      } catch (err) {
+        return { content: [{ type: "text", text: `Upload failed: ${String(err)}` }] };
+      }
 
-      return { content: [{ type: "text", text: safeJson({ id, path: filePath }) }] };
+      recordAudit({
+        action: "media.upload",
+        status: "success",
+        targetType: "media",
+        targetId: record.id,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+        metadata: { filename, mimeType },
+      });
+
+      return { content: [{ type: "text", text: safeJson({ id: record.id, path: record.path }) }] };
     },
   },
 
@@ -93,13 +100,38 @@ export const systemTools: McpTool[] = [
       },
       required: ["key", "value"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const key = args.key as string;
       const value = args.value;
+
+      if (!/^[a-z0-9_.-]+$/i.test(key)) {
+        return { content: [{ type: "text", text: `Invalid settings key: ${key}` }] };
+      }
+
+      if (isSecretKey(key) && value === SECRET_PLACEHOLDER) {
+        return { content: [{ type: "text", text: "Skipped: placeholder value for secret key" }] };
+      }
+
+      const serialized = typeof value === "string" ? value : JSON.stringify(value);
       db.insert(settings)
-        .values({ key, value: JSON.stringify(value) })
-        .onConflictDoUpdate({ target: settings.key, set: { value: JSON.stringify(value) } })
+        .values({ key, value: serialized })
+        .onConflictDoUpdate({ target: settings.key, set: { value: serialized } })
         .run();
+      invalidateSettingsCache();
+
+      recordAudit({
+        action: "settings.update",
+        status: "success",
+        targetType: "settings",
+        targetId: key,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+        metadata: { keys: [key] },
+      });
+
       return { content: [{ type: "text", text: "Updated" }] };
     },
   },

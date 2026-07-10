@@ -11,9 +11,11 @@ import type { McpTool } from "./shared";
 import { postTools } from "./posts";
 import { pageTools } from "./pages";
 import { systemTools } from "./system";
+import { userTools } from "./users";
 
-export type { McpTool, ToolDef, ToolHandler } from "./shared";
+export type { McpTool, ToolDef, ToolHandler, McpContext } from "./shared";
+export { SYSTEM_CONTEXT } from "./shared";
 
 export function createToolDefinitions(): McpTool[] {
-  return [...postTools, ...systemTools, ...pageTools];
+  return [...postTools, ...systemTools, ...pageTools, ...userTools];
 }

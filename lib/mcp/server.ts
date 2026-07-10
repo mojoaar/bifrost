@@ -16,14 +16,25 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { createToolDefinitions } from "./tools";
+import { createToolDefinitions, SYSTEM_CONTEXT } from "./tools";
+import type { McpContext } from "./tools";
 import { createResourceDefinitions } from "./resources";
+import type { ResourceDef } from "./resources";
 
 const VERSION = readFileSync("VERSION", "utf-8").trim();
 const SERVER_INFO = { name: "bifrost", version: VERSION } as const;
 const SERVER_CAPS = { capabilities: { tools: {}, resources: {} } } as const;
 
-function registerHandlers(server: Server): void {
+export function matchResource(resources: ResourceDef[], uri: string): ResourceDef | undefined {
+  const sorted = [...resources].sort((a, b) => b.uriPattern.length - a.uriPattern.length);
+  return sorted.find((r) => {
+    if (!r.uriPattern.includes("{slug}")) return uri === r.uriPattern;
+    const [pre, post] = r.uriPattern.split("{slug}") as [string, string];
+    return uri.startsWith(pre) && uri.endsWith(post) && uri.length > pre.length + post.length;
+  });
+}
+
+function registerHandlers(server: Server, ctx: McpContext): void {
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = createToolDefinitions();
     return {
@@ -41,7 +52,7 @@ function registerHandlers(server: Server): void {
     if (!tool) {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
-    return tool.handler(request.params.arguments ?? {});
+    return tool.handler(request.params.arguments ?? {}, ctx);
   });
 
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
@@ -57,7 +68,7 @@ function registerHandlers(server: Server): void {
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const resources = createResourceDefinitions();
     const uri = request.params.uri;
-    const resource = [...resources].reverse().find((r) => uri.startsWith(r.uriPattern.replace("{slug}", "")));
+    const resource = matchResource(resources, uri);
     if (!resource) {
       throw new Error(`Unknown resource: ${uri}`);
     }
@@ -69,16 +80,16 @@ function registerHandlers(server: Server): void {
   });
 }
 
-export async function startStdioMcpServer(): Promise<void> {
+export async function startStdioMcpServer(ctx: McpContext = SYSTEM_CONTEXT): Promise<void> {
   const server = new Server(SERVER_INFO, SERVER_CAPS);
-  registerHandlers(server);
+  registerHandlers(server, ctx);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
-export function createMcpServer(): Server {
+export function createMcpServer(ctx: McpContext = SYSTEM_CONTEXT): Server {
   const server = new Server(SERVER_INFO, SERVER_CAPS);
-  registerHandlers(server);
+  registerHandlers(server, ctx);
   return server;
 }

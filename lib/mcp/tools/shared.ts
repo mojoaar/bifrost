@@ -17,8 +17,24 @@ export interface ToolDef {
   };
 }
 
+export interface McpContext {
+  actorId: string | null;
+  actorLabel: string | null;
+  actorType: "user" | "api_key" | "system";
+  ip: string | null;
+  userAgent: string | null;
+}
+
+export const SYSTEM_CONTEXT: McpContext = {
+  actorId: null,
+  actorLabel: null,
+  actorType: "system",
+  ip: null,
+  userAgent: null,
+};
+
 export interface ToolHandler {
-  (args: Record<string, unknown>): Promise<{ content: { type: "text"; text: string }[] }>;
+  (args: Record<string, unknown>, ctx: McpContext): Promise<{ content: { type: "text"; text: string }[] }>;
 }
 
 export interface McpTool {

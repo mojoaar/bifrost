@@ -12,11 +12,12 @@ import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema/posts";
 import { tags } from "@/lib/db/schema/tags";
 import { postTags } from "@/lib/db/schema/post-tags";
-import { renderMarkdown } from "@/lib/md/parser";
+import { renderMarkdown, parseFrontmatter } from "@/lib/md/parser";
 import { postCreateSchema } from "@/lib/validation/posts";
-import { eq, like, or } from "drizzle-orm";
+import { eq, like, or, desc } from "drizzle-orm";
 import { writePostToFilesystem, deletePostFromFilesystem } from "@/lib/content/sync";
 import { resolveAuthorId } from "@/lib/content/authors";
+import { recordAudit } from "@/lib/audit";
 import type { McpTool } from "./shared";
 import { safeJson } from "./shared";
 
@@ -27,15 +28,20 @@ export const postTools: McpTool[] = [
     inputSchema: {
       type: "object",
       properties: {
-        status: { type: "string", enum: ["draft", "published"] },
+        status: { type: "string", enum: ["draft", "published", "scheduled"] },
         tag: { type: "string" },
         limit: { type: "number" },
+        page: { type: "number" },
       },
     },
     handler: async (args) => {
       const limit = Math.min(50, (args.limit as number) ?? 20);
+      const page = Math.max(1, (args.page as number) ?? 1);
+      const offset = (page - 1) * limit;
       const statusFilter =
-        typeof args.status === "string" ? eq(posts.status, args.status as "draft" | "published") : undefined;
+        typeof args.status === "string"
+          ? eq(posts.status, args.status as "draft" | "published" | "scheduled")
+          : undefined;
 
       if (typeof args.tag === "string") {
         const tag = db.select({ id: tags.id }).from(tags).where(eq(tags.slug, args.tag as string)).get();
@@ -53,12 +59,14 @@ export const postTools: McpTool[] = [
           .select()
           .from(posts)
           .where(conditions.length === 1 ? conditions[0] : or(...conditions))
+          .orderBy(desc(posts.createdAt))
           .limit(limit)
+          .offset(offset)
           .all();
         return { content: [{ type: "text", text: safeJson(rows) }] };
       }
 
-      const query = db.select().from(posts).limit(limit);
+      const query = db.select().from(posts).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
       if (statusFilter) query.where(statusFilter);
       const rows = query.all();
       return { content: [{ type: "text", text: safeJson(rows) }] };
@@ -107,19 +115,21 @@ export const postTools: McpTool[] = [
         title: { type: "string" },
         slug: { type: "string" },
         content: { type: "string" },
-        status: { type: "string", enum: ["draft", "published"] },
+        status: { type: "string", enum: ["draft", "published", "scheduled"] },
+        scheduledAt: { type: "string" },
         frontmatter: { type: "object" },
         authorId: { type: "string" },
         tagIds: { type: "array", items: { type: "string" } },
       },
       required: ["title", "slug", "content"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const body = {
         title: args.title as string,
         slug: args.slug as string,
         content: args.content as string,
-        status: (args.status as "draft" | "published") ?? "draft",
+        status: (args.status as "draft" | "published" | "scheduled") ?? "draft",
+        scheduledAt: args.scheduledAt as string | undefined,
         frontmatter: (args.frontmatter as Record<string, unknown>) ?? {},
         authorId: args.authorId as string | undefined,
         tagIds: (args.tagIds as string[]) ?? [],
@@ -137,32 +147,48 @@ export const postTools: McpTool[] = [
         return { content: [{ type: "text", text: "No valid author found; create a user first" }] };
       }
 
-      await writePostToFilesystem(body.slug, body.content, { title: body.title, ...body.frontmatter });
+      const { frontmatter: bodyFm } = parseFrontmatter(body.content);
+      const mergedFm = { ...bodyFm, ...body.frontmatter };
 
       const now = nowISO();
       const { html, excerpt } = await renderMarkdown(body.content);
 
-      db.insert(posts)
-        .values({
-          slug: body.slug,
-          title: body.title,
-          contentMd: body.content,
-          contentHtml: html,
-          excerpt,
-          frontmatter: JSON.stringify(body.frontmatter),
-          status: body.status,
-          authorId,
-          publishedAt: body.status === "published" ? now : null,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .run();
+      db.transaction((tx) => {
+        tx.insert(posts)
+          .values({
+            slug: body.slug,
+            title: body.title,
+            contentMd: body.content,
+            contentHtml: html,
+            excerpt,
+            frontmatter: JSON.stringify(mergedFm),
+            status: body.status,
+            authorId,
+            publishedAt: body.status === "published" ? now : null,
+            scheduledAt: body.status === "scheduled" ? body.scheduledAt ?? null : null,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .run();
 
-      if (body.tagIds.length > 0) {
         for (const tagId of body.tagIds) {
-          db.insert(postTags).values({ postSlug: body.slug, tagId }).run();
+          tx.insert(postTags).values({ postSlug: body.slug, tagId }).run();
         }
-      }
+      });
+
+      await writePostToFilesystem(body.slug, body.content, { title: body.title, ...mergedFm });
+
+      recordAudit({
+        action: "post.create",
+        status: "success",
+        targetType: "post",
+        targetId: body.slug,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
 
       return { content: [{ type: "text", text: safeJson({ slug: body.slug, status: body.status }) }] };
     },
@@ -170,19 +196,21 @@ export const postTools: McpTool[] = [
 
   {
     name: "update_post",
-    description: "Update post content or frontmatter",
+    description: "Update post content, frontmatter, status, or tags",
     inputSchema: {
       type: "object",
       properties: {
         slug: { type: "string" },
         title: { type: "string" },
         content: { type: "string" },
-        status: { type: "string", enum: ["draft", "published"] },
+        status: { type: "string", enum: ["draft", "published", "scheduled"] },
+        scheduledAt: { type: "string" },
         frontmatter: { type: "object" },
+        tagIds: { type: "array", items: { type: "string" } },
       },
       required: ["slug"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const existing = db
         .select()
         .from(posts)
@@ -192,25 +220,54 @@ export const postTools: McpTool[] = [
 
       const title = (args.title as string) ?? existing.title;
       const content = (args.content as string) ?? existing.contentMd;
-      const status = (args.status as "draft" | "published") ?? existing.status;
+      const status = (args.status as "draft" | "published" | "scheduled") ?? existing.status;
       const frontmatter = (args.frontmatter as Record<string, unknown>) ?? JSON.parse(existing.frontmatter);
+      const tagIds = args.tagIds as string[] | undefined;
 
       const { html, excerpt } = await renderMarkdown(content);
 
-      db.update(posts)
-        .set({
-          title,
-          contentMd: content,
-          contentHtml: html,
-          excerpt,
-          status,
-          frontmatter: JSON.stringify(frontmatter),
-          updatedAt: nowISO(),
-        })
-        .where(eq(posts.slug, args.slug as string))
-        .run();
+      const publishedAt =
+        status === "published" ? existing.publishedAt ?? nowISO() : status === "draft" ? null : existing.publishedAt;
+      const scheduledAt =
+        status === "scheduled" ? (args.scheduledAt as string) ?? existing.scheduledAt : null;
+
+      db.transaction((tx) => {
+        tx.update(posts)
+          .set({
+            title,
+            contentMd: content,
+            contentHtml: html,
+            excerpt,
+            status,
+            publishedAt,
+            scheduledAt,
+            frontmatter: JSON.stringify(frontmatter),
+            updatedAt: nowISO(),
+          })
+          .where(eq(posts.slug, args.slug as string))
+          .run();
+
+        if (tagIds) {
+          tx.delete(postTags).where(eq(postTags.postSlug, args.slug as string)).run();
+          for (const tagId of tagIds) {
+            tx.insert(postTags).values({ postSlug: args.slug as string, tagId }).run();
+          }
+        }
+      });
 
       await writePostToFilesystem(args.slug as string, content, { title, ...frontmatter });
+
+      recordAudit({
+        action: "post.update",
+        status: "success",
+        targetType: "post",
+        targetId: args.slug as string,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
 
       return { content: [{ type: "text", text: safeJson({ slug: args.slug, status }) }] };
     },
@@ -224,7 +281,7 @@ export const postTools: McpTool[] = [
       properties: { slug: { type: "string" } },
       required: ["slug"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const existing = db
         .select({ slug: posts.slug })
         .from(posts)
@@ -236,6 +293,18 @@ export const postTools: McpTool[] = [
       db.delete(posts).where(eq(posts.slug, args.slug as string)).run();
 
       await deletePostFromFilesystem(args.slug as string);
+
+      recordAudit({
+        action: "post.delete",
+        status: "success",
+        targetType: "post",
+        targetId: args.slug as string,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
 
       return { content: [{ type: "text", text: "Deleted" }] };
     },

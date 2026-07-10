@@ -14,7 +14,7 @@ import { settings } from "@/lib/db/schema/settings";
 import { eq } from "drizzle-orm";
 import { redactSecrets } from "@/lib/settings";
 
-interface ResourceDef {
+export interface ResourceDef {
   uriPattern: string;
   handler: (uri: string) => Promise<{ contents: { uri: string; mimeType: string; text: string }[] } | null>;
 }

@@ -16,6 +16,7 @@ import { eq } from "drizzle-orm";
 import { writePageToFilesystem, deletePageFromFilesystem } from "@/lib/content/sync";
 import { resolveAuthorId } from "@/lib/content/authors";
 import { slugExists } from "@/lib/content/slug";
+import { recordAudit } from "@/lib/audit";
 import type { McpTool } from "./shared";
 import { safeJson } from "./shared";
 
@@ -95,7 +96,7 @@ export const pageTools: McpTool[] = [
       },
       required: ["title", "slug", "content"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const body = {
         title: args.title as string,
         slug: args.slug as string,
@@ -142,6 +143,18 @@ export const pageTools: McpTool[] = [
         })
         .run();
 
+      recordAudit({
+        action: "page.create",
+        status: "success",
+        targetType: "page",
+        targetId: body.slug,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
+
       return { content: [{ type: "text", text: safeJson({ slug: body.slug, status: body.status }) }] };
     },
   },
@@ -162,7 +175,7 @@ export const pageTools: McpTool[] = [
       },
       required: ["slug"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const existing = db
         .select()
         .from(pages)
@@ -196,6 +209,18 @@ export const pageTools: McpTool[] = [
 
       await writePageToFilesystem(args.slug as string, content, { title, ...frontmatter });
 
+      recordAudit({
+        action: "page.update",
+        status: "success",
+        targetType: "page",
+        targetId: args.slug as string,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
+
       return { content: [{ type: "text", text: safeJson({ slug: args.slug, status }) }] };
     },
   },
@@ -208,7 +233,7 @@ export const pageTools: McpTool[] = [
       properties: { slug: { type: "string" } },
       required: ["slug"],
     },
-    handler: async (args) => {
+    handler: async (args, ctx) => {
       const existing = db
         .select({ slug: pages.slug })
         .from(pages)
@@ -218,6 +243,18 @@ export const pageTools: McpTool[] = [
 
       db.delete(pages).where(eq(pages.slug, args.slug as string)).run();
       await deletePageFromFilesystem(args.slug as string);
+
+      recordAudit({
+        action: "page.delete",
+        status: "success",
+        targetType: "page",
+        targetId: args.slug as string,
+        actorId: ctx.actorId,
+        actorLabel: ctx.actorLabel,
+        actorType: ctx.actorType,
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
 
       return { content: [{ type: "text", text: "Deleted" }] };
     },

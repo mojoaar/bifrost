@@ -5,6 +5,28 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.0] — 2026-07-10
+
+### Added
+
+- MCP posts and pages now support the `scheduled` status with a `scheduledAt` timestamp, matching the REST API.
+- MCP `list_posts` and `list_pages` support pagination (`page`) and return newest-first.
+- MCP `update_post` can now replace a post's tags via `tagIds`.
+- MCP `update_settings` validates setting keys and refuses to overwrite a secret with the redacted placeholder.
+- New MCP `list_users` tool for reading accounts (never exposes password hashes).
+- MCP HTTP transport now enforces a per-IP rate limit (120 requests/minute).
+- A dedicated stdio entry point (`build:mcp:stdio` / `mcp:start:stdio`) for running the MCP server over stdio.
+
+### Fixed
+
+- MCP `bifrost://posts/{slug}/html` and `bifrost://posts/{slug}/frontmatter` resources now resolve correctly instead of falling through to the markdown handler.
+- MCP `upload_media` now stores files through the canonical media pipeline (relative paths, MIME allowlist, size cap, and image variants) instead of writing absolute paths.
+- MCP `create_post` now merges frontmatter embedded in the markdown body and writes the post atomically.
+
+### Security
+
+- All MCP mutations (post, page, settings, and media changes) are now recorded in the audit log.
+
 ## [1.34.1] — 2026-07-10
 
 ### Fixed
