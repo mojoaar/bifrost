@@ -123,7 +123,14 @@ export default function DocsPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] gap-0">
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Docs</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> man bifrost
+        </p>
+      </div>
+      <div className="flex h-[calc(100vh-11rem)] gap-0">
       <aside className="w-52 shrink-0 overflow-y-auto border-r border-border bg-bg-1 p-2">
         <div className="mb-3 border-b border-border px-2 pb-2 font-mono text-sm font-semibold text-text-1">
           Bifröst Docs
@@ -159,6 +166,7 @@ export default function DocsPage() {
           />
         )}
       </main>
+      </div>
     </div>
   );
 }

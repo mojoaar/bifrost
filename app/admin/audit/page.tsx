@@ -113,8 +113,13 @@ export default function AuditLogPage() {
 
   return (
     <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-text-1">Audit Log</h1>
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Audit Log</h1>
+            <p className="mt-1 font-mono text-sm text-text-3">
+              <span className="text-text-muted">$</span> tail -f audit.log → {total} events
+            </p>
+          </div>
           <button
             onClick={handlePurge}
             disabled={purging || total <= 0}

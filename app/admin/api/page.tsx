@@ -255,9 +255,9 @@ export default function ApiExplorerPage() {
   return (
     <div className="w-full">
       <div className="mb-4">
-        <h1 className="font-mono text-lg font-semibold text-text-1">API Explorer</h1>
-        <p className="text-sm text-text-3">
-          Interactive reference for the Bifröst REST API.{" "}
+        <h1 className="text-2xl font-semibold tracking-tight">API Explorer</h1>
+        <p className="mt-1 font-mono text-sm text-text-3">
+          <span className="text-text-muted">$</span> curl /api/docs{" "}
           <a
             href="/api/docs"
             target="_blank"
