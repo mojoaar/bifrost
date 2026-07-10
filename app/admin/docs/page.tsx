@@ -152,7 +152,7 @@ export default function DocsPage() {
         </nav>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-y-auto p-8">
+      <main className="min-w-0 flex-1 overflow-y-auto px-8 pb-8 pt-2">
         {loading ? (
           <p className="font-mono text-sm text-text-3">loading…</p>
         ) : error ? (
@@ -161,7 +161,7 @@ export default function DocsPage() {
           <div
             ref={contentRef}
             onClick={handleContentClick}
-            className="prose-sm text-text-1 [&>*:first-child]:mt-0 [&_a]:text-accent [&_a]:no-underline hover:[&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:bg-bg-1 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_blockquote]:text-text-3 [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-bg-1 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_h1]:mb-3 [&_h1]:text-display [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mb-3 [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_li]:text-text-2 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-text-2 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:border-border [&_pre]:bg-code-bg [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-sm [&_table]:mb-4 [&_table]:w-full [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-1.5 [&_td]:text-sm [&_th]:border [&_th]:border-border [&_th]:bg-bg-1 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-mono [&_th]:text-xs [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5"
+            className="prose-sm text-text-1 [&>*:first-child]:!mt-0 [&_a]:text-accent [&_a]:no-underline hover:[&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:bg-bg-1 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_blockquote]:text-text-3 [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-bg-1 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_h1]:mb-3 [&_h1]:text-display [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mb-3 [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_li]:text-text-2 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-text-2 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:border-border [&_pre]:bg-code-bg [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-sm [&_table]:mb-4 [&_table]:w-full [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-1.5 [&_td]:text-sm [&_th]:border [&_th]:border-border [&_th]:bg-bg-1 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-mono [&_th]:text-xs [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5"
             dangerouslySetInnerHTML={{ __html: html }}
           />
         )}

@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.3] — 2026-07-10
+
+### Fixed
+
+- Removed the remaining whitespace above the first heading on the admin Docs page. The global unlayered heading rule was overriding the Tailwind margin reset (now forced with `!important`), and the content pane's top padding was reduced to align with the sidebar.
+
 ## [1.35.2] — 2026-07-10
 
 ### Fixed
