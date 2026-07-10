@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.5] — 2026-07-10
+
+### Fixed
+
+- The admin sidebar version badge now stays pinned to the lower-left corner of the viewport on tall pages (API Explorer, Docs, Settings, Profile, Plugins, etc.). The desktop sidebar is now sticky to the viewport height with its own scrollable nav, so the `v{version}` footer no longer scrolls off the bottom of long content.
+
 ## [1.35.4] — 2026-07-10
 
 ### Fixed

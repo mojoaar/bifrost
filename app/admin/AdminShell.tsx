@@ -118,7 +118,7 @@ function Sidebar({
           <X size={18} />
         </button>
       </div>
-      <nav className="flex flex-1 flex-col gap-0.5">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink key={item.href} item={item} pathname={pathname} onClick={onClose} />
         ))}
@@ -131,7 +131,7 @@ function Sidebar({
 
   return (
     <>
-      <div className="hidden md:block">{aside}</div>
+      <div className="hidden md:block sticky top-0 h-screen self-start">{aside}</div>
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 md:hidden ${
           mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
