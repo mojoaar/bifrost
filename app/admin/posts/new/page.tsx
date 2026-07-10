@@ -131,56 +131,7 @@ export default function NewPostPage() {
           <span>back</span>
         </Button>
       </div>
-      <div className="flex items-end gap-4">
-        <Field label="Template">
-          <Select
-            value={template}
-            onChange={(e) => {
-              const t = templates.find((tp) => tp.name === e.target.value);
-              if (t) {
-                setTemplate(t.name);
-                if (t.title) setTitle(t.title);
-                if (t.content) {
-                  setContent(t.content);
-                  if (t.title) setSlug(generateSlug(t.title));
-                }
-              }
-            }}
-          >
-            {templates.map((t) => (
-              <option key={t.name} value={t.name}>{t.name}</option>
-            ))}
-          </Select>
-        </Field>
-        <TagInput selected={tags} onChange={setTags} />
-        <Field label="Featured">
-          <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
-          <div className="border-t border-border pt-3">
-            <button type="button" onClick={() => setSeoOpen(!seoOpen)} className="flex items-center gap-1 font-mono text-xs text-text-3 hover:text-text-1">
-              {seoOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              SEO
-            </button>
-            {seoOpen && (
-              <div className="mt-3 space-y-3">
-                <Field label="Meta Description">
-                  <Input value={seoMetaDescription} onChange={(e) => setSeoMetaDescription(e.target.value)} placeholder="Description for search engines" className="font-mono" />
-                </Field>
-                <Field label="OG Title">
-                  <Input value={seoOgTitle} onChange={(e) => setSeoOgTitle(e.target.value)} placeholder="Override Open Graph title" className="font-mono" />
-                </Field>
-                <Field label="OG Description">
-                  <Input value={seoOgDescription} onChange={(e) => setSeoOgDescription(e.target.value)} placeholder="Override Open Graph description" className="font-mono" />
-                </Field>
-                <label className="flex cursor-pointer items-center gap-2 font-mono text-sm text-text-2">
-                  <input type="checkbox" checked={seoNoindex} onChange={(e) => setSeoNoindex(e.target.checked)} className="size-4 rounded border-border bg-bg-1 text-accent" />
-                  <span>Hide from search engines (noindex)</span>
-                </label>
-              </div>
-            )}
-          </div>
-        </Field>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_16rem_10rem_auto]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1fr_10rem_auto]">
         <Field label="Title">
           <Input
             value={title}
@@ -231,6 +182,59 @@ export default function NewPostPage() {
             <span>{saving ? "Saving..." : "Create"}</span>
           </Button>
         </div>
+      </div>
+      <div className="md:w-64">
+        <Field label="Template">
+          <Select
+            value={template}
+            onChange={(e) => {
+              const t = templates.find((tp) => tp.name === e.target.value);
+              if (t) {
+                setTemplate(t.name);
+                if (t.title) setTitle(t.title);
+                if (t.content) {
+                  setContent(t.content);
+                  if (t.title) setSlug(generateSlug(t.title));
+                }
+              }
+            }}
+          >
+            {templates.map((t) => (
+              <option key={t.name} value={t.name}>{t.name}</option>
+            ))}
+          </Select>
+        </Field>
+      </div>
+      <TagInput selected={tags} onChange={setTags} />
+      <ImagePicker value={featuredImage} onChange={setFeaturedImage} />
+      <div className="rounded-md border border-border bg-bg-1">
+        <button
+          type="button"
+          onClick={() => setSeoOpen((v) => !v)}
+          className="flex w-full items-center gap-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-text-3 hover:text-text-1"
+        >
+          {seoOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <span>SEO</span>
+        </button>
+        {seoOpen && (
+          <div className="grid grid-cols-1 gap-3 border-t border-border px-4 py-3 md:grid-cols-2">
+            <Field label="Meta Description">
+              <Input value={seoMetaDescription} onChange={(e) => setSeoMetaDescription(e.target.value)} placeholder="Description for search engines" className="font-mono text-xs" />
+            </Field>
+            <Field label="OG Title">
+              <Input value={seoOgTitle} onChange={(e) => setSeoOgTitle(e.target.value)} placeholder="Override Open Graph title" className="font-mono text-xs" />
+            </Field>
+            <Field label="OG Description">
+              <Input value={seoOgDescription} onChange={(e) => setSeoOgDescription(e.target.value)} placeholder="Override Open Graph description" className="font-mono text-xs" />
+            </Field>
+            <div className="flex items-end">
+              <label className="flex cursor-pointer items-center gap-2 font-mono text-sm text-text-2">
+                <input type="checkbox" checked={seoNoindex} onChange={(e) => setSeoNoindex(e.target.checked)} className="size-4 rounded border-border bg-bg-1 text-accent focus:ring-2 focus:ring-accent/30" />
+                <span>noindex</span>
+              </label>
+            </div>
+          </div>
+        )}
       </div>
       {error && (
         <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>

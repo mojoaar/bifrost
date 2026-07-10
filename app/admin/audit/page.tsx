@@ -152,25 +152,25 @@ export default function AuditLogPage() {
           <p className="text-sm text-text-3">No audit log entries found.</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="overflow-hidden rounded-md border border-border">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border text-left text-text-3">
-                    <th className="pb-2 pr-4 font-medium">Timestamp</th>
-                    <th className="pb-2 pr-4 font-medium">Actor</th>
-                    <th className="pb-2 pr-4 font-medium">Action</th>
-                    <th className="pb-2 pr-4 font-medium">Target</th>
-                    <th className="pb-2 pr-4 font-medium">Status</th>
-                    <th className="pb-2 pr-4 font-medium">IP</th>
+                  <tr className="border-b border-border bg-bg-1 text-left text-text-3">
+                    <th className="px-4 py-2.5 font-medium">Timestamp</th>
+                    <th className="px-4 py-2.5 font-medium">Actor</th>
+                    <th className="px-4 py-2.5 font-medium">Action</th>
+                    <th className="px-4 py-2.5 font-medium">Target</th>
+                    <th className="px-4 py-2.5 font-medium">Status</th>
+                    <th className="px-4 py-2.5 font-medium">IP</th>
                   </tr>
                 </thead>
                 <tbody>
                   {entries.map((e) => (
-                    <tr key={e.id} className="border-b border-border/50">
-                      <td className="py-2 pr-4 whitespace-nowrap text-text-2">
+                    <tr key={e.id} className="border-b border-border/50 last:border-b-0">
+                      <td className="px-4 py-2 whitespace-nowrap text-text-2">
                         {formatDateTime(e.timestamp)}
                       </td>
-                      <td className="py-2 pr-4 text-text-2">
+                      <td className="px-4 py-2 text-text-2">
                         {e.actorLabel ?? (
                           e.actorType === "anonymous" || e.actorType === "system" ? (
                             <span className="text-text-3">{e.actorType}</span>
@@ -179,15 +179,15 @@ export default function AuditLogPage() {
                           )
                         )}
                       </td>
-                      <td className="py-2 pr-4 font-mono text-xs text-text-2">
+                      <td className="px-4 py-2 font-mono text-xs text-text-2">
                         {e.action}
                       </td>
-                      <td className="py-2 pr-4 text-text-2">
+                      <td className="px-4 py-2 text-text-2">
                         {e.targetType && e.targetId
                           ? `${e.targetType}: ${e.targetId}`
                           : <span className="text-text-3">—</span>}
                       </td>
-                      <td className="py-2 pr-4">
+                      <td className="px-4 py-2">
                         <span
                           className={
                             e.status === "success"
@@ -198,7 +198,7 @@ export default function AuditLogPage() {
                           {e.status}
                         </span>
                       </td>
-                      <td className="py-2 pr-4 font-mono text-xs text-text-3">
+                      <td className="px-4 py-2 font-mono text-xs text-text-3">
                         {e.ip ?? "—"}
                       </td>
                     </tr>
