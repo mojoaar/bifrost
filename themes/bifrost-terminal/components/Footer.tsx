@@ -9,27 +9,13 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useBifrost } from "@/lib/hooks/use-bifrost";
 
 const BIFROST_REPO_URL = "https://github.com/mojoaar/bifrost";
 
 export default function Footer({ widthClass = "max-w-3xl" }: { widthClass?: string }) {
-  const [text, setText] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/v1/settings");
-        const body = await res.json();
-        if (res.ok && body.data?.["site.footer_text"]) {
-          setText(String(body.data["site.footer_text"]));
-        }
-      } catch {
-        // use default
-      }
-    }
-    load();
-  }, []);
+  const { site } = useBifrost();
+  const text = site.footerText;
 
   return (
     <footer className="mt-12 border-t border-border">

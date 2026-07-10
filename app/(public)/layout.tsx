@@ -11,10 +11,13 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema/settings";
-import { eq } from "drizzle-orm";
+import { pages } from "@/lib/db/schema/pages";
+import { and, asc, eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
+import { getAllSettings, redactSecrets } from "@/lib/settings";
 import { PageViewBeacon } from "@/components/PageViewBeacon";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { BifrostProvider, type BifrostNavItem } from "@/components/BifrostProvider";
 
 export default async function PublicLayout({
   children,
@@ -84,6 +87,29 @@ export default async function PublicLayout({
     return <>{children}</>;
   }
 
+  const publicSettings = redactSecrets(getAllSettings());
+
+  let nav: BifrostNavItem[] = [];
+  try {
+    nav = db
+      .select({ slug: pages.slug, title: pages.title })
+      .from(pages)
+      .where(and(eq(pages.status, "published"), eq(pages.showInNav, true)))
+      .orderBy(asc(pages.navOrder), asc(pages.title))
+      .all();
+  } catch {
+    nav = [];
+  }
+
+  const bifrostValue = {
+    site: {
+      title: publicSettings["site.title"] ?? "Bifröst",
+      footerText: publicSettings["site.footer_text"] ?? null,
+    },
+    settings: publicSettings,
+    nav,
+  };
+
   return (
     <>
       {umamiId && (
@@ -95,11 +121,13 @@ export default async function PublicLayout({
           {...(umamiDomains ? { "data-domains": umamiDomains } : {})}
         />
       )}
-      <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
-        <PageViewBeacon />
-        {children}
-        <InstallPrompt />
-      </ThemeLayout>
+      <BifrostProvider value={bifrostValue}>
+        <ThemeLayout contentWidth={contentWidth} theme={theme} font={themeMod.manifest.font}>
+          <PageViewBeacon />
+          {children}
+          <InstallPrompt />
+        </ThemeLayout>
+      </BifrostProvider>
     </>
   );
 }

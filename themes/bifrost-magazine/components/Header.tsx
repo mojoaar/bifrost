@@ -9,39 +9,23 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sun, Moon } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import { useTheme } from "@/lib/themes/theme-context";
+import { useBifrost } from "@/lib/hooks/use-bifrost";
 
 const SOCIAL_KEYS = ["facebook", "bluesky", "github", "linkedin"] as const;
 
 export default function Header({ widthClass = "max-w-4xl" }: { widthClass?: string }) {
   const { mode, toggle } = useTheme();
-  const [title, setTitle] = useState("Bifröst");
-  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/v1/settings");
-        const body = await res.json();
-        if (res.ok && body.data) {
-          setTitle(String(body.data["site.title"] ?? "Bifröst"));
-          const links: Record<string, string> = {};
-          for (const key of SOCIAL_KEYS) {
-            const url = body.data[`theme.magazine.social.${key}`];
-            if (url) links[key] = String(url);
-          }
-          setSocialLinks(links);
-        }
-      } catch {
-        // use default
-      }
-    }
-    load();
-  }, []);
+  const { site, settings } = useBifrost();
+  const title = site.title;
+  const socialLinks: Record<string, string> = {};
+  for (const key of SOCIAL_KEYS) {
+    const url = settings[`theme.magazine.social.${key}`];
+    if (url) socialLinks[key] = url;
+  }
 
   const visible = SOCIAL_KEYS.filter((k) => socialLinks[k]);
 

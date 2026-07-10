@@ -5,6 +5,12 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.33.0] — 2026-07-10
+
+### Changed
+
+- Themes now read site settings and navigation from a shared `useBifrost()` context hydrated once on the server, instead of each theme header/footer fetching `/api/v1/settings` and `/api/v1/pages` on the client. This removes redundant client requests and renders navigation immediately.
+
 ## [1.32.0] — 2026-07-10
 
 ### Added
