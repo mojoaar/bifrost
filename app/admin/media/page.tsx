@@ -13,6 +13,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { UploadCloud, FileText, Image as ImageIcon, Copy, Check, Trash2 } from "lucide-react";
 import { Card } from "@/themes/bifrost-terminal/components/ui/Card";
 import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
+import { thumbSrc } from "@/lib/media/srcset";
 
 interface MediaItem {
   id: string;
@@ -21,6 +22,7 @@ interface MediaItem {
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
+  variants?: string | null;
 }
 
 export default function MediaPage() {
@@ -154,7 +156,7 @@ export default function MediaPage() {
             <div key={item.id} className="rounded-md border border-border bg-bg-1 p-3">
               {item.mimeType.startsWith("image/") ? (
                 <img
-                  src={`/${item.path}`}
+                  src={thumbSrc(item.variants) ?? `/${item.path}`}
                   alt={item.filename}
                   className="mb-3 h-32 w-full rounded border border-border object-cover"
                 />

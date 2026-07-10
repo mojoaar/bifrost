@@ -18,4 +18,7 @@ export const media = sqliteTable("media", {
   sizeBytes: integer("size_bytes").notNull(),
   postSlug: text("post_slug").references(() => posts.slug),
   createdAt: text("created_at").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  variants: text("variants"),
 });

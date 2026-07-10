@@ -48,6 +48,7 @@ export interface PostData {
   showAuthorBio?: boolean;
   showReadingProgress?: boolean;
   relatedPosts?: RelatedPost[];
+  featuredImageSrcSet?: string;
 }
 
 export interface PageData {

@@ -15,6 +15,8 @@ import { eq } from "drizzle-orm";
 import { loadTheme } from "@/lib/themes/registry";
 import { getSetting } from "@/lib/settings";
 import { getRelatedPosts } from "@/lib/content/related";
+import { getMediaByPath } from "@/lib/media/store";
+import { buildSrcSet } from "@/lib/media/srcset";
 import { isPreviewTokenValid } from "@/lib/content/preview";
 import { parseSocialLinks } from "@/lib/social";
 import { parseShareNetworks } from "@/lib/sharing";
@@ -201,6 +203,11 @@ export default async function PublicSlugPage({ params, searchParams }: Props) {
     ? (() => { const { featuredImage: _, ...rest } = postFm; return rest; })()
     : postFm;
 
+  const featuredImageSrcSet =
+    showFeatured && typeof postFm.featuredImage === "string"
+      ? buildSrcSet(getMediaByPath(postFm.featuredImage)?.variants)
+      : undefined;
+
   const postData: PostData = {
     slug: row.slug,
     title: row.title,
@@ -216,6 +223,7 @@ export default async function PublicSlugPage({ params, searchParams }: Props) {
     showAuthorBio,
     showReadingProgress,
     relatedPosts: showRelatedPosts ? getRelatedPosts(row.slug, 3) : [],
+    featuredImageSrcSet,
   };
 
   if (!PostComponent) {

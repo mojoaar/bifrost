@@ -8,10 +8,25 @@
  */
 
 import { describe, it, expect } from "vitest";
+import sharp from "sharp";
 import { saveMediaFile, getAllMedia, deleteMedia } from "@/lib/media/store";
 
 function file(name: string, type: string, size = 4): File {
   return new File([new Uint8Array(size)], name, { type });
+}
+
+async function pngFile(name: string, width: number, height: number): Promise<File> {
+  const buffer = await sharp({
+    create: {
+      width,
+      height,
+      channels: 3,
+      background: { r: 100, g: 150, b: 200 },
+    },
+  })
+    .png()
+    .toBuffer();
+  return new File([new Uint8Array(buffer)], name, { type: "image/png" });
 }
 
 describe("saveMediaFile", () => {
@@ -34,6 +49,35 @@ describe("saveMediaFile", () => {
     expect(record.filename).not.toContain("/");
     expect(record.filename).not.toContain(" ");
     expect(record.filename).toMatch(/^[a-zA-Z0-9._-]+$/);
+  });
+
+  it("generates width/height and WebP variants for a real image", async () => {
+    const record = await saveMediaFile(await pngFile("wide.png", 1600, 900));
+    expect(record.width).toBe(1600);
+    expect(record.height).toBe(900);
+    expect(record.variants).toBeTruthy();
+    const variants = JSON.parse(record.variants!);
+    expect(variants.sizes.length).toBeGreaterThan(0);
+    expect(variants.sizes.every((v: { path: string }) => v.path.endsWith(".webp"))).toBe(true);
+    expect(variants.thumb).toBeTruthy();
+    const widths = variants.sizes.map((v: { width: number }) => v.width);
+    expect(Math.max(...widths)).toBeLessThan(1600);
+  });
+
+  it("skips resizing for svg and gif", async () => {
+    const svg = await saveMediaFile(file("logo.svg", "image/svg+xml"));
+    expect(svg.width).toBeNull();
+    expect(svg.variants).toBeNull();
+    const gif = await saveMediaFile(file("anim.gif", "image/gif"));
+    expect(gif.width).toBeNull();
+    expect(gif.variants).toBeNull();
+  });
+
+  it("falls back to original-only when the image cannot be processed", async () => {
+    const record = await saveMediaFile(file("broken.png", "image/png", 8));
+    expect(record.id).toBeTruthy();
+    expect(record.width).toBeNull();
+    expect(record.variants).toBeNull();
   });
 });
 

@@ -5,6 +5,13 @@ All notable changes to Bifröst are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.0] — 2026-07-10
+
+### Added
+
+- Responsive images: uploading a PNG, JPEG, or WebP now generates resized WebP variants (320/640/1280px) plus a ~400px thumbnail. Featured images render with a `srcset`, and the admin media grid and image picker use thumbnails. SVG and GIF are stored as-is.
+- `scripts/backfill-media.ts` to generate variants for images uploaded before this feature.
+
 ## [1.33.0] — 2026-07-10
 
 ### Changed

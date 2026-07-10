@@ -14,6 +14,7 @@ import { Image as ImageIcon, X, UploadCloud } from "lucide-react";
 import { Button } from "@/themes/bifrost-terminal/components/ui/Button";
 import { authFetch } from "@/lib/auth/client";
 import { ACCESS_TOKEN_KEY } from "@/lib/auth/constants";
+import { thumbSrc } from "@/lib/media/srcset";
 
 interface MediaItem {
   id: string;
@@ -22,6 +23,7 @@ interface MediaItem {
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
+  variants?: string | null;
 }
 
 interface Props {
@@ -188,7 +190,7 @@ export default function ImagePicker({ value, onChange }: Props) {
                     }`}
                   >
                     <img
-                      src={`/${item.path}`}
+                      src={thumbSrc(item.variants) ?? `/${item.path}`}
                       alt={item.filename}
                       className="h-full w-full object-cover"
                     />

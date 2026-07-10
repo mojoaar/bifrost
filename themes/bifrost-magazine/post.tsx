@@ -92,6 +92,8 @@ export default function PostTemplate({ post, isAdmin = false, sharing = null }: 
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={String(post.frontmatter.featuredImage)}
+          srcSet={post.featuredImageSrcSet}
+          sizes="(max-width: 768px) 100vw, 768px"
           alt=""
           className="mb-6 w-full max-h-96 rounded-md object-cover"
         />

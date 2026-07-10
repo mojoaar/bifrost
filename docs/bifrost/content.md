@@ -72,6 +72,18 @@ To keep authoring consistent, Bifröst supports templates — pre-filled frontma
 
 Set `featuredImage` in frontmatter to a media path (uploaded via the admin **Media** screen) or an absolute URL. Themes decide how to render it — typically as a hero at the top of the post and a thumbnail in listings. Whether featured images appear at all is controlled by a display toggle in **Settings**.
 
+### Responsive images
+
+When you upload a raster image (PNG, JPEG, or WebP), Bifröst automatically generates resized WebP variants (up to 320px, 640px, and 1280px wide, plus a ~400px thumbnail) alongside the original. Featured images are served with a `srcset` so browsers download the smallest suitable size, and the admin media grid uses the thumbnails. SVG and GIF files are stored as-is.
+
+To generate variants for images uploaded before this feature existed, run the backfill script once:
+
+```bash
+npx tsx scripts/backfill-media.ts
+```
+
+It regenerates variants for any media rows that don't have them yet and skips everything else.
+
 ## Scheduled posts
 
 Set `scheduledAt` to a future ISO 8601 timestamp and leave `draft: false`. The post stays hidden until that time passes, then becomes publicly visible automatically. This lets you queue content in advance:
