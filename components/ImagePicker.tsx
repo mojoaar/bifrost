@@ -106,6 +106,7 @@ export default function ImagePicker({ value, onChange }: Props) {
       <div className="flex items-center gap-2">
         {value ? (
           <div className="relative group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
               alt="Featured"
@@ -189,6 +190,7 @@ export default function ImagePicker({ value, onChange }: Props) {
                       value === `/${item.path}` ? "border-accent" : "border-border hover:border-border-strong"
                     }`}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={thumbSrc(item.variants) ?? `/${item.path}`}
                       alt={item.filename}

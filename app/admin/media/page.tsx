@@ -155,6 +155,7 @@ export default function MediaPage() {
           {items.map((item) => (
             <div key={item.id} className="rounded-md border border-border bg-bg-1 p-3">
               {item.mimeType.startsWith("image/") ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={thumbSrc(item.variants) ?? `/${item.path}`}
                   alt={item.filename}
